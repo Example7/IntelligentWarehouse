@@ -22,7 +22,6 @@
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
-            <input type="hidden" asp-for="UtworzonoUtc" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
 
             <div class="news-form-grid">
@@ -65,11 +64,6 @@
                     <label asp-for="IloscPonownegoZamowienia" class="form-label news-form-label"></label>
                     <input asp-for="IloscPonownegoZamowienia" class="form-control news-form-control" />
                     <span asp-validation-for="IloscPonownegoZamowienia" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <label asp-for="UtworzonoUtc" class="form-label news-form-label"></label>
-                    <input asp-for="UtworzonoUtc" class="form-control news-form-control" />
-                    <span asp-validation-for="UtworzonoUtc" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field news-form-field--full">
                     <div class="form-check news-form-check">

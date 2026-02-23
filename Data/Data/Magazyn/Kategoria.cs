@@ -11,6 +11,7 @@ namespace Data.Data.Magazyn
         public int IdKategorii { get; set; }
 
         [Column("ParentCategoryId")]
+        [Display(Name = "Kategoria nadrzędna")]
         public int? IdNadrzednejKategorii { get; set; }  // self-FK
 
         [Required]
@@ -20,6 +21,7 @@ namespace Data.Data.Magazyn
 
         [MaxLength(500)]
         [Column("Path")]
+        [Display(Name = "Ścieżka")]
         public string? Sciezka { get; set; }
 
         [ForeignKey(nameof(IdNadrzednejKategorii))]

@@ -1,7 +1,10 @@
-@model Data.Data.Magazyn.Kategoria
+﻿@model Data.Data.Magazyn.Kategoria
 
 @{
     ViewData["Title"] = "Szczegóły kategorii";
+    var liczbyProduktow = ViewBag.LiczbyProduktow as IDictionary<int, int> ?? new Dictionary<int, int>();
+    var liczbyPodkategorii = ViewBag.LiczbyPodkategorii as IDictionary<int, int> ?? new Dictionary<int, int>();
+    var produktyKategorii = ViewBag.ProduktyKategorii as List<Data.Data.Magazyn.Produkt> ?? new List<Data.Data.Magazyn.Produkt>();
 }
 
 <div class="news-admin-page">
@@ -14,6 +17,8 @@
             </div>
         </div>
         <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Produkty</span><strong class="news-admin-stat__value">@(liczbyProduktow.TryGetValue(Model.IdKategorii, out var lp) ? lp : 0)</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Podkategorie</span><strong class="news-admin-stat__value">@(liczbyPodkategorii.TryGetValue(Model.IdKategorii, out var lpk) ? lpk : 0)</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdKategorii</strong></div>
         </div>
     </section>
@@ -28,12 +33,86 @@
             </div>
         </div>
         <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Przypisane produkty</div><div class="news-details-item__value">@(liczbyProduktow.TryGetValue(Model.IdKategorii, out var lpGrid) ? lpGrid : 0)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Podkategorie</div><div class="news-details-item__value">@(liczbyPodkategorii.TryGetValue(Model.IdKategorii, out var lpkGrid) ? lpkGrid : 0)</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Nadrzędna</div><div class="news-details-item__value">@(Model.NadrzednaKategoria?.Nazwa ?? "-")</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Ścieżka</div>
                 <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Sciezka) ? "Brak ścieżki" : Model.Sciezka)</div>
             </div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Przypisane produkty <span class="category-products-count">(@produktyKategorii.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">Produkty przypisane bezpośrednio do tej kategorii.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                @if (produktyKategorii.Any())
+                {
+                    <a asp-controller="Produkt" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-box-seam me-1"></i> Lista produktów
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="category-products-panel__body">
+            @if (!produktyKategorii.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-inbox"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak przypisanych produktów</div>
+                        <div class="category-products-empty__text">Ta kategoria nie ma jeszcze żadnych produktów.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell">
+                    <div class="entity-table-wrap">
+                        <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Kod</th>
+                                    <th>Nazwa</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var produkt in produktyKategorii)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="entity-cell-title entity-mono">@produkt.Kod</div>
+                                        </td>
+                                        <td>
+                                            <div class="entity-cell-title">@produkt.Nazwa</div>
+                                            <div class="entity-cell-subtitle">ID produktu: @produkt.IdProduktu</div>
+                                        </td>
+                                        <td>
+                                            <span class="entity-badge @(produkt.CzyAktywny ? "entity-badge--success" : "entity-badge--muted")">
+                                                @(produkt.CzyAktywny ? "Aktywny" : "Nieaktywny")
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla produktu @produkt.Nazwa">
+                                                <a class="btn btn-outline-info" asp-controller="Produkt" asp-action="Details" asp-route-id="@produkt.IdProduktu" title="Szczegóły produktu"><i class="bi bi-eye"></i></a>
+                                                <a class="btn btn-outline-warning" asp-controller="Produkt" asp-action="Edit" asp-route-id="@produkt.IdProduktu" title="Edytuj produkt"><i class="bi bi-pencil"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
         </div>
     </section>
 </div>

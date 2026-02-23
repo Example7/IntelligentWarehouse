@@ -1,10 +1,12 @@
-@model IEnumerable<Data.Data.Magazyn.Kategoria>
+﻿@model IEnumerable<Data.Data.Magazyn.Kategoria>
 
 @{
     ViewData["Title"] = "Kategorie";
     var items = Model.ToList();
     var searchTerm = Context.Request.Query["searchTerm"].ToString();
     var rootCount = items.Count(x => x.IdNadrzednejKategorii == null);
+    var liczbyProduktow = ViewBag.LiczbyProduktow as IDictionary<int, int> ?? new Dictionary<int, int>();
+    var liczbyPodkategorii = ViewBag.LiczbyPodkategorii as IDictionary<int, int> ?? new Dictionary<int, int>();
 }
 
 <div class="news-admin-page">
@@ -65,6 +67,14 @@
                         <div class="entity-inline-meta">
                             <span class="entity-inline-meta__label">Nadrzędna:</span>
                             <span class="entity-inline-meta__value">@(item.NadrzednaKategoria?.Nazwa ?? "-")</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">Produkty:</span>
+                            <span class="entity-inline-meta__value">@(liczbyProduktow.TryGetValue(item.IdKategorii, out var lp) ? lp : 0)</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">Podkategorie:</span>
+                            <span class="entity-inline-meta__value">@(liczbyPodkategorii.TryGetValue(item.IdKategorii, out var lpk) ? lpk : 0)</span>
                         </div>
                         <div class="news-card__footer">
                             <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla kategorii @item.Nazwa">

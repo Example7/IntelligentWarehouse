@@ -73,10 +73,10 @@
                             <th>Kod</th>
                             <th>Nazwa</th>
                             <th>Kategoria</th>
-                            <th>JM</th>
-                            <th class="text-end">Min</th>
-                            <th class="text-end">ROP</th>
-                            <th class="text-end">ROQ</th>
+                            <th title="Jednostka miary">JM</th>
+                            <th class="text-end" title="Stan minimalny">Min</th>
+                            <th class="text-end" title="Punkt ponownego zamówienia">ROP</th>
+                            <th class="text-end" title="Ilość ponownego zamówienia">ROQ</th>
                             <th>Status</th>
                             <th>Utworzono</th>
                             <th class="text-end">Akcje</th>
@@ -93,9 +93,9 @@
                             </td>
                             <td>@(item.Kategoria?.Nazwa ?? "-")</td>
                             <td>@(item.DomyslnaJednostka?.Kod ?? "-")</td>
-                            <td class="text-end">@item.StanMinimalny</td>
-                            <td class="text-end">@(item.PunktPonownegoZamowienia?.ToString() ?? "-")</td>
-                            <td class="text-end">@(item.IloscPonownegoZamowienia?.ToString() ?? "-")</td>
+                            <td class="text-end">@item.StanMinimalny.ToString("0.###")</td>
+                            <td class="text-end">@(item.PunktPonownegoZamowienia?.ToString("0.###") ?? "-")</td>
+                            <td class="text-end">@(item.IloscPonownegoZamowienia?.ToString("0.###") ?? "-")</td>
                             <td>
                                 <span class="entity-badge @(item.CzyAktywny ? "entity-badge--success" : "entity-badge--muted")">
                                     @(item.CzyAktywny ? "Aktywny" : "Nieaktywny")
@@ -104,9 +104,9 @@
                             <td>@item.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla produktu @item.Nazwa">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdProduktu"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdProduktu"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdProduktu"><i class="bi bi-trash"></i></a>
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdProduktu" title="Edytuj" aria-label="Edytuj produkt"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdProduktu" title="Szczegóły" aria-label="Szczegóły produktu"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdProduktu" title="Usuń" aria-label="Usuń produkt"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

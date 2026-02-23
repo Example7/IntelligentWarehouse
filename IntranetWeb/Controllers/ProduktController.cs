@@ -55,10 +55,11 @@ namespace IntranetWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdProduktu,Kod,Nazwa,Opis,IdKategorii,IdDomyslnejJednostki,StanMinimalny,PunktPonownegoZamowienia,IloscPonownegoZamowienia,CzyAktywny,UtworzonoUtc,RowVersion")] Produkt produkt)
+        public async Task<IActionResult> Create([Bind("IdProduktu,Kod,Nazwa,Opis,IdKategorii,IdDomyslnejJednostki,StanMinimalny,PunktPonownegoZamowienia,IloscPonownegoZamowienia,CzyAktywny,RowVersion")] Produkt produkt)
         {
             if (ModelState.IsValid)
             {
+                produkt.UtworzonoUtc = DateTime.UtcNow;
                 _context.Add(produkt);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));

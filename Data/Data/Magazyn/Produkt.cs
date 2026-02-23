@@ -23,6 +23,7 @@ namespace Data.Data.Magazyn
         public string? Opis { get; set; }
 
         [Column("CategoryId")]
+        [Display(Name = "Kategoria")]
         public int IdKategorii { get; set; }
 
         [ValidateNever]
@@ -30,6 +31,7 @@ namespace Data.Data.Magazyn
         public Kategoria Kategoria { get; set; } = null!;
 
         [Column("DefaultUomId")]
+        [Display(Name = "Domyślna jednostka miary")]
         public int IdDomyslnejJednostki { get; set; }
 
         [ValidateNever]
@@ -37,15 +39,19 @@ namespace Data.Data.Magazyn
         public JednostkaMiary DomyslnaJednostka { get; set; } = null!;
 
         [Column("MinStock", TypeName = "decimal(18,3)")]
+        [Display(Name = "Stan minimalny")]
         public decimal StanMinimalny { get; set; } = 0m;
 
         [Column("ReorderPoint", TypeName = "decimal(18,3)")]
+        [Display(Name = "Punkt ponownego zamówienia")]
         public decimal? PunktPonownegoZamowienia { get; set; }
 
         [Column("ReorderQty", TypeName = "decimal(18,3)")]
+        [Display(Name = "Ilość ponownego zamówienia")]
         public decimal? IloscPonownegoZamowienia { get; set; }
 
         [Column("IsActive")]
+        [Display(Name = "Aktywny")]
         public bool CzyAktywny { get; set; } = true;
 
         [Column("CreatedAt")]
