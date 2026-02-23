@@ -11,7 +11,7 @@
             <span class="news-admin-header__icon"><i class="bi bi-file-earmark-text"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szczegoly dokumentu MM</h1>
-                <p class="news-admin-header__subheading mb-0">Podglad danych dokumentu przesuniecia oraz statusu ksiegowania.</p>
+                <p class="news-admin-header__subheading mb-0">Podgląd danych dokumentu przesuniecia oraz statusu ksiegowania.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -25,7 +25,7 @@
             <h2 class="news-details-panel__title">@Model.Numer</h2>
             <div class="news-details-panel__actions">
                 <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
@@ -35,8 +35,8 @@
             <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value"><span class="entity-badge @(isPosted ? "entity-badge--success" : "entity-badge--warning")">@Model.Status</span></div></div>
             <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(Model.Magazyn?.Nazwa ?? "-")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Data przesuniecia</div><div class="news-details-item__value">@Model.DataUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzyl</div><div class="news-details-item__value">@(Model.Utworzyl?.Email ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Zaksiegowano</div><div class="news-details-item__value">@(Model.ZaksiegowanoUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzył</div><div class="news-details-item__value">@(Model.Utworzyl?.Email ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zaksięgowano</div><div class="news-details-item__value">@(Model.ZaksiegowanoUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Pozycji</div><div class="news-details-item__value">@Model.Pozycje.Count</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Notatka</div>

@@ -6,5 +6,6 @@
   <Project Path="Data/Data.csproj" Id="6f730a63-9796-4f82-9b2e-55024f40a116" />
   <Project Path="Interfaces/Interfaces.csproj" Id="a4fcbbd9-de71-4fd5-85de-1ae0f166f03a" />
   <Project Path="IntranetWeb/IntranetWeb.csproj" />
+  <Project Path="MobileApi/MobileApi.csproj" Id="c108141f-2845-4824-bd09-fbfe0c909021" />
   <Project Path="Services/Services.csproj" Id="571313ff-70ca-4fb8-a5b5-272854e800e2" />
 </Solution>

@@ -26,5 +26,6 @@ namespace Data.Data.Magazyn
         public bool CzyAktywny { get; set; } = true;
 
         public ICollection<UzytkownikRola> RoleUzytkownika { get; set; } = new List<UzytkownikRola>();
+        public ICollection<Klient> Klienci { get; set; } = new List<Klient>();
     }
 }

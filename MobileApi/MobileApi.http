@@ -1,0 +1,92 @@
+@MobileApi_HostAddress = https://localhost:7213
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwidW5pcXVlX25hbWUiOiJtb2JpbGUtY2xpZW50LWRlbW8iLCJlbWFpbCI6ImNsaWVudEBleGFtcGxlLmNvbSIsImlzcyI6IkludGVsbGlnZW50V2FyZWhvdXNlLk1vYmlsZUFwaS5EZXYiLCJhdWQiOiJJbnRlbGxpZ2VudFdhcmVob3VzZS5Nb2JpbGVDbGllbnQuRGV2IiwibmJmIjoxNzcxODcxNTI2LCJpYXQiOjE3NzE4NzE1MjYsImV4cCI6MTc3MTg3ODcyNiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiIxIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6Im1vYmlsZS1jbGllbnQtZGVtbyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImNsaWVudEBleGFtcGxlLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6WyJDbGllbnQiXX0.IkXzhM_Z5MmyH6JgLRUWoWWphLw1E6L1D_LyJcrITbA
+
+POST {{MobileApi_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginOrEmail": "admin",
+  "password": "admin123"
+}
+
+###
+
+GET {{MobileApi_HostAddress}}/api/auth/me
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/home
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/profile
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/dashboard
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/orders
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/orders/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/reservations
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/reservations/1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/notifications?take=20
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/orders/1/attachments
+Authorization: Bearer {{token}}
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/client/attachments/1/download
+Authorization: Bearer {{token}}
+
+###
+
+GET {{MobileApi_HostAddress}}/api/mobile/content/news
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/mobile/content/pages
+Accept: application/json
+
+###
+
+GET {{MobileApi_HostAddress}}/api/mobile/content/pages/o-firmie
+Accept: application/json
+
+###

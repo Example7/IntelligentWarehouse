@@ -162,6 +162,13 @@ namespace Data.Data
 
             modelBuilder.Entity<Klient>().HasIndex(k => k.Nazwa);
             modelBuilder.Entity<Klient>().HasIndex(k => k.Email);
+            modelBuilder.Entity<Klient>().HasIndex(k => k.IdUzytkownika);
+
+            modelBuilder.Entity<Klient>()
+                .HasOne(k => k.Uzytkownik)
+                .WithMany(u => u.Klienci)
+                .HasForeignKey(k => k.IdUzytkownika)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // --- Dokumenty: numery unikalne + (DocId, LineNo) unikalne
             modelBuilder.Entity<DokumentPZ>().HasIndex(d => d.Numer).IsUnique();

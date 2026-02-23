@@ -27,6 +27,13 @@ namespace Data.Data.Magazyn
         [Column("Address")]
         public string? Adres { get; set; }
 
+        [Column("UserId")]
+        public int? IdUzytkownika { get; set; }
+
+        [ForeignKey(nameof(IdUzytkownika))]
+        [ValidateNever]
+        public Uzytkownik? Uzytkownik { get; set; }
+
         [Column("IsActive")]
         public bool CzyAktywny { get; set; } = true;
 
