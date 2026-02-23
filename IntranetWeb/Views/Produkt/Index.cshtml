@@ -1,0 +1,95 @@
+﻿@model IEnumerable<Data.Data.Magazyn.Produkt>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Kod)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Nazwa)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Opis)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Kategoria)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IdDomyslnejJednostki)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StanMinimalny)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PunktPonownegoZamowienia)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IloscPonownegoZamowienia)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CzyAktywny)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UtworzonoUtc)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RowVersion)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Kod)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nazwa)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Opis)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Kategoria.Nazwa)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IdDomyslnejJednostki)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.StanMinimalny)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PunktPonownegoZamowienia)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IloscPonownegoZamowienia)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CzyAktywny)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UtworzonoUtc)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RowVersion)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.IdProduktu">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.IdProduktu">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.IdProduktu">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

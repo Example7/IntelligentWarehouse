@@ -1,0 +1,34 @@
+﻿@model IEnumerable<Data.Data.Magazyn.Produkt>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_MagazynLayout.cshtml";
+}
+
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Zdjęcie</th>
+                <th scope="col">Nazwa</th>
+                <th scope="col">Kod</th>
+                <th scope="col">Opis</th>
+                <th scope="col">Operacje</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var produkt in Model)
+            {
+                <tr>
+                    <td>@produkt.IdProduktu</td>
+                    <td>Zdjęcie</td>
+                    <td>@produkt.Nazwa</td>
+                    <td>@produkt.Kod</td>
+                    <td>@produkt.Opis</td>
+                    <td><a asp-action="Szczegoly" asp-route-id="@produkt.IdProduktu">Szczegóły</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+

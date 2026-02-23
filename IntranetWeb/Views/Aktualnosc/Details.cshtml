@@ -1,0 +1,42 @@
+﻿@model Data.Data.CMS.Aktualnosc
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Aktualnosc</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.TytulLinku)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.TytulLinku)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Nazwa)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Nazwa)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Tresc)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Tresc)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Pozycja)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Pozycja)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.IdAktualnosci">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

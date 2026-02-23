@@ -1,0 +1,23 @@
+﻿@model IEnumerable<Data.Data.Magazyn.Kategoria>
+
+<div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+    <ul class="navbar-nav flex-grow-1">
+        @foreach (var kategoria in Model)
+        {
+            <li class="nav-item">
+                <a class="nav-link text-dark"
+                   asp-controller="Magazyn"
+                   asp-action="Index"
+                   asp-route-id="@kategoria.IdKategorii">
+                    @kategoria.Nazwa
+                </a>
+            </li>
+        }
+
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Lokacje" asp-action="Index">
+                Lokacje
+            </a>
+        </li>
+    </ul>
+</div>

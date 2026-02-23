@@ -1,0 +1,36 @@
+﻿@model Data.Data.Magazyn.Magazyn
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Magazyn</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Nazwa)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Nazwa)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Adres)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Adres)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.CzyAktywny)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.CzyAktywny)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.IdMagazynu">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

@@ -1,0 +1,53 @@
+﻿@model IEnumerable<Data.Data.CMS.Strona>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.TytulLinku)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Nazwa)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Tresc)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Pozycja)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.TytulLinku)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Nazwa)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Tresc)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Pozycja)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.IdStrony">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.IdStrony">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.IdStrony">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

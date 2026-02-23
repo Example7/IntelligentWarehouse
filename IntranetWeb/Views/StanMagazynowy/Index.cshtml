@@ -1,0 +1,53 @@
+﻿@model IEnumerable<Data.Data.Magazyn.StanMagazynowy>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Produkt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Lokacja)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Ilosc)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.RowVersion)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Produkt.Kod)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Lokacja.Kod)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Ilosc)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RowVersion)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.IdStanu">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.IdStanu">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.IdStanu">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

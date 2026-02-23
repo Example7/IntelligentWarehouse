@@ -1,0 +1,72 @@
+﻿@model Data.Data.Magazyn.RuchMagazynowy
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>RuchMagazynowy</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Typ)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Typ)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Produkt)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Produkt.Kod)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.LokacjaZ)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.LokacjaZ.Kod)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.LokacjaDo)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.LokacjaDo.Kod)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Ilosc)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Ilosc)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Referencja)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Referencja)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Notatka)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Notatka)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.UtworzonoUtc)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.UtworzonoUtc)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Uzytkownik)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Uzytkownik.Email)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.IdRuchu">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

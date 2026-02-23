@@ -1,0 +1,70 @@
+﻿@model IEnumerable<Data.Data.Magazyn.Lokacja>
+
+<h2 class="text-center my-5 text-black fw-bold border-bottom border-3 border-info pb-2">
+    Lokacje
+</h2>
+
+<div class="row g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+            <div class="p-3 h-100 shadow-sm rounded-4 border border-light bg-white hover-shadow hover-zoom">
+
+                <!-- "Grafika" / placeholder -->
+                <div class="overflow-hidden rounded-3 mb-3 bg-light d-flex align-items-center justify-content-center"
+                     style="width: 100%; height: 220px;">
+                    <div class="text-center">
+                        <div class="fs-1 text-secondary">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <div class="text-muted small">Lokacja</div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="mb-2">
+                    @if (item.CzyAktywna)
+                    {
+                        <span class="badge bg-success">Aktywna</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Nieaktywna</span>
+                    }
+                </div>
+
+                <!-- Kod -->
+                <h5 class="fw-semibold mb-1">@item.Kod</h5>
+
+                <!-- Magazyn -->
+                <p class="text-muted mb-1">
+                    Magazyn:
+                    <strong>@(item.Magazyn != null ? item.Magazyn.Nazwa : $"ID: {item.IdMagazynu}")</strong>
+                </p>
+
+                <!-- Opis -->
+                <p class="mb-2">
+                    <span class="text-muted">Opis:</span>
+                    <span class="text-dark">
+                        @(string.IsNullOrWhiteSpace(item.Opis) ? "—" : item.Opis)
+                    </span>
+                </p>
+
+                <!-- Stany (opcjonalnie) -->
+                <p class="text-primary fw-bold mb-0">
+                    Pozycje w lokacji: @(item.Stany?.Count ?? 0)
+                </p>
+
+                <!-- Akcje (opcjonalnie) -->
+                <div class="d-flex gap-2 mt-3">
+                    <a asp-action="Details" asp-route-id="@item.IdLokacji" class="btn btn-outline-primary btn-sm w-100">
+                        Szczegóły
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@item.IdLokacji" class="btn btn-outline-secondary btn-sm w-100">
+                        Edytuj
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

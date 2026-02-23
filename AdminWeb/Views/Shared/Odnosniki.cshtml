@@ -1,0 +1,25 @@
+﻿@model IEnumerable<Data.Data.CMS.Strona>
+
+<div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+    <ul class="navbar-nav flex-grow-1">
+        @foreach (var strona in Model ?? Enumerable.Empty<Data.Data.CMS.Strona>())
+        {
+            <li class="nav-item">
+                <a class="nav-link text-dark"
+                   asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-id="@strona.IdStrony">
+                    @strona.Nazwa
+                </a>
+            </li>
+        }
+
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Magazyn" asp-action="Index">Magazyn</a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Lokacje" asp-action="Index">Lokacje</a>
+        </li>
+    </ul>
+</div>
