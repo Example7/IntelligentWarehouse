@@ -1,14 +1,36 @@
-# Visual Studio
-.vs/
-**/.vs/
+# Visual Studio / VS Code
+.vscode/
+.idea/
 
-# build output
-bin/
-obj/
+# Rider / ReSharper
+_ReSharper*/
+*.DotSettings.user
 
-# user-specific
-*.user
-*.suo
+# NuGet
+packages/
+*.nupkg
+*.snupkg
 
-# logs
-*.log
+# ASP.NET / publish
+publish/
+*.Publish.xml
+*.pubxml
+*.pubxml.user
+
+# Logs / temp
+*.tmp
+*.temp
+*.swp
+*.bak
+*.cache
+*.pdb
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Secrets (jeśli używasz)
+appsettings.Development.json
+secrets.json
