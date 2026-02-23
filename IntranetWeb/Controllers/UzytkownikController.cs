@@ -1,23 +1,24 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Controllers.Abstrakcja;
+
 namespace IntranetWeb.Controllers
 {
-    public class UzytkownikController : Controller
+    public class UzytkownikController : BaseSearchController<Uzytkownik>
     {
-        private readonly DataContext _context;
 
-        public UzytkownikController(DataContext context)
-        {
-            _context = context;
-        }
+        public UzytkownikController(DataContext context) : base(context) { }
 
         // GET: Uzytkownik
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            return View(await _context.Uzytkownik.ToListAsync());
+            var query = _context.Uzytkownik.AsNoTracking();
+            query = ApplySearchAny(query, searchTerm, x => x.Login, x => x.Email);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: Uzytkownik/Details/5

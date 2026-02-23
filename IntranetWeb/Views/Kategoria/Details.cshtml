@@ -1,36 +1,39 @@
-﻿@model Data.Data.Magazyn.Kategoria
+@model Data.Data.Magazyn.Kategoria
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły kategorii";
 }
 
-<h1>Details</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-tags"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły kategorii</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd danych kategorii i relacji nadrzędnej.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdKategorii</strong></div>
+        </div>
+    </section>
 
-<div>
-    <h4>Kategoria</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IdNadrzednejKategorii)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IdNadrzednejKategorii)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nazwa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nazwa)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Sciezka)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Sciezka)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.IdKategorii">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.IdKategorii" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.IdKategorii" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nadrzędna</div><div class="news-details-item__value">@(Model.NadrzednaKategoria?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Ścieżka</div>
+                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Sciezka) ? "Brak ścieżki" : Model.Sciezka)</div>
+            </div>
+        </div>
+    </section>
 </div>

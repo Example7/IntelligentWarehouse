@@ -1,30 +1,36 @@
-﻿@model Data.Data.Magazyn.UzytkownikRola
+@model Data.Data.Magazyn.UzytkownikRola
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegoly roli uzytkownika";
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>UzytkownikRola</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Uzytkownik)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Uzytkownik.Email)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Rola)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Rola.Nazwa)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-person-gear"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegoly roli uzytkownika</h1>
+                <p class="news-admin-header__subheading mb-0">Podglad przypisania roli do konta systemowego.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
+        </div>
+    </section>
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">@(Model.Uzytkownik?.Email ?? "-")</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Uzytkownik</div><div class="news-details-item__value">@(Model.Uzytkownik?.Email ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Rola</div><div class="news-details-item__value">@(Model.Rola?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">User ID</div><div class="news-details-item__value">@Model.IdUzytkownika</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Role ID</div><div class="news-details-item__value">@Model.IdRoli</div></div>
+        </div>
+    </section>
 </div>

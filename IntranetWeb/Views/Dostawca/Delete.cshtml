@@ -1,0 +1,42 @@
+@model Data.Data.Magazyn.Dostawca
+
+@{
+    ViewData["Title"] = "Usun dostawce";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usun dostawce</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdz usuniecie dostawcy z bazy kontrahentow.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Usuniecie dostawcy</strong>
+                <div>Operacja moze byc zablokowana, jesli dostawca ma powiazane dokumenty PZ.</div>
+            </div>
+        </div>
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.IdDostawcy</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">NIP</div><div class="news-details-item__value entity-mono">@(string.IsNullOrWhiteSpace(Model.NIP) ? "-" : Model.NIP)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@(Model.Email ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Telefon</div><div class="news-details-item__value">@(Model.Telefon ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Adres</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Adres) ? "Brak adresu" : Model.Adres)</div></div>
+        </div>
+        <form asp-action="Delete" method="post" class="news-form-actions">
+            <input type="hidden" asp-for="IdDostawcy" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun dostawce</button>
+            <a asp-action="Details" asp-route-id="@Model.IdDostawcy" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+        </form>
+    </section>
+</div>

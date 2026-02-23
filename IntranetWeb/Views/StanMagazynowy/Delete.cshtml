@@ -1,45 +1,45 @@
-﻿@model Data.Data.Magazyn.StanMagazynowy
+@model Data.Data.Magazyn.StanMagazynowy
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Usun stan magazynowy";
 }
 
-<h1>Delete</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usun stan magazynowy</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdz usuniecie pozycji stanu z lokalizacji.</p>
+            </div>
+        </div>
+    </section>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>StanMagazynowy</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Produkt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Produkt.Kod)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Lokacja)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Lokacja.Kod)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Ilosc)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Ilosc)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.RowVersion)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.RowVersion)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="IdStanu" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Usuniecie stanu</strong>
+                <div>Upewnij sie, ze usuniecie wpisu nie zaburzy rozliczenia stanow magazynowych.</div>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.IdStanu</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lokacja</div><div class="news-details-item__value">@(Model.Lokacja?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilosc</div><div class="news-details-item__value">@Model.Ilosc</div></div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">RowVersion</div>
+                <div class="news-details-item__value entity-mono">@(Model.RowVersion is { Length: > 0 } ? Convert.ToBase64String(Model.RowVersion) : "-")</div>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="news-form-actions">
+            <input type="hidden" asp-for="IdStanu" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun stan</button>
+            <a asp-action="Details" asp-route-id="@Model.IdStanu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+        </form>
+    </section>
 </div>

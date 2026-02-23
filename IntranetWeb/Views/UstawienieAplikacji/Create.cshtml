@@ -1,0 +1,63 @@
+@model Data.Data.Magazyn.UstawienieAplikacji
+
+@{
+    ViewData["Title"] = "Dodaj ustawienie aplikacji";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj ustawienie aplikacji</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz nowe ustawienie konfiguracyjne z kluczem, wartością i opisem.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Dane ustawienia</h2>
+            <p class="text-muted mb-0">Klucz powinien być unikalny. Wartość może przechowywać tekst, liczbę lub JSON.</p>
+        </div>
+
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="Klucz" class="form-label news-form-label"></label>
+                    <input asp-for="Klucz" class="form-control news-form-control entity-mono" />
+                    <span asp-validation-for="Klucz" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="ZmienilUserId" class="form-label news-form-label"></label>
+                    <input asp-for="ZmienilUserId" class="form-control news-form-control" />
+                    <span asp-validation-for="ZmienilUserId" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="ZmienionoUtc" class="form-label news-form-label"></label>
+                    <input asp-for="ZmienionoUtc" class="form-control news-form-control" />
+                    <span asp-validation-for="ZmienionoUtc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Wartosc" class="form-label news-form-label"></label>
+                    <textarea asp-for="Wartosc" class="form-control news-form-control news-form-control--textarea" rows="4"></textarea>
+                    <span asp-validation-for="Wartosc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Opis" class="form-label news-form-label"></label>
+                    <textarea asp-for="Opis" class="form-control news-form-control news-form-control--textarea" rows="3"></textarea>
+                    <span asp-validation-for="Opis" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz ustawienie</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

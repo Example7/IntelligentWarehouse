@@ -1,0 +1,135 @@
+@model IEnumerable<Data.Data.Magazyn.LogAudytu>
+
+@{
+    ViewData["Title"] = "Log audytu";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var today = DateTime.UtcNow.Date;
+    var todayCount = items.Count(x => x.KiedyUtc.Date == today);
+    var deleteCount = items.Count(x => string.Equals(x.Akcja, "DELETE", StringComparison.OrdinalIgnoreCase));
+    var loginCount = items.Count(x => string.Equals(x.Akcja, "LOGIN", StringComparison.OrdinalIgnoreCase));
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-journal-text"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Log audytu</h1>
+                <p class="news-admin-header__subheading mb-0">Historia operacji w systemie: akcje, encje, uzytkownik i zmiany danych.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Dzisiaj</span><strong class="news-admin-stat__value">@todayCount</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">DELETE</span><strong class="news-admin-stat__value">@deleteCount</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">LOGIN</span><strong class="news-admin-stat__value">@loginCount</strong></div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie logu audytu">
+            <label for="auditSearchTerm" class="visually-hidden">Szukaj wpisow audytu</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
+                <input id="auditSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po akcji, encji lub ID encji..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczysc filtr"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj wpis</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-journal-x"></i></div>
+            <h2 class="h4 mb-2">Brak wpisów audytu</h2>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Brak zapisanych wpisów w logu audytu.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj wpis</a>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Akcja</th>
+                            <th>Encja</th>
+                            <th>ID encji</th>
+                            <th>Użytkownik</th>
+                            <th>Kiedy</th>
+                            <th>Stare JSON</th>
+                            <th>Nowe JSON</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderByDescending(x => x.KiedyUtc).ThenByDescending(x => x.Id))
+                    {
+                        var actionClass = string.Equals(item.Akcja, "DELETE", StringComparison.OrdinalIgnoreCase)
+                            ? "entity-badge--danger"
+                            : string.Equals(item.Akcja, "UPDATE", StringComparison.OrdinalIgnoreCase)
+                                ? "entity-badge--warning"
+                                : string.Equals(item.Akcja, "CREATE", StringComparison.OrdinalIgnoreCase)
+                                    ? "entity-badge--success"
+                                    : "entity-badge--muted";
+                        var oldPreview = string.IsNullOrWhiteSpace(item.StareJson)
+                            ? "-"
+                            : (item.StareJson!.Length > 70 ? item.StareJson[..70] + "..." : item.StareJson);
+                        var newPreview = string.IsNullOrWhiteSpace(item.NoweJson)
+                            ? "-"
+                            : (item.NoweJson!.Length > 70 ? item.NoweJson[..70] + "..." : item.NoweJson);
+                        <tr>
+                            <td><span class="entity-badge @actionClass">@item.Akcja</span></td>
+                            <td>
+                                <div class="entity-cell-title">@item.Encja</div>
+                            </td>
+                            <td><span class="entity-mono">@(string.IsNullOrWhiteSpace(item.IdEncji) ? "-" : item.IdEncji)</span></td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Uzytkownik?.Email ?? "System")</div>
+                                <div class="entity-cell-subtitle">UserId: @(item.UserId?.ToString() ?? "-")</div>
+                            </td>
+                            <td>@item.KiedyUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>
+                                <div class="entity-cell-subtitle text-truncate" style="max-width: 18rem;" title="@item.StareJson">@oldPreview</div>
+                            </td>
+                            <td>
+                                <div class="entity-cell-subtitle text-truncate" style="max-width: 18rem;" title="@item.NoweJson">@newPreview</div>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla wpisu audytu @item.Id">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

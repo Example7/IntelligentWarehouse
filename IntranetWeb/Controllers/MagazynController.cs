@@ -1,23 +1,24 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Controllers.Abstrakcja;
+
 namespace IntranetWeb.Controllers
 {
-    public class MagazynController : Controller
+    public class MagazynController : BaseSearchController<Magazyn>
     {
-        private readonly DataContext _context;
 
-        public MagazynController(DataContext context)
-        {
-            _context = context;
-        }
+        public MagazynController(DataContext context) : base(context) { }
 
         // GET: Magazyn
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            return View(await _context.Magazyn.ToListAsync());
+            var query = _context.Magazyn.AsNoTracking();
+            query = ApplySearchAny(query, searchTerm, x => x.Nazwa, x => x.Adres);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: Magazyn/Details/5

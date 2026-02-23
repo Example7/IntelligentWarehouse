@@ -1,42 +1,38 @@
-﻿@model Data.Data.Magazyn.Uzytkownik
+@model Data.Data.Magazyn.Uzytkownik
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegoly uzytkownika";
 }
 
-<h1>Details</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-person-badge"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegoly uzytkownika</h1>
+                <p class="news-admin-header__subheading mb-0">Podglad danych konta systemowego.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdUzytkownika</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
+        </div>
+    </section>
 
-<div>
-    <h4>Uzytkownik</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Login)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Login)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HashHasla)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HashHasla)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Email)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Email)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CzyAktywny)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CzyAktywny)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.IdUzytkownika">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">@Model.Login</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.IdUzytkownika" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.IdUzytkownika" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Login</div><div class="news-details-item__value">@Model.Login</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@Model.Email</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Haslo</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(Model.HashHasla) ? "Brak" : "Ustawione (ukryte)")</div></div>
+        </div>
+    </section>
 </div>

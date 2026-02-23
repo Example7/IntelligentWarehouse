@@ -1,34 +1,46 @@
-﻿@model Data.Data.Magazyn.Rola
+@model Data.Data.Magazyn.Rola
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edytuj role";
 }
 
-<h1>Edit</h1>
-
-<h4>Rola</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="IdRoli" />
-            <div class="form-group">
-                <label asp-for="Nazwa" class="control-label"></label>
-                <input asp-for="Nazwa" class="form-control" />
-                <span asp-validation-for="Nazwa" class="text-danger"></span>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Edytuj role</h1>
+                <p class="news-admin-header__subheading mb-0">Aktualizacja nazwy roli systemowej.</p>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdRoli</strong></div>
+        </div>
+    </section>
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Edycja roli</h2>
+            <p class="text-muted mb-0">Zmien nazwe roli.</p>
+        </div>
+        <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
+            <input type="hidden" asp-for="IdRoli" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Nazwa" class="form-label news-form-label"></label>
+                    <input asp-for="Nazwa" class="form-control news-form-control" />
+                    <span asp-validation-for="Nazwa" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
+                <a asp-action="Details" asp-route-id="@Model.IdRoli" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    </section>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

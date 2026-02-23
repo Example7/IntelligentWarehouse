@@ -1,53 +1,127 @@
-﻿@model IEnumerable<Data.Data.CMS.Strona>
+@model IEnumerable<Data.Data.CMS.Strona>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Strony";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
 }
 
-<h1>Index</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true">
+                <i class="bi bi-file-earmark-text"></i>
+            </span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Strony CMS</h1>
+                <p class="news-admin-header__subheading mb-0">
+                    Zarządzanie stronami statycznymi i ich kolejnością wyświetlania
+                </p>
+            </div>
+        </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TytulLinku)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Nazwa)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Tresc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Pozycja)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TytulLinku)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nazwa)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Tresc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Pozycja)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.IdStrony">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.IdStrony">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.IdStrony">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat">
+                <span class="news-admin-stat__label">Łącznie</span>
+                <strong class="news-admin-stat__value">@items.Count</strong>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <div class="news-admin-stat">
+                    <span class="news-admin-stat__label">Filtr</span>
+                    <strong class="news-admin-stat__value" title="@searchTerm">@searchTerm</strong>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie stron">
+            <label for="pageSearchTerm" class="visually-hidden">Szukaj stron</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
+                <input id="pageSearchTerm"
+                       class="form-control news-admin-search__input"
+                       name="searchTerm"
+                       value="@searchTerm"
+                       placeholder="Szukaj po tytule linku, nazwie lub treści..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear"
+                   href="@Url.Action("Index")"
+                   aria-label="Wyczyść filtrowanie"
+                   title="Wyczyść filtr">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            }
+        </form>
+
+        <a class="btn news-admin-toolbar__cta" asp-action="Create">
+            <i class="bi bi-plus-circle"></i>
+            Dodaj stronę
+        </a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon" aria-hidden="true">
+                <i class="bi bi-file-earmark-plus"></i>
+            </div>
+            <h2 class="h4 mb-2">Brak stron</h2>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Nie ma jeszcze żadnych stron CMS. Dodaj pierwszą stronę.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a class="btn btn-primary" asp-action="Create">
+                    <i class="bi bi-plus-circle me-1"></i> Dodaj stronę
+                </a>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <div class="news-admin-grid" id="cardContainer">
+            @foreach (var item in items.OrderBy(x => x.Pozycja).ThenBy(x => x.Nazwa))
+            {
+                <article class="news-card">
+                    <div class="news-card__accent"></div>
+
+                    <div class="news-card__body">
+                        <div class="news-card__meta-top">
+                            <span class="news-card__badge" title="@item.TytulLinku">
+                                <i class="bi bi-link-45deg"></i>
+                                @item.TytulLinku
+                            </span>
+                            <span class="news-card__position">Pozycja @item.Pozycja</span>
+                        </div>
+
+                        <h2 class="news-card__title" title="@item.Nazwa">@item.Nazwa</h2>
+                        <p class="news-card__content" title="@item.Tresc">@item.Tresc</p>
+
+                        <div class="news-card__footer">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla strony @item.Nazwa">
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdStrony" aria-label="Edytuj stronę @item.Nazwa"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdStrony" aria-label="Szczegóły strony @item.Nazwa"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdStrony" aria-label="Usuń stronę @item.Nazwa"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>

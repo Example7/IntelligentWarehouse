@@ -1,23 +1,23 @@
 ﻿using Data.Data;
 using Data.Data.CMS;
+using IntranetWeb.Controllers.Abstrakcja;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntranetWeb.Controllers
 {
-    public class AktualnoscController : Controller
+    public class AktualnoscController : BaseSearchController<Aktualnosc>
     {
-        private readonly DataContext _context;
-
-        public AktualnoscController(DataContext context)
-        {
-            _context = context;
-        }
+        public AktualnoscController(DataContext context) : base(context) { }
 
         // GET: Aktualnosc
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            return View(await _context.Aktualnosc.ToListAsync());
+            var query = _context.Aktualnosc.AsNoTracking();
+
+            query = ApplySearchAny(query, searchTerm, x => x.Nazwa, x => x.TytulLinku, x => x.Tresc);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: Aktualnosc/Details/5

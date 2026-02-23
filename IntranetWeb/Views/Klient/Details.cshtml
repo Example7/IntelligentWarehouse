@@ -1,0 +1,42 @@
+@model Data.Data.Magazyn.Klient
+
+@{
+    ViewData["Title"] = "Szczegoly klienta";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-people"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegoly klienta</h1>
+                <p class="news-admin-header__subheading mb-0">Podglad danych kontaktowych klienta.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdKlienta</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.IdKlienta" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.IdKlienta" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@(Model.Email ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Telefon</div><div class="news-details-item__value">@(Model.Telefon ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Adres</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Adres) ? "Brak adresu" : Model.Adres)</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">RowVersion</div><div class="news-details-item__value entity-mono">@(Model.RowVersion is { Length: > 0 } ? Convert.ToBase64String(Model.RowVersion) : "-")</div></div>
+        </div>
+    </section>
+</div>

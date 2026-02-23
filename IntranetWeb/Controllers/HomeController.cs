@@ -1,4 +1,5 @@
 using IntranetWeb.Models;
+using Interfaces.Dashboard;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -6,9 +7,16 @@ namespace IntranetWeb.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private readonly IDashboardService _dashboardService;
+
+        public HomeController(IDashboardService dashboardService)
         {
-            return View();
+            _dashboardService = dashboardService;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            return View(await _dashboardService.GetDashboardAsync());
         }
 
         public IActionResult Privacy()

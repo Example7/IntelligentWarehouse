@@ -52,6 +52,60 @@ namespace Data.Migrations
                     b.ToTable("Aktualnosc");
                 });
 
+            modelBuilder.Entity("Data.Data.CMS.PlikMedia", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("MediaFileId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("ContentType");
+
+                    b.Property<string>("NazwaPliku")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)")
+                        .HasColumnName("FileName");
+
+                    b.Property<string>("Opis")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnName("Description");
+
+                    b.Property<long>("RozmiarBajty")
+                        .HasColumnType("bigint")
+                        .HasColumnName("SizeBytes");
+
+                    b.Property<string>("Sciezka")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)")
+                        .HasColumnName("FilePath");
+
+                    b.Property<int?>("WgralUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UploadedByUserId");
+
+                    b.Property<DateTime>("WgranoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UploadedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Sciezka")
+                        .IsUnique();
+
+                    b.HasIndex("WgralUserId");
+
+                    b.ToTable("MediaFiles");
+                });
+
             modelBuilder.Entity("Data.Data.CMS.Strona", b =>
                 {
                     b.Property<int>("IdStrony")
@@ -82,6 +136,500 @@ namespace Data.Migrations
                     b.ToTable("Strona");
                 });
 
+            modelBuilder.Entity("Data.Data.CMS.SzablonWydruku", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("TemplateId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CzyAktywny")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<string>("Nazwa")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("Name");
+
+                    b.Property<string>("NazwaPliku")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)")
+                        .HasColumnName("FileName");
+
+                    b.Property<string>("Sciezka")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)")
+                        .HasColumnName("FilePath");
+
+                    b.Property<string>("TypDokumentu")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("DocType");
+
+                    b.Property<string>("Wersja")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("Version");
+
+                    b.Property<int?>("WgralUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UploadedByUserId");
+
+                    b.Property<DateTime>("WgranoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UploadedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WgralUserId");
+
+                    b.HasIndex("TypDokumentu", "Wersja")
+                        .IsUnique();
+
+                    b.ToTable("PrintTemplates");
+                });
+
+            modelBuilder.Entity("Data.Data.CMS.ZalacznikDokumentu", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("AttachmentId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("ContentType");
+
+                    b.Property<int>("IdDokumentu")
+                        .HasColumnType("int")
+                        .HasColumnName("DocumentId");
+
+                    b.Property<string>("NazwaPliku")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)")
+                        .HasColumnName("FileName");
+
+                    b.Property<string>("Sciezka")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)")
+                        .HasColumnName("FilePath");
+
+                    b.Property<string>("TypDokumentu")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("DocumentType");
+
+                    b.Property<int?>("WgralUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UploadedByUserId");
+
+                    b.Property<DateTime>("WgranoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UploadedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WgralUserId");
+
+                    b.HasIndex("TypDokumentu", "IdDokumentu");
+
+                    b.ToTable("DocumentAttachments");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Alert", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("AlertId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("CzyPotwierdzony")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsAcknowledged");
+
+                    b.Property<int>("IdMagazynu")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.Property<int>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<int>("IdReguly")
+                        .HasColumnType("int")
+                        .HasColumnName("AlertRuleId");
+
+                    b.Property<int?>("PotwierdzilUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("AcknowledgedByUserId");
+
+                    b.Property<DateTime?>("PotwierdzonoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("AcknowledgedAt");
+
+                    b.Property<string>("Tresc")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Message");
+
+                    b.Property<DateTime>("UtworzonoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<string>("Waga")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasColumnName("Severity");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CzyPotwierdzony");
+
+                    b.HasIndex("IdMagazynu");
+
+                    b.HasIndex("IdProduktu");
+
+                    b.HasIndex("IdReguly");
+
+                    b.HasIndex("UtworzonoUtc");
+
+                    b.ToTable("Alerts");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.DokumentMM", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("TransferId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("TransferredAt");
+
+                    b.Property<int>("IdMagazynu")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.Property<int>("IdUtworzyl")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedByUserId");
+
+                    b.Property<string>("Notatka")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Note");
+
+                    b.Property<string>("Numer")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("DocumentNo");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("RowVersion");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("Status");
+
+                    b.Property<DateTime?>("ZaksiegowanoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("PostedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdMagazynu");
+
+                    b.HasIndex("IdUtworzyl");
+
+                    b.HasIndex("Numer")
+                        .IsUnique();
+
+                    b.ToTable("StockTransfers");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.DokumentPZ", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ReceiptId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataPrzyjeciaUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ReceivedAt");
+
+                    b.Property<int>("IdDostawcy")
+                        .HasColumnType("int")
+                        .HasColumnName("SupplierId");
+
+                    b.Property<int>("IdMagazynu")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.Property<int>("IdUtworzyl")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedByUserId");
+
+                    b.Property<string>("Notatka")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Note");
+
+                    b.Property<string>("Numer")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("DocumentNo");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("RowVersion");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("Status");
+
+                    b.Property<DateTime?>("ZaksiegowanoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("PostedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdDostawcy");
+
+                    b.HasIndex("IdMagazynu");
+
+                    b.HasIndex("IdUtworzyl");
+
+                    b.HasIndex("Numer")
+                        .IsUnique();
+
+                    b.ToTable("GoodsReceipts");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.DokumentWZ", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("IssueId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DataWydaniaUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("IssuedAt");
+
+                    b.Property<int?>("IdKlienta")
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerId");
+
+                    b.Property<int>("IdMagazynu")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.Property<int>("IdUtworzyl")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedByUserId");
+
+                    b.Property<string>("Notatka")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Note");
+
+                    b.Property<string>("Numer")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("DocumentNo");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("RowVersion");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("Status");
+
+                    b.Property<DateTime?>("ZaksiegowanoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("PostedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdKlienta");
+
+                    b.HasIndex("IdMagazynu");
+
+                    b.HasIndex("IdUtworzyl");
+
+                    b.HasIndex("Numer")
+                        .IsUnique();
+
+                    b.ToTable("GoodsIssues");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Dostawca", b =>
+                {
+                    b.Property<int>("IdDostawcy")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("SupplierId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdDostawcy"));
+
+                    b.Property<string>("Adres")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)")
+                        .HasColumnName("Address");
+
+                    b.Property<bool>("CzyAktywny")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("Email");
+
+                    b.Property<string>("NIP")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("TaxId");
+
+                    b.Property<string>("Nazwa")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnName("Name");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("RowVersion");
+
+                    b.Property<string>("Telefon")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)")
+                        .HasColumnName("Phone");
+
+                    b.Property<DateTime>("UtworzonoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.HasKey("IdDostawcy");
+
+                    b.HasIndex("NIP");
+
+                    b.HasIndex("Nazwa");
+
+                    b.ToTable("Suppliers");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Inwentaryzacja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("StockCountId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdMagazynu")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.Property<int>("IdUtworzyl")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedByUserId");
+
+                    b.Property<DateTime?>("KoniecUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ClosedAt");
+
+                    b.Property<string>("Notatka")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Note");
+
+                    b.Property<string>("Numer")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("DocumentNo");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("RowVersion");
+
+                    b.Property<DateTime>("StartUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("StartedAt");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("Status");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdMagazynu");
+
+                    b.HasIndex("IdUtworzyl");
+
+                    b.HasIndex("Numer")
+                        .IsUnique();
+
+                    b.ToTable("StockCounts");
+                });
+
             modelBuilder.Entity("Data.Data.Magazyn.JednostkaMiary", b =>
                 {
                     b.Property<int>("IdJednostki")
@@ -108,6 +656,9 @@ namespace Data.Migrations
                         .HasColumnName("Name");
 
                     b.HasKey("IdJednostki");
+
+                    b.HasIndex("Kod")
+                        .IsUnique();
 
                     b.ToTable("UnitsOfMeasure");
                 });
@@ -141,6 +692,152 @@ namespace Data.Migrations
                     b.HasIndex("IdNadrzednejKategorii");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Klient", b =>
+                {
+                    b.Property<int>("IdKlienta")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("CustomerId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdKlienta"));
+
+                    b.Property<string>("Adres")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)")
+                        .HasColumnName("Address");
+
+                    b.Property<bool>("CzyAktywny")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsActive");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("Email");
+
+                    b.Property<string>("Nazwa")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)")
+                        .HasColumnName("Name");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("RowVersion");
+
+                    b.Property<string>("Telefon")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)")
+                        .HasColumnName("Phone");
+
+                    b.Property<DateTime>("UtworzonoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.HasKey("IdKlienta");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("Nazwa");
+
+                    b.ToTable("Customers");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.KodProduktu", b =>
+                {
+                    b.Property<int>("IdKodu")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ProductCodeId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdKodu"));
+
+                    b.Property<bool>("CzyGlowny")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsPrimary");
+
+                    b.Property<int>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<string>("Typ")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("CodeType");
+
+                    b.Property<string>("Wartosc")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)")
+                        .HasColumnName("CodeValue");
+
+                    b.HasKey("IdKodu");
+
+                    b.HasIndex("IdProduktu");
+
+                    b.HasIndex("Wartosc")
+                        .IsUnique();
+
+                    b.ToTable("ProductCodes");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.LogAudytu", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("AuditId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Akcja")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)")
+                        .HasColumnName("Action");
+
+                    b.Property<string>("Encja")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("EntityName");
+
+                    b.Property<string>("IdEncji")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasColumnName("EntityId");
+
+                    b.Property<DateTime>("KiedyUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("At");
+
+                    b.Property<string>("NoweJson")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("NewValuesJson");
+
+                    b.Property<string>("StareJson")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("OldValuesJson");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Encja");
+
+                    b.HasIndex("KiedyUtc");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AuditLog");
                 });
 
             modelBuilder.Entity("Data.Data.Magazyn.Lokacja", b =>
@@ -208,6 +905,266 @@ namespace Data.Migrations
                     b.ToTable("Warehouses");
                 });
 
+            modelBuilder.Entity("Data.Data.Magazyn.Partia", b =>
+                {
+                    b.Property<int>("IdPartii")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("BatchId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdPartii"));
+
+                    b.Property<DateTime?>("DataProdukcji")
+                        .HasColumnType("date")
+                        .HasColumnName("ProductionDate");
+
+                    b.Property<DateTime?>("DataWaznosci")
+                        .HasColumnType("date")
+                        .HasColumnName("ExpiryDate");
+
+                    b.Property<int?>("IdDostawcy")
+                        .HasColumnType("int")
+                        .HasColumnName("SupplierId");
+
+                    b.Property<int>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<string>("NumerPartii")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)")
+                        .HasColumnName("BatchNumber");
+
+                    b.HasKey("IdPartii");
+
+                    b.HasIndex("IdDostawcy");
+
+                    b.HasIndex("IdProduktu", "NumerPartii")
+                        .IsUnique();
+
+                    b.ToTable("Batches");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaInwentaryzacji", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("StockCountItemId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdDokumentu")
+                        .HasColumnType("int")
+                        .HasColumnName("StockCountId");
+
+                    b.Property<int>("IdLokacji")
+                        .HasColumnType("int")
+                        .HasColumnName("LocationId");
+
+                    b.Property<int>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<decimal>("IloscOczekiwana")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("ExpectedQty");
+
+                    b.Property<decimal>("IloscPoliczona")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("CountedQty");
+
+                    b.Property<int>("Lp")
+                        .HasColumnType("int")
+                        .HasColumnName("LineNo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdLokacji");
+
+                    b.HasIndex("IdProduktu");
+
+                    b.HasIndex("IdDokumentu", "Lp")
+                        .IsUnique();
+
+                    b.ToTable("StockCountItems");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaMM", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("TransferItemId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdDokumentu")
+                        .HasColumnType("int")
+                        .HasColumnName("TransferId");
+
+                    b.Property<int>("IdLokacjiDo")
+                        .HasColumnType("int")
+                        .HasColumnName("ToLocationId");
+
+                    b.Property<int>("IdLokacjiZ")
+                        .HasColumnType("int")
+                        .HasColumnName("FromLocationId");
+
+                    b.Property<int>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<decimal>("Ilosc")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("Quantity");
+
+                    b.Property<int>("Lp")
+                        .HasColumnType("int")
+                        .HasColumnName("LineNo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdLokacjiDo");
+
+                    b.HasIndex("IdLokacjiZ");
+
+                    b.HasIndex("IdProduktu");
+
+                    b.HasIndex("IdDokumentu", "Lp")
+                        .IsUnique();
+
+                    b.ToTable("StockTransferItems");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaPZ", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ReceiptItemId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("CenaJednostkowa")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("UnitPrice");
+
+                    b.Property<int>("IdDokumentu")
+                        .HasColumnType("int")
+                        .HasColumnName("ReceiptId");
+
+                    b.Property<int>("IdLokacji")
+                        .HasColumnType("int")
+                        .HasColumnName("LocationId");
+
+                    b.Property<int>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<decimal>("Ilosc")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("Quantity");
+
+                    b.Property<int>("Lp")
+                        .HasColumnType("int")
+                        .HasColumnName("LineNo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdLokacji");
+
+                    b.HasIndex("IdProduktu");
+
+                    b.HasIndex("IdDokumentu", "Lp")
+                        .IsUnique();
+
+                    b.ToTable("GoodsReceiptItems");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaRezerwacji", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ReservationItemId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("IdLokacji")
+                        .HasColumnType("int")
+                        .HasColumnName("LocationId");
+
+                    b.Property<int>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<int>("IdRezerwacji")
+                        .HasColumnType("int")
+                        .HasColumnName("ReservationId");
+
+                    b.Property<decimal>("Ilosc")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("Quantity");
+
+                    b.Property<int>("Lp")
+                        .HasColumnType("int")
+                        .HasColumnName("LineNo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdLokacji");
+
+                    b.HasIndex("IdProduktu");
+
+                    b.HasIndex("IdRezerwacji", "Lp")
+                        .IsUnique();
+
+                    b.ToTable("ReservationItems");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaWZ", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("IssueItemId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdDokumentu")
+                        .HasColumnType("int")
+                        .HasColumnName("IssueId");
+
+                    b.Property<int?>("IdLokacji")
+                        .HasColumnType("int")
+                        .HasColumnName("LocationId");
+
+                    b.Property<int>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<decimal>("Ilosc")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("Quantity");
+
+                    b.Property<int>("Lp")
+                        .HasColumnType("int")
+                        .HasColumnName("LineNo");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdLokacji");
+
+                    b.HasIndex("IdProduktu");
+
+                    b.HasIndex("IdDokumentu", "Lp")
+                        .IsUnique();
+
+                    b.ToTable("GoodsIssueItems");
+                });
+
             modelBuilder.Entity("Data.Data.Magazyn.Produkt", b =>
                 {
                     b.Property<int>("IdProduktu")
@@ -270,12 +1227,150 @@ namespace Data.Migrations
 
                     b.HasKey("IdProduktu");
 
+                    b.HasIndex("IdDomyslnejJednostki");
+
                     b.HasIndex("IdKategorii");
 
                     b.HasIndex("Kod")
                         .IsUnique();
 
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.ProduktJednostka", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ProductUomId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdJednostki")
+                        .HasColumnType("int")
+                        .HasColumnName("UomId");
+
+                    b.Property<int>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<decimal>("PrzelicznikDoDomyslnej")
+                        .HasColumnType("decimal(18,6)")
+                        .HasColumnName("FactorToDefault");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdJednostki");
+
+                    b.HasIndex("IdProduktu", "IdJednostki")
+                        .IsUnique();
+
+                    b.ToTable("ProductUoms");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.RegulaAlertu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("AlertRuleId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CzyWlaczona")
+                        .HasColumnType("bit")
+                        .HasColumnName("IsEnabled");
+
+                    b.Property<int>("IdMagazynu")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.Property<int?>("IdProduktu")
+                        .HasColumnType("int")
+                        .HasColumnName("ProductId");
+
+                    b.Property<decimal>("Prog")
+                        .HasColumnType("decimal(18,3)")
+                        .HasColumnName("ThresholdValue");
+
+                    b.Property<string>("Typ")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("RuleType");
+
+                    b.Property<DateTime>("UtworzonoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdProduktu");
+
+                    b.HasIndex("IdMagazynu", "IdProduktu", "Typ");
+
+                    b.ToTable("AlertRules");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Rezerwacja", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ReservationId");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("IdMagazynu")
+                        .HasColumnType("int")
+                        .HasColumnName("WarehouseId");
+
+                    b.Property<int>("IdUtworzyl")
+                        .HasColumnType("int")
+                        .HasColumnName("CreatedByUserId");
+
+                    b.Property<string>("Notatka")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Note");
+
+                    b.Property<string>("Numer")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("DocumentNo");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("RowVersion");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("Status");
+
+                    b.Property<DateTime>("UtworzonoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<DateTime?>("WygasaUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("ExpiresAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdMagazynu");
+
+                    b.HasIndex("IdUtworzyl");
+
+                    b.HasIndex("Numer")
+                        .IsUnique();
+
+                    b.ToTable("Reservations");
                 });
 
             modelBuilder.Entity("Data.Data.Magazyn.Rola", b =>
@@ -294,6 +1389,9 @@ namespace Data.Migrations
                         .HasColumnName("Name");
 
                     b.HasKey("IdRoli");
+
+                    b.HasIndex("Nazwa")
+                        .IsUnique();
 
                     b.ToTable("Roles");
                 });
@@ -355,6 +1453,10 @@ namespace Data.Migrations
 
                     b.HasIndex("IdUzytkownika");
 
+                    b.HasIndex("Typ");
+
+                    b.HasIndex("UtworzonoUtc");
+
                     b.ToTable("StockMovements");
                 });
 
@@ -394,6 +1496,36 @@ namespace Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Stock");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.UstawienieAplikacji", b =>
+                {
+                    b.Property<string>("Klucz")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)")
+                        .HasColumnName("Key");
+
+                    b.Property<string>("Opis")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnName("Description");
+
+                    b.Property<string>("Wartosc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("Value");
+
+                    b.Property<int?>("ZmienilUserId")
+                        .HasColumnType("int")
+                        .HasColumnName("UpdatedByUserId");
+
+                    b.Property<DateTime>("ZmienionoUtc")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedAt");
+
+                    b.HasKey("Klucz");
+
+                    b.ToTable("AppSettings");
                 });
 
             modelBuilder.Entity("Data.Data.Magazyn.Uzytkownik", b =>
@@ -465,6 +1597,151 @@ namespace Data.Migrations
                     b.ToTable("UserRoles");
                 });
 
+            modelBuilder.Entity("Data.Data.CMS.PlikMedia", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Uzytkownik", "Wgral")
+                        .WithMany()
+                        .HasForeignKey("WgralUserId");
+
+                    b.Navigation("Wgral");
+                });
+
+            modelBuilder.Entity("Data.Data.CMS.SzablonWydruku", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Uzytkownik", "Wgral")
+                        .WithMany()
+                        .HasForeignKey("WgralUserId");
+
+                    b.Navigation("Wgral");
+                });
+
+            modelBuilder.Entity("Data.Data.CMS.ZalacznikDokumentu", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Uzytkownik", "Wgral")
+                        .WithMany()
+                        .HasForeignKey("WgralUserId");
+
+                    b.Navigation("Wgral");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Alert", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Magazyn", "Magazyn")
+                        .WithMany()
+                        .HasForeignKey("IdMagazynu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.RegulaAlertu", "Regula")
+                        .WithMany()
+                        .HasForeignKey("IdReguly")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Magazyn");
+
+                    b.Navigation("Produkt");
+
+                    b.Navigation("Regula");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.DokumentMM", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Magazyn", "Magazyn")
+                        .WithMany()
+                        .HasForeignKey("IdMagazynu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Uzytkownik", "Utworzyl")
+                        .WithMany()
+                        .HasForeignKey("IdUtworzyl")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Magazyn");
+
+                    b.Navigation("Utworzyl");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.DokumentPZ", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Dostawca", "Dostawca")
+                        .WithMany("Przyjecia")
+                        .HasForeignKey("IdDostawcy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Magazyn", "Magazyn")
+                        .WithMany()
+                        .HasForeignKey("IdMagazynu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Uzytkownik", "Utworzyl")
+                        .WithMany()
+                        .HasForeignKey("IdUtworzyl")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Dostawca");
+
+                    b.Navigation("Magazyn");
+
+                    b.Navigation("Utworzyl");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.DokumentWZ", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Klient", "Klient")
+                        .WithMany("Wydania")
+                        .HasForeignKey("IdKlienta")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Data.Data.Magazyn.Magazyn", "Magazyn")
+                        .WithMany()
+                        .HasForeignKey("IdMagazynu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Uzytkownik", "Utworzyl")
+                        .WithMany()
+                        .HasForeignKey("IdUtworzyl")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Klient");
+
+                    b.Navigation("Magazyn");
+
+                    b.Navigation("Utworzyl");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Inwentaryzacja", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Magazyn", "Magazyn")
+                        .WithMany()
+                        .HasForeignKey("IdMagazynu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Uzytkownik", "Utworzyl")
+                        .WithMany()
+                        .HasForeignKey("IdUtworzyl")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Magazyn");
+
+                    b.Navigation("Utworzyl");
+                });
+
             modelBuilder.Entity("Data.Data.Magazyn.Kategoria", b =>
                 {
                     b.HasOne("Data.Data.Magazyn.Kategoria", "NadrzednaKategoria")
@@ -475,42 +1752,287 @@ namespace Data.Migrations
                     b.Navigation("NadrzednaKategoria");
                 });
 
+            modelBuilder.Entity("Data.Data.Magazyn.KodProduktu", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Produkt");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.LogAudytu", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Uzytkownik", "Uzytkownik")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Uzytkownik");
+                });
+
             modelBuilder.Entity("Data.Data.Magazyn.Lokacja", b =>
                 {
                     b.HasOne("Data.Data.Magazyn.Magazyn", "Magazyn")
                         .WithMany("Lokacje")
                         .HasForeignKey("IdMagazynu")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Magazyn");
                 });
 
-            modelBuilder.Entity("Data.Data.Magazyn.Produkt", b =>
+            modelBuilder.Entity("Data.Data.Magazyn.Partia", b =>
                 {
-                    b.HasOne("Data.Data.Magazyn.Kategoria", "Kategoria")
-                        .WithMany("Produkty")
-                        .HasForeignKey("IdKategorii")
+                    b.HasOne("Data.Data.Magazyn.Dostawca", "Dostawca")
+                        .WithMany()
+                        .HasForeignKey("IdDostawcy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Dostawca");
+
+                    b.Navigation("Produkt");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaInwentaryzacji", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Inwentaryzacja", "Dokument")
+                        .WithMany("Pozycje")
+                        .HasForeignKey("IdDokumentu")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Data.Data.Magazyn.Lokacja", "Lokacja")
+                        .WithMany()
+                        .HasForeignKey("IdLokacji")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Dokument");
+
+                    b.Navigation("Lokacja");
+
+                    b.Navigation("Produkt");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaMM", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.DokumentMM", "Dokument")
+                        .WithMany("Pozycje")
+                        .HasForeignKey("IdDokumentu")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Lokacja", "LokacjaDo")
+                        .WithMany()
+                        .HasForeignKey("IdLokacjiDo")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Lokacja", "LokacjaZ")
+                        .WithMany()
+                        .HasForeignKey("IdLokacjiZ")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Dokument");
+
+                    b.Navigation("LokacjaDo");
+
+                    b.Navigation("LokacjaZ");
+
+                    b.Navigation("Produkt");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaPZ", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.DokumentPZ", "Dokument")
+                        .WithMany("Pozycje")
+                        .HasForeignKey("IdDokumentu")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Lokacja", "Lokacja")
+                        .WithMany()
+                        .HasForeignKey("IdLokacji")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Dokument");
+
+                    b.Navigation("Lokacja");
+
+                    b.Navigation("Produkt");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaRezerwacji", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Lokacja", "Lokacja")
+                        .WithMany()
+                        .HasForeignKey("IdLokacji")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Rezerwacja", "Rezerwacja")
+                        .WithMany("Pozycje")
+                        .HasForeignKey("IdRezerwacji")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lokacja");
+
+                    b.Navigation("Produkt");
+
+                    b.Navigation("Rezerwacja");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.PozycjaWZ", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.DokumentWZ", "Dokument")
+                        .WithMany("Pozycje")
+                        .HasForeignKey("IdDokumentu")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Lokacja", "Lokacja")
+                        .WithMany()
+                        .HasForeignKey("IdLokacji")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Dokument");
+
+                    b.Navigation("Lokacja");
+
+                    b.Navigation("Produkt");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Produkt", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.JednostkaMiary", "DomyslnaJednostka")
+                        .WithMany()
+                        .HasForeignKey("IdDomyslnejJednostki")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Kategoria", "Kategoria")
+                        .WithMany("Produkty")
+                        .HasForeignKey("IdKategorii")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DomyslnaJednostka");
+
                     b.Navigation("Kategoria");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.ProduktJednostka", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.JednostkaMiary", "Jednostka")
+                        .WithMany()
+                        .HasForeignKey("IdJednostki")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Jednostka");
+
+                    b.Navigation("Produkt");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.RegulaAlertu", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Magazyn", "Magazyn")
+                        .WithMany()
+                        .HasForeignKey("IdMagazynu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
+                        .WithMany()
+                        .HasForeignKey("IdProduktu")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Magazyn");
+
+                    b.Navigation("Produkt");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Rezerwacja", b =>
+                {
+                    b.HasOne("Data.Data.Magazyn.Magazyn", "Magazyn")
+                        .WithMany()
+                        .HasForeignKey("IdMagazynu")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Data.Data.Magazyn.Uzytkownik", "Utworzyl")
+                        .WithMany()
+                        .HasForeignKey("IdUtworzyl")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Magazyn");
+
+                    b.Navigation("Utworzyl");
                 });
 
             modelBuilder.Entity("Data.Data.Magazyn.RuchMagazynowy", b =>
                 {
                     b.HasOne("Data.Data.Magazyn.Lokacja", "LokacjaDo")
                         .WithMany()
-                        .HasForeignKey("IdLokacjiDo");
+                        .HasForeignKey("IdLokacjiDo")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Data.Data.Magazyn.Lokacja", "LokacjaZ")
                         .WithMany()
-                        .HasForeignKey("IdLokacjiZ");
+                        .HasForeignKey("IdLokacjiZ")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
                         .WithMany()
                         .HasForeignKey("IdProduktu")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Data.Data.Magazyn.Uzytkownik", "Uzytkownik")
@@ -531,13 +2053,13 @@ namespace Data.Migrations
                     b.HasOne("Data.Data.Magazyn.Lokacja", "Lokacja")
                         .WithMany("Stany")
                         .HasForeignKey("IdLokacji")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
                         .WithMany()
                         .HasForeignKey("IdProduktu")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Lokacja");
@@ -550,13 +2072,13 @@ namespace Data.Migrations
                     b.HasOne("Data.Data.Magazyn.Rola", "Rola")
                         .WithMany("Uzytkownicy")
                         .HasForeignKey("IdRoli")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Data.Data.Magazyn.Uzytkownik", "Uzytkownik")
                         .WithMany("RoleUzytkownika")
                         .HasForeignKey("IdUzytkownika")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Rola");
@@ -564,11 +2086,41 @@ namespace Data.Migrations
                     b.Navigation("Uzytkownik");
                 });
 
+            modelBuilder.Entity("Data.Data.Magazyn.DokumentMM", b =>
+                {
+                    b.Navigation("Pozycje");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.DokumentPZ", b =>
+                {
+                    b.Navigation("Pozycje");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.DokumentWZ", b =>
+                {
+                    b.Navigation("Pozycje");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Dostawca", b =>
+                {
+                    b.Navigation("Przyjecia");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Inwentaryzacja", b =>
+                {
+                    b.Navigation("Pozycje");
+                });
+
             modelBuilder.Entity("Data.Data.Magazyn.Kategoria", b =>
                 {
                     b.Navigation("Podkategorie");
 
                     b.Navigation("Produkty");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Klient", b =>
+                {
+                    b.Navigation("Wydania");
                 });
 
             modelBuilder.Entity("Data.Data.Magazyn.Lokacja", b =>
@@ -579,6 +2131,11 @@ namespace Data.Migrations
             modelBuilder.Entity("Data.Data.Magazyn.Magazyn", b =>
                 {
                     b.Navigation("Lokacje");
+                });
+
+            modelBuilder.Entity("Data.Data.Magazyn.Rezerwacja", b =>
+                {
+                    b.Navigation("Pozycje");
                 });
 
             modelBuilder.Entity("Data.Data.Magazyn.Rola", b =>

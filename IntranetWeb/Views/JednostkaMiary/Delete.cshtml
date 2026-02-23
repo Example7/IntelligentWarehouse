@@ -1,39 +1,44 @@
-﻿@model Data.Data.Magazyn.JednostkaMiary
+@model Data.Data.Magazyn.JednostkaMiary
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Usun jednostke miary";
 }
 
-<h1>Delete</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usun jednostke miary</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdz usuniecie jednostki ze slownika.</p>
+            </div>
+        </div>
+    </section>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>JednostkaMiary</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Kod)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Kod)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nazwa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nazwa)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CzyAktywna)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CzyAktywna)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="IdJednostki" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Usuniecie jednostki</strong>
+                <div>Operacja moze byc zablokowana, jesli jednostka jest uzywana przez produkty lub dokumenty.</div>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.IdJednostki</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value entity-mono">@Model.Kod</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywna ? "Aktywna" : "Nieaktywna")</div></div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Nazwa</div>
+                <div class="news-details-item__value news-details-item__value--content">@Model.Nazwa</div>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="news-form-actions">
+            <input type="hidden" asp-for="IdJednostki" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun jednostke</button>
+            <a asp-action="Details" asp-route-id="@Model.IdJednostki" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+        </form>
+    </section>
 </div>

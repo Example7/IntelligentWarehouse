@@ -1,23 +1,25 @@
-﻿using Data.Data;
-using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Data.Data;
+using Data.Data.Magazyn;
+
+using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
-    public class KategoriaController : Controller
+    public class KategoriaController : BaseSearchController<Kategoria>
     {
-        private readonly DataContext _context;
 
-        public KategoriaController(DataContext context)
-        {
-            _context = context;
-        }
+        public KategoriaController(DataContext context) : base(context) { }
 
         // GET: Kategoria
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            return View(await _context.Kategoria.ToListAsync());
+            var query = _context.Kategoria.Include(k => k.NadrzednaKategoria).AsNoTracking();
+            query = ApplySearchAny(query, searchTerm, x => x.Nazwa, x => x.Sciezka);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: Kategoria/Details/5
@@ -29,6 +31,7 @@ namespace IntranetWeb.Controllers
             }
 
             var kategoria = await _context.Kategoria
+                .Include(k => k.NadrzednaKategoria)
                 .FirstOrDefaultAsync(m => m.IdKategorii == id);
             if (kategoria == null)
             {
@@ -41,6 +44,7 @@ namespace IntranetWeb.Controllers
         // GET: Kategoria/Create
         public IActionResult Create()
         {
+            ViewData["IdNadrzednejKategorii"] = new SelectList(_context.Kategoria, "IdKategorii", "Nazwa");
             return View();
         }
 
@@ -57,6 +61,7 @@ namespace IntranetWeb.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["IdNadrzednejKategorii"] = new SelectList(_context.Kategoria, "IdKategorii", "Nazwa", kategoria.IdNadrzednejKategorii);
             return View(kategoria);
         }
 
@@ -73,6 +78,7 @@ namespace IntranetWeb.Controllers
             {
                 return NotFound();
             }
+            ViewData["IdNadrzednejKategorii"] = new SelectList(_context.Kategoria, "IdKategorii", "Nazwa", kategoria.IdNadrzednejKategorii);
             return View(kategoria);
         }
 
@@ -108,6 +114,7 @@ namespace IntranetWeb.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["IdNadrzednejKategorii"] = new SelectList(_context.Kategoria, "IdKategorii", "Nazwa", kategoria.IdNadrzednejKategorii);
             return View(kategoria);
         }
 
@@ -120,6 +127,7 @@ namespace IntranetWeb.Controllers
             }
 
             var kategoria = await _context.Kategoria
+                .Include(k => k.NadrzednaKategoria)
                 .FirstOrDefaultAsync(m => m.IdKategorii == id);
             if (kategoria == null)
             {

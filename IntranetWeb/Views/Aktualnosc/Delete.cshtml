@@ -1,45 +1,74 @@
-﻿@model Data.Data.CMS.Aktualnosc
+@model Data.Data.CMS.Aktualnosc
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Usuń aktualność";
 }
 
-<h1>Delete</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger" aria-hidden="true">
+                <i class="bi bi-trash3"></i>
+            </span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usuń aktualność</h1>
+                <p class="news-admin-header__subheading mb-0">
+                    Operacja jest nieodwracalna. Sprawdź dane przed usunięciem.
+                </p>
+            </div>
+        </div>
+    </section>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Aktualnosc</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TytulLinku)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TytulLinku)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nazwa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nazwa)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Tresc)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Tresc)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Pozycja)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Pozycja)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="IdAktualnosci" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Potwierdzenie usunięcia</strong>
+                <div>Za chwilę usuniesz wpis z listy aktualności CMS.</div>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item">
+                <div class="news-details-item__label">ID</div>
+                <div class="news-details-item__value">@Model.IdAktualnosci</div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Pozycja</div>
+                <div class="news-details-item__value">@Model.Pozycja</div>
+            </div>
+
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Nazwa</div>
+                <div class="news-details-item__value">@Html.DisplayFor(m => m.Nazwa)</div>
+            </div>
+
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Tytuł linku</div>
+                <div class="news-details-item__value">@Html.DisplayFor(m => m.TytulLinku)</div>
+            </div>
+
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Treść</div>
+                <div class="news-details-item__value news-details-item__value--content">@Html.DisplayFor(m => m.Tresc)</div>
+            </div>
+        </div>
+
+        <form asp-action="Delete" asp-route-id="@Model.IdAktualnosci" method="post" class="news-form-actions">
+            <input type="hidden" name="id" value="@Model.IdAktualnosci" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary">
+                <i class="bi bi-trash3-fill"></i>
+                Usuń aktualność
+            </button>
+            <a asp-action="Details" asp-route-id="@Model.IdAktualnosci" class="btn btn-outline-info">
+                <i class="bi bi-eye"></i>
+                Szczegóły
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Anuluj
+            </a>
+        </form>
+    </section>
 </div>

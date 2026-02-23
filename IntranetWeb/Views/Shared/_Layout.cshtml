@@ -1,56 +1,286 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - IntranetWeb</title>
-    <script type="importmap"></script>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/IntranetWeb.styles.css" asp-append-version="true" />
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">IntranetWeb</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+
+@{
+        var currentController = (ViewContext.RouteData.Values["controller"]?.ToString()) ?? "";
+        var currentSectionLabel = string.IsNullOrWhiteSpace(currentController) ? "Dashboard" : currentController;
+        bool IsActive(string c) => string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase);
+}
+
+<body class="has-sidebar intranet-shell">
+    <!-- TOP NAV -->
+    <header class="sticky-top app-topbar">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid px-3 px-lg-4">
+                <button class="btn app-icon-btn d-lg-none" type="button"
+                        data-bs-toggle="offcanvas" data-bs-target="#sidebar"
+                        aria-controls="sidebar">
+                    <i class="bi bi-list"></i>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Strona" asp-action="Index">Strony</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Aktualnosc" asp-action="Index">Aktualności</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Produkt" asp-action="Index">Produkty</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Kategoria" asp-action="Index">Kategorie</a>
-                        </li>
-                    </ul>
+
+                <a class="navbar-brand ms-2 d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
+                    <span class="app-brand-icon"><i class="bi bi-boxes"></i></span>
+                    <span>
+                        <span class="app-brand-title">IntranetWeb</span>
+                        <span class="app-brand-subtitle">Intelligent Warehouse</span>
+                    </span>
+                </a>
+
+                <div class="ms-auto d-flex align-items-center gap-2">
+                    <span class="app-context-chip d-none d-md-inline-flex">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        @currentSectionLabel
+                    </span>
+                    <a class="btn app-icon-btn" asp-controller="Home" asp-action="Index" title="Dashboard" aria-label="Dashboard">
+                        <i class="bi bi-house-door"></i>
+                    </a>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
+
+    <!-- SIDEBAR (offcanvas mobile, fixed desktop) -->
+    <aside class="offcanvas offcanvas-start offcanvas-lg app-sidebar" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title d-flex align-items-center gap-2" id="sidebarLabel">
+                <i class="bi bi-list-ul"></i> Nawigacja
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Zamknij"></button>
+        </div>
+
+        <div class="offcanvas-body p-0">
+            <div class="app-sidebar-shell">
+                <div class="app-sidebar-head">
+                    <div class="app-sidebar-kicker">Panel CRUD / CMS</div>
+                    <div class="app-sidebar-title">Zarządzanie danymi</div>
+                    <div class="app-sidebar-meta">
+                        <span><i class="bi bi-shield-check"></i> Intranet</span>
+                        <span><i class="bi bi-database"></i> WMS + CMS</span>
+                    </div>
+                </div>
+
+                <nav class="p-2 pb-1 app-sidebar-nav">
+                <!-- DASH -->
+                <div class="px-2 pt-2 sidebar-section-title">Start</div>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Home") ? "active" : "")"
+                   asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+
+                <hr class="my-2" />
+
+                <!-- CMS -->
+                <div class="px-2 pt-1 sidebar-section-title">CMS</div>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Strona") ? "active" : "")"
+                   asp-controller="Strona" asp-action="Index">
+                    <i class="bi bi-file-earmark-text me-2"></i> Strony
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Aktualnosc") ? "active" : "")"
+                   asp-controller="Aktualnosc" asp-action="Index">
+                    <i class="bi bi-newspaper me-2"></i> Aktualności
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("PlikMedia") ? "active" : "")"
+                   asp-controller="PlikMedia" asp-action="Index">
+                    <i class="bi bi-images me-2"></i> Media (pliki)
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("SzablonWydruku") ? "active" : "")"
+                   asp-controller="SzablonWydruku" asp-action="Index">
+                    <i class="bi bi-filetype-docx me-2"></i> Szablony wydruków
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("ZalacznikDokumentu") ? "active" : "")"
+                   asp-controller="ZalacznikDokumentu" asp-action="Index">
+                    <i class="bi bi-paperclip me-2"></i> Załączniki dokumentów
+                </a>
+
+                <hr class="my-2" />
+
+                <!-- MASTER DATA -->
+                <div class="px-2 pt-1 sidebar-section-title">Dane podstawowe</div>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Produkt") ? "active" : "")"
+                   asp-controller="Produkt" asp-action="Index">
+                    <i class="bi bi-box-seam me-2"></i> Produkty
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Kategoria") ? "active" : "")"
+                   asp-controller="Kategoria" asp-action="Index">
+                    <i class="bi bi-tags me-2"></i> Kategorie
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("JednostkaMiary") ? "active" : "")"
+                   asp-controller="JednostkaMiary" asp-action="Index">
+                    <i class="bi bi-rulers me-2"></i> Jednostki miary
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Magazyn") ? "active" : "")"
+                   asp-controller="Magazyn" asp-action="Index">
+                    <i class="bi bi-building me-2"></i> Magazyny
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Lokacja") ? "active" : "")"
+                   asp-controller="Lokacja" asp-action="Index">
+                    <i class="bi bi-geo-alt me-2"></i> Lokacje
+                </a>
+
+                <hr class="my-2" />
+
+                <!-- STANY / RUCHY -->
+                <div class="px-2 pt-1 sidebar-section-title">Stany i ruchy</div>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("StanMagazynowy") ? "active" : "")"
+                   asp-controller="StanMagazynowy" asp-action="Index">
+                    <i class="bi bi-stack me-2"></i> Stany magazynowe
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("RuchMagazynowy") ? "active" : "")"
+                   asp-controller="RuchMagazynowy" asp-action="Index">
+                    <i class="bi bi-arrow-left-right me-2"></i> Ruchy magazynowe
+                </a>
+
+                <hr class="my-2" />
+
+                <!-- KONTRAHENCI -->
+                <div class="px-2 pt-1 sidebar-section-title">Kontrahenci</div>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Dostawca") ? "active" : "")"
+                   asp-controller="Dostawca" asp-action="Index">
+                    <i class="bi bi-truck me-2"></i> Dostawcy
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Klient") ? "active" : "")"
+                   asp-controller="Klient" asp-action="Index">
+                    <i class="bi bi-person-badge me-2"></i> Klienci
+                </a>
+
+                <hr class="my-2" />
+
+                <!-- DOKUMENTY -->
+                <div class="px-2 pt-1 sidebar-section-title">Dokumenty WMS</div>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("DokumentPZ") ? "active" : "")"
+                   asp-controller="DokumentPZ" asp-action="Index">
+                    <i class="bi bi-box-arrow-in-down me-2"></i> PZ (Przyjęcia)
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaPZ") ? "active" : "")"
+                   asp-controller="PozycjaPZ" asp-action="Index">
+                    <i class="bi bi-list-check me-2"></i> Pozycje PZ
+                </a>
+
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("DokumentWZ") ? "active" : "")"
+                   asp-controller="DokumentWZ" asp-action="Index">
+                    <i class="bi bi-box-arrow-up me-2"></i> WZ (Wydania)
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaWZ") ? "active" : "")"
+                   asp-controller="PozycjaWZ" asp-action="Index">
+                    <i class="bi bi-list-check me-2"></i> Pozycje WZ
+                </a>
+
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("DokumentMM") ? "active" : "")"
+                   asp-controller="DokumentMM" asp-action="Index">
+                    <i class="bi bi-arrow-repeat me-2"></i> MM (Przesunięcia)
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaMM") ? "active" : "")"
+                   asp-controller="PozycjaMM" asp-action="Index">
+                    <i class="bi bi-list-check me-2"></i> Pozycje MM
+                </a>
+
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Inwentaryzacja") ? "active" : "")"
+                   asp-controller="Inwentaryzacja" asp-action="Index">
+                    <i class="bi bi-clipboard-check me-2"></i> Inwentaryzacje
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaInwentaryzacji") ? "active" : "")"
+                   asp-controller="PozycjaInwentaryzacji" asp-action="Index">
+                    <i class="bi bi-list-check me-2"></i> Pozycje inwent.
+                </a>
+
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Rezerwacja") ? "active" : "")"
+                   asp-controller="Rezerwacja" asp-action="Index">
+                    <i class="bi bi-bookmark-check me-2"></i> Rezerwacje
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaRezerwacji") ? "active" : "")"
+                   asp-controller="PozycjaRezerwacji" asp-action="Index">
+                    <i class="bi bi-list-check me-2"></i> Pozycje rezerw.
+                </a>
+
+                <hr class="my-2" />
+
+                <!-- ROZSZERZENIA PRODUKTÓW -->
+                <div class="px-2 pt-1 sidebar-section-title">Produkty rozszerzone</div>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("KodProduktu") ? "active" : "")"
+                   asp-controller="KodProduktu" asp-action="Index">
+                    <i class="bi bi-upc-scan me-2"></i> Kody produktów
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("ProduktJednostka") ? "active" : "")"
+                   asp-controller="ProduktJednostka" asp-action="Index">
+                    <i class="bi bi-arrow-left-right me-2"></i> Jednostki produktów
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Partia") ? "active" : "")"
+                   asp-controller="Partia" asp-action="Index">
+                    <i class="bi bi-layers me-2"></i> Partie
+                </a>
+
+                <hr class="my-2" />
+
+                <!-- ALERTY / AUDYT / USTAWIENIA -->
+                <div class="px-2 pt-1 sidebar-section-title">System</div>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("RegulaAlertu") ? "active" : "")"
+                   asp-controller="RegulaAlertu" asp-action="Index">
+                    <i class="bi bi-bell me-2"></i> Reguły alertów
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Alert") ? "active" : "")"
+                   asp-controller="Alert" asp-action="Index">
+                    <i class="bi bi-bell-fill me-2"></i> Alerty
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("LogAudytu") ? "active" : "")"
+                   asp-controller="LogAudytu" asp-action="Index">
+                    <i class="bi bi-journal-text me-2"></i> Log audytu
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("UstawienieAplikacji") ? "active" : "")"
+                   asp-controller="UstawienieAplikacji" asp-action="Index">
+                    <i class="bi bi-sliders me-2"></i> Ustawienia aplikacji
+                </a>
+
+                <hr class="my-2" />
+
+                <!-- UŻYTKOWNICY / ROLE -->
+                <div class="px-2 pt-1 sidebar-section-title">Bezpieczeństwo</div>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Uzytkownik") ? "active" : "")"
+                   asp-controller="Uzytkownik" asp-action="Index">
+                    <i class="bi bi-people me-2"></i> Użytkownicy
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("Rola") ? "active" : "")"
+                   asp-controller="Rola" asp-action="Index">
+                    <i class="bi bi-shield-lock me-2"></i> Role
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActive("UzytkownikRola") ? "active" : "")"
+                   asp-controller="UzytkownikRola" asp-action="Index">
+                    <i class="bi bi-person-gear me-2"></i> Role użytkowników
+                </a>
+                </nav>
+            </div>
+        </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="content-wrap app-content-wrap">
+        <main class="container-fluid app-main px-3 px-lg-4 py-4">
+            <div class="app-content-frame">
+                @RenderBody()
+            </div>
         </main>
+
+        <footer class="app-footer">
+            <div class="container-fluid px-3 px-lg-4 small d-flex flex-column flex-md-row justify-content-between gap-2">
+                <span>© 2026 IntranetWeb • Intelligent Warehouse</span>
+                <a class="text-decoration-none" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </div>
+        </footer>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - IntranetWeb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

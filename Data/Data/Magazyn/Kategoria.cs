@@ -22,6 +22,7 @@ namespace Data.Data.Magazyn
         [Column("Path")]
         public string? Sciezka { get; set; }
 
+        [ForeignKey(nameof(IdNadrzednejKategorii))]
         public Kategoria? NadrzednaKategoria { get; set; }
         public ICollection<Kategoria> Podkategorie { get; set; } = new List<Kategoria>();
 

@@ -1,43 +1,56 @@
-﻿@model Data.Data.Magazyn.JednostkaMiary
+@model Data.Data.Magazyn.JednostkaMiary
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Dodaj jednostke miary";
 }
 
-<h1>Create</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj jednostke miary</h1>
+                <p class="news-admin-header__subheading mb-0">Utworz nowa jednostke do wykorzystania w magazynie i kartotekach produktow.</p>
+            </div>
+        </div>
+    </section>
 
-<h4>JednostkaMiary</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Kod" class="control-label"></label>
-                <input asp-for="Kod" class="form-control" />
-                <span asp-validation-for="Kod" class="text-danger"></span>
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Dane jednostki</h2>
+            <p class="text-muted mb-0">Wprowadz kod, nazwe i ustaw status aktywnosci.</p>
+        </div>
+
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="Kod" class="form-label news-form-label"></label>
+                    <input asp-for="Kod" class="form-control news-form-control" />
+                    <span asp-validation-for="Kod" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Nazwa" class="form-label news-form-label"></label>
+                    <input asp-for="Nazwa" class="form-control news-form-control" />
+                    <span asp-validation-for="Nazwa" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" asp-for="CzyAktywna" />
+                        <label class="form-check-label news-form-label mb-0" asp-for="CzyAktywna"></label>
+                    </div>
+                    <span asp-validation-for="CzyAktywna" class="text-danger small"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Nazwa" class="control-label"></label>
-                <input asp-for="Nazwa" class="form-control" />
-                <span asp-validation-for="Nazwa" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="CzyAktywna" /> @Html.DisplayNameFor(model => model.CzyAktywna)
-                </label>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz jednostke</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
             </div>
         </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    </section>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

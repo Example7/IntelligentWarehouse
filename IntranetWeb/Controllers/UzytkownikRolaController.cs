@@ -1,25 +1,25 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Controllers.Abstrakcja;
+
 namespace IntranetWeb.Controllers
 {
-    public class UzytkownikRolaController : Controller
+    public class UzytkownikRolaController : BaseSearchController<UzytkownikRola>
     {
-        private readonly DataContext _context;
 
-        public UzytkownikRolaController(DataContext context)
-        {
-            _context = context;
-        }
+        public UzytkownikRolaController(DataContext context) : base(context) { }
 
         // GET: UzytkownikRola
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            var intranetWebContext = _context.UzytkownikRola.Include(u => u.Rola).Include(u => u.Uzytkownik);
-            return View(await intranetWebContext.ToListAsync());
+            var query = _context.UzytkownikRola.Include(u => u.Rola).Include(u => u.Uzytkownik).AsNoTracking();
+            query = ApplySearchAny(query, searchTerm);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: UzytkownikRola/Details/5

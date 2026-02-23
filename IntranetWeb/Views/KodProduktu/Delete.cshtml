@@ -1,0 +1,42 @@
+@model Data.Data.Magazyn.KodProduktu
+
+@{
+    ViewData["Title"] = "Usun kod produktu";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usuń kod produktu</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie kodu identyfikacyjnego produktu.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Usunięcie kodu produktu</strong>
+                <div>Usunięcie głównego kodu może wpływać na skanowanie i integracje.</div>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Wartosc</div><div class="news-details-item__value entity-mono">@Model.Wartosc</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Typ</div><div class="news-details-item__value">@Model.Typ</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kod produktu</div><div class="news-details-item__value entity-mono">@(Model.Produkt?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Czy główny</div><div class="news-details-item__value">@(Model.CzyGlowny ? "Tak" : "Nie")</div></div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="news-form-actions">
+            <input type="hidden" asp-for="IdKodu" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń kod</button>
+            <a asp-action="Details" asp-route-id="@Model.IdKodu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+        </form>
+    </section>
+</div>

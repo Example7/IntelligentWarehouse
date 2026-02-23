@@ -1,25 +1,25 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Controllers.Abstrakcja;
+
 namespace IntranetWeb.Controllers
 {
-    public class RuchMagazynowyController : Controller
+    public class RuchMagazynowyController : BaseSearchController<RuchMagazynowy>
     {
-        private readonly DataContext _context;
 
-        public RuchMagazynowyController(DataContext context)
-        {
-            _context = context;
-        }
+        public RuchMagazynowyController(DataContext context) : base(context) { }
 
         // GET: RuchMagazynowy
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            var intranetWebContext = _context.RuchMagazynowy.Include(r => r.LokacjaDo).Include(r => r.LokacjaZ).Include(r => r.Produkt).Include(r => r.Uzytkownik);
-            return View(await intranetWebContext.ToListAsync());
+            var query = _context.RuchMagazynowy.Include(r => r.LokacjaDo).Include(r => r.LokacjaZ).Include(r => r.Produkt).Include(r => r.Uzytkownik).AsNoTracking();
+            query = ApplySearchAny(query, searchTerm, x => x.Referencja, x => x.Notatka);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: RuchMagazynowy/Details/5

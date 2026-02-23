@@ -1,48 +1,77 @@
-﻿@model Data.Data.CMS.Aktualnosc
+@model Data.Data.CMS.Aktualnosc
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Dodaj aktualność";
 }
 
-<h1>Create</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true">
+                <i class="bi bi-plus-square"></i>
+            </span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj aktualność</h1>
+                <p class="news-admin-header__subheading mb-0">
+                    Utwórz nowy wpis w sekcji aktualności CMS
+                </p>
+            </div>
+        </div>
+    </section>
 
-<h4>Aktualnosc</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="TytulLinku" class="control-label"></label>
-                <input asp-for="TytulLinku" class="form-control" />
-                <span asp-validation-for="TytulLinku" class="text-danger"></span>
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Formularz wpisu</h2>
+            <p class="text-muted mb-0">Uzupełnij podstawowe informacje i treść aktualności.</p>
+        </div>
+
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+
+            <div class="news-form-grid">
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Nazwa" class="form-label news-form-label"></label>
+                    <input asp-for="Nazwa" class="form-control news-form-control" />
+                    <span asp-validation-for="Nazwa" class="text-danger small"></span>
+                </div>
+
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="TytulLinku" class="form-label news-form-label"></label>
+                    <input asp-for="TytulLinku" class="form-control news-form-control" />
+                    <span asp-validation-for="TytulLinku" class="text-danger small"></span>
+                </div>
+
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Tresc" class="form-label news-form-label"></label>
+                    <textarea asp-for="Tresc" class="form-control news-form-control news-form-control--textarea" rows="8"></textarea>
+                    <div class="form-text">Treść będzie wyświetlana na liście oraz w widoku szczegółów.</div>
+                    <span asp-validation-for="Tresc" class="text-danger small"></span>
+                </div>
+
+                <div class="news-form-field news-form-field--compact">
+                    <label asp-for="Pozycja" class="form-label news-form-label"></label>
+                    <input asp-for="Pozycja" class="form-control news-form-control" type="number" min="0" />
+                    <div class="form-text">Mniejsza wartość = wyżej na liście.</div>
+                    <span asp-validation-for="Pozycja" class="text-danger small"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Nazwa" class="control-label"></label>
-                <input asp-for="Nazwa" class="form-control" />
-                <span asp-validation-for="Nazwa" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Tresc" class="control-label"></label>
-                <input asp-for="Tresc" class="form-control" />
-                <span asp-validation-for="Tresc" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Pozycja" class="control-label"></label>
-                <input asp-for="Pozycja" class="form-control" />
-                <span asp-validation-for="Pozycja" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary">
+                    <i class="bi bi-check2-circle"></i>
+                    Zapisz i dodaj
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Wróć do listy
+                </a>
             </div>
         </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    </section>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

@@ -1,0 +1,80 @@
+@model Data.Data.CMS.SzablonWydruku
+
+@{
+    ViewData["Title"] = "Dodaj szablon wydruku";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj szablon wydruku</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz nowy szablon dokumentu do wydruków.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Metadane szablonu</h2>
+            <p class="text-muted mb-0">Wypełnij typ dokumentu, wersję i dane pliku szablonu.</p>
+        </div>
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="TypDokumentu" class="form-label news-form-label"></label>
+                    <input asp-for="TypDokumentu" class="form-control news-form-control" />
+                    <span asp-validation-for="TypDokumentu" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Wersja" class="form-label news-form-label"></label>
+                    <input asp-for="Wersja" class="form-control news-form-control" />
+                    <span asp-validation-for="Wersja" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Nazwa" class="form-label news-form-label"></label>
+                    <input asp-for="Nazwa" class="form-control news-form-control" />
+                    <span asp-validation-for="Nazwa" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="NazwaPliku" class="form-label news-form-label"></label>
+                    <input asp-for="NazwaPliku" class="form-control news-form-control" />
+                    <span asp-validation-for="NazwaPliku" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="WgranoUtc" class="form-label news-form-label"></label>
+                    <input asp-for="WgranoUtc" class="form-control news-form-control" />
+                    <span asp-validation-for="WgranoUtc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Sciezka" class="form-label news-form-label"></label>
+                    <input asp-for="Sciezka" class="form-control news-form-control" />
+                    <span asp-validation-for="Sciezka" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="WgralUserId" class="form-label news-form-label"></label>
+                    <select asp-for="WgralUserId" class="form-select news-form-control" asp-items="ViewBag.WgralUserId">
+                        <option value="">(brak)</option>
+                    </select>
+                    <span asp-validation-for="WgralUserId" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <div class="form-check news-form-check">
+                        <input class="form-check-input" asp-for="CzyAktywny" />
+                        <label class="form-check-label" asp-for="CzyAktywny"></label>
+                    </div>
+                </div>
+            </div>
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz szablon</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

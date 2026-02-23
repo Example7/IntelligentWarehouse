@@ -1,74 +1,96 @@
-﻿@model Data.Data.Magazyn.RuchMagazynowy
+@model Data.Data.Magazyn.RuchMagazynowy
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edytuj ruch magazynowy";
 }
 
-<h1>Edit</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Edytuj ruch magazynowy</h1>
+                <p class="news-admin-header__subheading mb-0">Aktualizacja parametrów operacji magazynowej.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdRuchu</strong></div>
+        </div>
+    </section>
 
-<h4>RuchMagazynowy</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Edycja ruchu</h2>
+            <p class="text-muted mb-0">Zmien typ, lokalizacje, ilość i dane opisowe ruchu.</p>
+        </div>
+
+        <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="IdRuchu" />
-            <div class="form-group">
-                <label asp-for="Typ" class="control-label"></label>
-                <select asp-for="Typ" class="form-control"></select>
-                <span asp-validation-for="Typ" class="text-danger"></span>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="Typ" class="form-label news-form-label"></label>
+                    <select asp-for="Typ" class="form-select news-form-control"></select>
+                    <span asp-validation-for="Typ" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
+                    <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu">
+                        <option value="">(wybierz produkt)</option>
+                    </select>
+                    <span asp-validation-for="IdProduktu" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdLokacjiZ" class="form-label news-form-label"></label>
+                    <select asp-for="IdLokacjiZ" class="form-select news-form-control" asp-items="ViewBag.IdLokacjiZ">
+                        <option value="">(brak)</option>
+                    </select>
+                    <span asp-validation-for="IdLokacjiZ" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdLokacjiDo" class="form-label news-form-label"></label>
+                    <select asp-for="IdLokacjiDo" class="form-select news-form-control" asp-items="ViewBag.IdLokacjiDo">
+                        <option value="">(brak)</option>
+                    </select>
+                    <span asp-validation-for="IdLokacjiDo" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Ilosc" class="form-label news-form-label"></label>
+                    <input asp-for="Ilosc" class="form-control news-form-control" />
+                    <span asp-validation-for="Ilosc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="UtworzonoUtc" class="form-label news-form-label"></label>
+                    <input asp-for="UtworzonoUtc" class="form-control news-form-control" />
+                    <span asp-validation-for="UtworzonoUtc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Referencja" class="form-label news-form-label"></label>
+                    <input asp-for="Referencja" class="form-control news-form-control" />
+                    <span asp-validation-for="Referencja" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Notatka" class="form-label news-form-label"></label>
+                    <input asp-for="Notatka" class="form-control news-form-control" />
+                    <span asp-validation-for="Notatka" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="IdUzytkownika" class="form-label news-form-label"></label>
+                    <select asp-for="IdUzytkownika" class="form-select news-form-control" asp-items="ViewBag.IdUzytkownika">
+                        <option value="">(brak)</option>
+                    </select>
+                    <span asp-validation-for="IdUzytkownika" class="text-danger small"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="IdProduktu" class="control-label"></label>
-                <select asp-for="IdProduktu" class="form-control" asp-items="ViewBag.IdProduktu"></select>
-                <span asp-validation-for="IdProduktu" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdLokacjiZ" class="control-label"></label>
-                <select asp-for="IdLokacjiZ" class="form-control" asp-items="ViewBag.IdLokacjiZ"></select>
-                <span asp-validation-for="IdLokacjiZ" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdLokacjiDo" class="control-label"></label>
-                <select asp-for="IdLokacjiDo" class="form-control" asp-items="ViewBag.IdLokacjiDo"></select>
-                <span asp-validation-for="IdLokacjiDo" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Ilosc" class="control-label"></label>
-                <input asp-for="Ilosc" class="form-control" />
-                <span asp-validation-for="Ilosc" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Referencja" class="control-label"></label>
-                <input asp-for="Referencja" class="form-control" />
-                <span asp-validation-for="Referencja" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Notatka" class="control-label"></label>
-                <input asp-for="Notatka" class="form-control" />
-                <span asp-validation-for="Notatka" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UtworzonoUtc" class="control-label"></label>
-                <input asp-for="UtworzonoUtc" class="form-control" />
-                <span asp-validation-for="UtworzonoUtc" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdUzytkownika" class="control-label"></label>
-                <select asp-for="IdUzytkownika" class="form-control" asp-items="ViewBag.IdUzytkownika"></select>
-                <span asp-validation-for="IdUzytkownika" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
+                <a asp-action="Details" asp-route-id="@Model.IdRuchu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    </section>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

@@ -1,0 +1,110 @@
+@model IEnumerable<Data.Data.Magazyn.KodProduktu>
+
+@{
+    ViewData["Title"] = "Kody produktow";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var primaryCount = items.Count(x => x.CzyGlowny);
+    var typeCount = items.Select(x => x.Typ).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-upc-scan"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Kody produktow</h1>
+                <p class="news-admin-header__subheading mb-0">Kody EAN/QR i inne identyfikatory produktow z szybkim CRUD.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Glowne</span><strong class="news-admin-stat__value">@primaryCount</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Typy</span><strong class="news-admin-stat__value">@typeCount</strong></div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie kodów produktów">
+            <label for="productCodeSearchTerm" class="visually-hidden">Szukaj kodów produktów</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
+                <input id="productCodeSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po wartości kodu lub typie..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj kod</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-upc"></i></div>
+            <h2 class="h4 mb-2">Brak kodów produktow</h2>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Nie dodano jeszcze żadnych kodów dla produktów.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj kod</a>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Wartosc</th>
+                            <th>Typ</th>
+                            <th>Produkt</th>
+                            <th>Kod produktu</th>
+                            <th>Główny</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderBy(x => x.Typ).ThenBy(x => x.Wartosc))
+                    {
+                        <tr>
+                            <td><div class="entity-cell-title entity-mono">@item.Wartosc</div></td>
+                            <td><span class="entity-badge entity-badge--muted">@item.Typ</span></td>
+                            <td>@(item.Produkt?.Nazwa ?? "-")</td>
+                            <td><span class="entity-cell-subtitle">@(item.Produkt?.Kod ?? "-")</span></td>
+                            <td>
+                                <span class="entity-badge @(item.CzyGlowny ? "entity-badge--success" : "entity-badge--muted")">
+                                    @(item.CzyGlowny ? "Tak" : "Nie")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla kodu @item.Wartosc">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdKodu"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdKodu"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdKodu"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

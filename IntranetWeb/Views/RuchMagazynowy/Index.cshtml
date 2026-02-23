@@ -1,83 +1,99 @@
-﻿@model IEnumerable<Data.Data.Magazyn.RuchMagazynowy>
+@model IEnumerable<Data.Data.Magazyn.RuchMagazynowy>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Ruchy magazynowe";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
 }
 
-<h1>Index</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-arrow-left-right"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Ruchy magazynowe</h1>
+                <p class="news-admin-header__subheading mb-0">Historia operacji magazynowych: przyjęcia, wydania, przesunięcia i korekty.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Typow</span><strong class="news-admin-stat__value">@items.Select(x => x.Typ).Distinct().Count()</strong></div>
+        </div>
+    </section>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Typ)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Produkt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LokacjaZ)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LokacjaDo)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Ilosc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Referencja)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Notatka)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UtworzonoUtc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Uzytkownik)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Typ)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Produkt.Kod)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LokacjaZ.Kod)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LokacjaDo.Kod)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Ilosc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Referencja)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Notatka)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UtworzonoUtc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Uzytkownik.Email)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.IdRuchu">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.IdRuchu">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.IdRuchu">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie ruchow magazynowych">
+            <label for="movementSearchTerm" class="visually-hidden">Szukaj ruchow magazynowych</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon"></i>
+                <input id="movementSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po referencji lub notatce..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj ruch</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-arrow-left-right"></i></div>
+            <h2 class="h4 mb-2">Brak ruchów magazynowych</h2>
+            <p class="text-muted mb-3">Dodaj pierwszy ruch, aby rozpocząć rejestrowanie operacji magazynowych.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj ruch</a>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Typ</th>
+                            <th>Produkt</th>
+                            <th>Z</th>
+                            <th>Do</th>
+                            <th class="text-end">Ilosc</th>
+                            <th>Referencja</th>
+                            <th>Notatka</th>
+                            <th>Utworzono</th>
+                            <th>Uzytkownik</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderByDescending(x => x.UtworzonoUtc))
+                    {
+                        <tr>
+                            <td><span class="entity-badge entity-badge--muted">@item.Typ</span></td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle">ID ruchu: @item.IdRuchu</div>
+                            </td>
+                            <td>@(item.LokacjaZ?.Kod ?? "-")</td>
+                            <td>@(item.LokacjaDo?.Kod ?? "-")</td>
+                            <td class="text-end">@item.Ilosc</td>
+                            <td><span class="entity-cell-subtitle" title="@item.Referencja">@(string.IsNullOrWhiteSpace(item.Referencja) ? "-" : item.Referencja)</span></td>
+                            <td><span class="entity-cell-subtitle text-truncate" title="@item.Notatka">@(string.IsNullOrWhiteSpace(item.Notatka) ? "-" : item.Notatka)</span></td>
+                            <td>@item.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(item.Uzytkownik?.Email ?? "-")</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla ruchu @item.IdRuchu">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdRuchu"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdRuchu"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdRuchu"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

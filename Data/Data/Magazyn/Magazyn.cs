@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Data.Magazyn
@@ -21,6 +22,7 @@ namespace Data.Data.Magazyn
         [Column("IsActive")]
         public bool CzyAktywny { get; set; } = true;
 
+        [ValidateNever]
         public ICollection<Lokacja> Lokacje { get; set; } = new List<Lokacja>();
     }
 }

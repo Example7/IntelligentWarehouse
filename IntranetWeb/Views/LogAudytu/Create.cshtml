@@ -1,0 +1,75 @@
+@model Data.Data.Magazyn.LogAudytu
+
+@{
+    ViewData["Title"] = "Dodaj wpis audytu";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj wpis audytu</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz ręczny wpis logu audytu z akcja, encja i danymi JSON.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Dane wpisu</h2>
+            <p class="text-muted mb-0">Uzupełnij akcje, encje, identyfikator encji oraz stare i nowe wartości.</p>
+        </div>
+
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="UserId" class="form-label news-form-label"></label>
+                    <select asp-for="UserId" class="form-select news-form-control" asp-items="ViewBag.UserId">
+                        <option value="">(System / brak uzytkownika)</option>
+                    </select>
+                    <span asp-validation-for="UserId" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Akcja" class="form-label news-form-label"></label>
+                    <input asp-for="Akcja" class="form-control news-form-control" placeholder="CREATE / UPDATE / DELETE / LOGIN" />
+                    <span asp-validation-for="Akcja" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Encja" class="form-label news-form-label"></label>
+                    <input asp-for="Encja" class="form-control news-form-control" placeholder="np. Produkt" />
+                    <span asp-validation-for="Encja" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdEncji" class="form-label news-form-label"></label>
+                    <input asp-for="IdEncji" class="form-control news-form-control" placeholder="np. 123" />
+                    <span asp-validation-for="IdEncji" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="KiedyUtc" class="form-label news-form-label"></label>
+                    <input asp-for="KiedyUtc" class="form-control news-form-control" />
+                    <span asp-validation-for="KiedyUtc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="StareJson" class="form-label news-form-label"></label>
+                    <textarea asp-for="StareJson" class="form-control news-form-control news-form-control--textarea" rows="5" placeholder="{ ... }"></textarea>
+                    <span asp-validation-for="StareJson" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="NoweJson" class="form-label news-form-label"></label>
+                    <textarea asp-for="NoweJson" class="form-control news-form-control news-form-control--textarea" rows="5" placeholder="{ ... }"></textarea>
+                    <span asp-validation-for="NoweJson" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz wpis</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

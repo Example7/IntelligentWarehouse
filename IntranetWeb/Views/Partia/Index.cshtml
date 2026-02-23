@@ -1,0 +1,114 @@
+@model IEnumerable<Data.Data.Magazyn.Partia>
+
+@{
+    ViewData["Title"] = "Partie";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var withExpiry = items.Count(x => x.DataWaznosci.HasValue);
+    var expiredCount = items.Count(x => x.DataWaznosci.HasValue && x.DataWaznosci.Value.Date < DateTime.Today);
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-collection"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Partie</h1>
+                <p class="news-admin-header__subheading mb-0">Rejestr partii produktow z datami produkcji i waznosci.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Z terminem</span><strong class="news-admin-stat__value">@withExpiry</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Przeterminowane</span><strong class="news-admin-stat__value">@expiredCount</strong></div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie partii">
+            <label for="batchSearchTerm" class="visually-hidden">Szukaj partii</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
+                <input id="batchSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po numerze partii..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj partie</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-collection"></i></div>
+            <h2 class="h4 mb-2">Brak partii</h2>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Nie dodano jeszcze żadnych partii produktow.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj partie</a>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Numer partii</th>
+                            <th>Produkt</th>
+                            <th>Kod produktu</th>
+                            <th>Dostawca</th>
+                            <th>Data produkcji</th>
+                            <th>Data ważności</th>
+                            <th>Status terminu</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderBy(x => x.DataWaznosci ?? DateTime.MaxValue).ThenBy(x => x.NumerPartii))
+                    {
+                        var isExpired = item.DataWaznosci.HasValue && item.DataWaznosci.Value.Date < DateTime.Today;
+                        var expiresSoon = item.DataWaznosci.HasValue && !isExpired && item.DataWaznosci.Value.Date <= DateTime.Today.AddDays(30);
+                        var statusText = !item.DataWaznosci.HasValue ? "Brak terminu" : isExpired ? "Przeterminowana" : expiresSoon ? "Krotki termin" : "OK";
+                        var statusClass = !item.DataWaznosci.HasValue ? "entity-badge--muted" : isExpired ? "entity-badge--danger" : expiresSoon ? "entity-badge--warning" : "entity-badge--success";
+                        <tr>
+                            <td><div class="entity-cell-title entity-mono">@item.NumerPartii</div></td>
+                            <td>@(item.Produkt?.Nazwa ?? "-")</td>
+                            <td><span class="entity-cell-subtitle entity-mono">@(item.Produkt?.Kod ?? "-")</span></td>
+                            <td>@(item.Dostawca?.Nazwa ?? "-")</td>
+                            <td>@(item.DataProdukcji?.ToString("yyyy-MM-dd") ?? "-")</td>
+                            <td>@(item.DataWaznosci?.ToString("yyyy-MM-dd") ?? "-")</td>
+                            <td><span class="entity-badge @statusClass">@statusText</span></td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla partii @item.NumerPartii">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdPartii"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdPartii"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdPartii"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

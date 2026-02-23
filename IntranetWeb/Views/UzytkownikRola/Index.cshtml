@@ -1,41 +1,76 @@
-﻿@model IEnumerable<Data.Data.Magazyn.UzytkownikRola>
+@model IEnumerable<Data.Data.Magazyn.UzytkownikRola>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Role uzytkownikow";
+    var items = Model.ToList();
 }
 
-<h1>Index</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-person-gear"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Role uzytkownikow</h1>
+                <p class="news-admin-header__subheading mb-0">Przypisania rol do kont systemowych.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Przypisania</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Role</span><strong class="news-admin-stat__value">@items.Select(x => x.IdRoli).Distinct().Count()</strong></div>
+        </div>
+    </section>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Uzytkownik)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Rola)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Uzytkownik.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Rola.Nazwa)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <section class="news-admin-toolbar">
+        <div></div>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj przypisanie</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-person-gear"></i></div>
+            <h2 class="h4 mb-2">Brak przypisan rol</h2>
+            <p class="text-muted mb-3">Dodaj pierwsze przypisanie roli do uzytkownika.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj przypisanie</a>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Uzytkownik</th>
+                            <th>Rola</th>
+                            <th>ID</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderBy(x => x.Uzytkownik?.Email).ThenBy(x => x.Rola?.Nazwa))
+                    {
+                        <tr>
+                            <td>
+                                <div class="entity-cell-title">@(item.Uzytkownik?.Email ?? "-")</div>
+                                <div class="entity-cell-subtitle">User ID: @item.IdUzytkownika</div>
+                            </td>
+                            <td>
+                                <span class="entity-badge entity-badge--muted">@(item.Rola?.Nazwa ?? "-")</span>
+                            </td>
+                            <td>@item.Id</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla przypisania @item.Id">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

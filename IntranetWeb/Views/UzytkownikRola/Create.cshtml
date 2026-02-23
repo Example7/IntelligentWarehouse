@@ -1,36 +1,50 @@
-﻿@model Data.Data.Magazyn.UzytkownikRola
+@model Data.Data.Magazyn.UzytkownikRola
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Dodaj role uzytkownikowi";
 }
 
-<h1>Create</h1>
-
-<h4>UzytkownikRola</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="IdUzytkownika" class="control-label"></label>
-                <select asp-for="IdUzytkownika" class ="form-control" asp-items="ViewBag.IdUzytkownika"></select>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj role uzytkownikowi</h1>
+                <p class="news-admin-header__subheading mb-0">Utworz przypisanie roli do konta systemowego.</p>
             </div>
-            <div class="form-group">
-                <label asp-for="IdRoli" class="control-label"></label>
-                <select asp-for="IdRoli" class ="form-control" asp-items="ViewBag.IdRoli"></select>
+        </div>
+    </section>
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Przypisanie roli</h2>
+            <p class="text-muted mb-0">Wybierz uzytkownika i role.</p>
+        </div>
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="IdUzytkownika" class="form-label news-form-label"></label>
+                    <select asp-for="IdUzytkownika" class="form-select news-form-control" asp-items="ViewBag.IdUzytkownika">
+                        <option value="">(wybierz uzytkownika)</option>
+                    </select>
+                    <span asp-validation-for="IdUzytkownika" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdRoli" class="form-label news-form-label"></label>
+                    <select asp-for="IdRoli" class="form-select news-form-control" asp-items="ViewBag.IdRoli">
+                        <option value="">(wybierz role)</option>
+                    </select>
+                    <span asp-validation-for="IdRoli" class="text-danger small"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz przypisanie</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
             </div>
         </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    </section>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

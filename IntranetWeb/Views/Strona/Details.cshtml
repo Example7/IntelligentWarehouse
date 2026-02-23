@@ -1,42 +1,51 @@
-﻿@model Data.Data.CMS.Strona
+@model Data.Data.CMS.Strona
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły strony";
 }
 
-<h1>Details</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-file-earmark-text"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły strony</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd danych strony CMS i szybkie akcje administracyjne.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdStrony</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Pozycja</span><strong class="news-admin-stat__value">@Model.Pozycja</strong></div>
+        </div>
+    </section>
 
-<div>
-    <h4>Strona</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TytulLinku)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TytulLinku)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nazwa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nazwa)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Tresc)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Tresc)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Pozycja)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Pozycja)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.IdStrony">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.IdStrony" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.IdStrony" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item">
+                <div class="news-details-item__label">@Html.DisplayNameFor(m => m.TytulLinku)</div>
+                <div class="news-details-item__value">@Html.DisplayFor(m => m.TytulLinku)</div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">@Html.DisplayNameFor(m => m.Nazwa)</div>
+                <div class="news-details-item__value">@Html.DisplayFor(m => m.Nazwa)</div>
+            </div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">@Html.DisplayNameFor(m => m.Tresc)</div>
+                <div class="news-details-item__value news-details-item__value--content">@Html.DisplayFor(m => m.Tresc)</div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">@Html.DisplayNameFor(m => m.Pozycja)</div>
+                <div class="news-details-item__value">@Html.DisplayFor(m => m.Pozycja)</div>
+            </div>
+        </div>
+    </section>
 </div>

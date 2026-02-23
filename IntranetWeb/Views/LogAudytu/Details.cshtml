@@ -1,0 +1,74 @@
+@model Data.Data.Magazyn.LogAudytu
+
+@{
+    ViewData["Title"] = "Szczegoly wpisu audytu";
+    var actionClass = string.Equals(Model.Akcja, "DELETE", StringComparison.OrdinalIgnoreCase)
+        ? "entity-badge--danger"
+        : string.Equals(Model.Akcja, "UPDATE", StringComparison.OrdinalIgnoreCase)
+            ? "entity-badge--warning"
+            : string.Equals(Model.Akcja, "CREATE", StringComparison.OrdinalIgnoreCase)
+                ? "entity-badge--success"
+                : "entity-badge--muted";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-journal-text"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły wpisu audytu</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd akcji, encji, czasu wykonania i danych przed/po zmianie.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Akcja</span><strong class="news-admin-stat__value">@Model.Akcja</strong></div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">@Model.Encja</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Akcja</div><div class="news-details-item__value"><span class="entity-badge @actionClass">@Model.Akcja</span></div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Encja</div><div class="news-details-item__value">@Model.Encja</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">ID encji</div><div class="news-details-item__value entity-mono">@(string.IsNullOrWhiteSpace(Model.IdEncji) ? "-" : Model.IdEncji)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Użytkownik</div><div class="news-details-item__value">@(Model.Uzytkownik?.Email ?? "System")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">UserId</div><div class="news-details-item__value">@(Model.UserId?.ToString() ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kiedy</div><div class="news-details-item__value">@Model.KiedyUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Stare JSON</div>
+                <div class="news-details-item__value news-details-item__value--content">
+                    @if (string.IsNullOrWhiteSpace(Model.StareJson))
+                    {
+                        <span class="text-muted">Brak danych.</span>
+                    }
+                    else
+                    {
+                        <pre class="mb-0 entity-json-block">@Model.StareJson</pre>
+                    }
+                </div>
+            </div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Nowe JSON</div>
+                <div class="news-details-item__value news-details-item__value--content">
+                    @if (string.IsNullOrWhiteSpace(Model.NoweJson))
+                    {
+                        <span class="text-muted">Brak danych.</span>
+                    }
+                    else
+                    {
+                        <pre class="mb-0 entity-json-block">@Model.NoweJson</pre>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

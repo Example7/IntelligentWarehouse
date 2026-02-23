@@ -11,13 +11,11 @@ namespace Data.Data.Magazyn
         [Column("ProductId")]
         public int IdProduktu { get; set; }
 
-        [Required]
-        [MaxLength(60)]
+        [Required, MaxLength(60)]
         [Column("SKU")]
         public required string Kod { get; set; }
 
-        [Required]
-        [MaxLength(250)]
+        [Required, MaxLength(250)]
         [Column("Name")]
         public required string Nazwa { get; set; }
 
@@ -29,10 +27,14 @@ namespace Data.Data.Magazyn
 
         [ValidateNever]
         [ForeignKey(nameof(IdKategorii))]
-        public Kategoria? Kategoria { get; set; } = null!;
+        public Kategoria Kategoria { get; set; } = null!;
 
         [Column("DefaultUomId")]
         public int IdDomyslnejJednostki { get; set; }
+
+        [ValidateNever]
+        [ForeignKey(nameof(IdDomyslnejJednostki))]
+        public JednostkaMiary DomyslnaJednostka { get; set; } = null!;
 
         [Column("MinStock", TypeName = "decimal(18,3)")]
         public decimal StanMinimalny { get; set; } = 0m;

@@ -1,23 +1,24 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Controllers.Abstrakcja;
+
 namespace IntranetWeb.Controllers
 {
-    public class RolaController : Controller
+    public class RolaController : BaseSearchController<Rola>
     {
-        private readonly DataContext _context;
 
-        public RolaController(DataContext context)
-        {
-            _context = context;
-        }
+        public RolaController(DataContext context) : base(context) { }
 
         // GET: Rola
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            return View(await _context.Rola.ToListAsync());
+            var query = _context.Rola.AsNoTracking();
+            query = ApplySearchAny(query, searchTerm, x => x.Nazwa);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: Rola/Details/5

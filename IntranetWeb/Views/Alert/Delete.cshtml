@@ -1,0 +1,47 @@
+@model Data.Data.Magazyn.Alert
+
+@{
+    ViewData["Title"] = "Usuń alert";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usuń alert</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdz usunięcie alertu z rejestru.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Usunięcie alertu</strong>
+                <div>Usunięcie rekordu nie cofa zdarzenia źródłowego, usuwa tylko wpis alertu.</div>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.Id</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Waga</div><div class="news-details-item__value">@Model.Waga</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Regula</div><div class="news-details-item__value">@(Model.Regula?.Typ ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(Model.Magazyn?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyPotwierdzony ? "Potwierdzony" : "Nowy")</div></div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Tresc</div>
+                <div class="news-details-item__value news-details-item__value--content">@Model.Tresc</div>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="news-form-actions">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń alert</button>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+        </form>
+    </section>
+</div>

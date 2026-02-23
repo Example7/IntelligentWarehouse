@@ -1,25 +1,25 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Controllers.Abstrakcja;
+
 namespace IntranetWeb.Controllers
 {
-    public class StanMagazynowyController : Controller
+    public class StanMagazynowyController : BaseSearchController<StanMagazynowy>
     {
-        private readonly DataContext _context;
 
-        public StanMagazynowyController(DataContext context)
-        {
-            _context = context;
-        }
+        public StanMagazynowyController(DataContext context) : base(context) { }
 
         // GET: StanMagazynowy
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            var intranetWebContext = _context.StanMagazynowy.Include(s => s.Lokacja).Include(s => s.Produkt);
-            return View(await intranetWebContext.ToListAsync());
+            var query = _context.StanMagazynowy.Include(s => s.Lokacja).Include(s => s.Produkt).AsNoTracking();
+            query = ApplySearchAny(query, searchTerm);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: StanMagazynowy/Details/5

@@ -1,72 +1,44 @@
-﻿@model Data.Data.Magazyn.RuchMagazynowy
+@model Data.Data.Magazyn.RuchMagazynowy
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegoly ruchu magazynowego";
 }
 
-<h1>Details</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-arrow-left-right"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegoly ruchu magazynowego</h1>
+                <p class="news-admin-header__subheading mb-0">Podglad pelnych danych operacji magazynowej.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdRuchu</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Typ</span><strong class="news-admin-stat__value">@Model.Typ</strong></div>
+        </div>
+    </section>
 
-<div>
-    <h4>RuchMagazynowy</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Typ)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Typ)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Produkt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Produkt.Kod)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LokacjaZ)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LokacjaZ.Kod)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LokacjaDo)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LokacjaDo.Kod)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Ilosc)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Ilosc)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Referencja)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Referencja)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Notatka)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Notatka)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UtworzonoUtc)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UtworzonoUtc)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Uzytkownik)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Uzytkownik.Email)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.IdRuchu">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">Ruch produktu @(Model.Produkt?.Kod ?? "-")</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.IdRuchu" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.IdRuchu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Typ</div><div class="news-details-item__value">@Model.Typ</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lokacja z</div><div class="news-details-item__value">@(Model.LokacjaZ?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lokacja do</div><div class="news-details-item__value">@(Model.LokacjaDo?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilosc</div><div class="news-details-item__value">@Model.Ilosc</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Uzytkownik</div><div class="news-details-item__value">@(Model.Uzytkownik?.Email ?? "-")</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Referencja</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(Model.Referencja) ? "-" : Model.Referencja)</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Notatka</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Notatka) ? "Brak notatki" : Model.Notatka)</div></div>
+        </div>
+    </section>
 </div>

@@ -1,0 +1,45 @@
+@model Data.Data.Magazyn.PozycjaPZ
+
+@{
+    ViewData["Title"] = "Usun pozycje PZ";
+    var value = Model.Ilosc * (Model.CenaJednostkowa ?? 0m);
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usun pozycje PZ</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdz usuniecie pozycji z dokumentu przyjecia.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Usuniecie pozycji PZ</strong>
+                <div>Usuniecie pozycji zmieni ilosc i wartosc dokumentu przyjecia.</div>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Dokument</div><div class="news-details-item__value entity-mono">@(Model.Dokument?.Numer ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lp</div><div class="news-details-item__value">@Model.Lp</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lokacja</div><div class="news-details-item__value">@(Model.Lokacja?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilosc</div><div class="news-details-item__value">@Model.Ilosc.ToString("0.###")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Cena jednostkowa</div><div class="news-details-item__value">@(Model.CenaJednostkowa?.ToString("0.00") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Wartosc</div><div class="news-details-item__value">@value.ToString("0.00")</div></div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="news-form-actions">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun pozycje</button>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+        </form>
+    </section>
+</div>

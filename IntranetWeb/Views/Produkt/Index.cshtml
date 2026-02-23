@@ -1,95 +1,119 @@
-﻿@model IEnumerable<Data.Data.Magazyn.Produkt>
+@model IEnumerable<Data.Data.Magazyn.Produkt>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Produkty";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var activeCount = items.Count(x => x.CzyAktywny);
 }
 
-<h1>Index</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Produkty</h1>
+                <p class="news-admin-header__subheading mb-0">Kartoteka produktów, filtrowanie i szybkie akcje CRUD.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Aktywne</span><strong class="news-admin-stat__value">@activeCount</strong></div>
+        </div>
+    </section>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Kod)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Nazwa)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Opis)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Kategoria)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IdDomyslnejJednostki)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StanMinimalny)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PunktPonownegoZamowienia)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IloscPonownegoZamowienia)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CzyAktywny)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UtworzonoUtc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RowVersion)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Kod)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nazwa)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Opis)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Kategoria.Nazwa)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IdDomyslnejJednostki)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.StanMinimalny)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PunktPonownegoZamowienia)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IloscPonownegoZamowienia)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CzyAktywny)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UtworzonoUtc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RowVersion)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.IdProduktu">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.IdProduktu">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.IdProduktu">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie produktów">
+            <label for="productSearchTerm" class="visually-hidden">Szukaj produktów</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
+                <input id="productSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po kodzie, nazwie lub opisie..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj produkt</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-box"></i></div>
+            <h2 class="h4 mb-2">Brak produktów</h2>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Nie ma jeszcze żadnych produktów w systemie.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj produkt</a>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Kod</th>
+                            <th>Nazwa</th>
+                            <th>Kategoria</th>
+                            <th>JM</th>
+                            <th class="text-end">Min</th>
+                            <th class="text-end">ROP</th>
+                            <th class="text-end">ROQ</th>
+                            <th>Status</th>
+                            <th>Utworzono</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderBy(x => x.Nazwa))
+                    {
+                        <tr>
+                            <td><div class="entity-cell-title">@item.Kod</div></td>
+                            <td>
+                                <div class="entity-cell-title">@item.Nazwa</div>
+                                <div class="entity-cell-subtitle text-truncate" title="@item.Opis">@(string.IsNullOrWhiteSpace(item.Opis) ? "Brak opisu" : item.Opis)</div>
+                            </td>
+                            <td>@(item.Kategoria?.Nazwa ?? "-")</td>
+                            <td>@(item.DomyslnaJednostka?.Kod ?? "-")</td>
+                            <td class="text-end">@item.StanMinimalny</td>
+                            <td class="text-end">@(item.PunktPonownegoZamowienia?.ToString() ?? "-")</td>
+                            <td class="text-end">@(item.IloscPonownegoZamowienia?.ToString() ?? "-")</td>
+                            <td>
+                                <span class="entity-badge @(item.CzyAktywny ? "entity-badge--success" : "entity-badge--muted")">
+                                    @(item.CzyAktywny ? "Aktywny" : "Nieaktywny")
+                                </span>
+                            </td>
+                            <td>@item.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla produktu @item.Nazwa">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdProduktu"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdProduktu"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdProduktu"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

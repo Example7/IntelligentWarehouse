@@ -1,0 +1,124 @@
+@model IEnumerable<Data.Data.Magazyn.Alert>
+
+@{
+    ViewData["Title"] = "Alerty";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var acknowledgedCount = items.Count(x => x.CzyPotwierdzony);
+    var criticalCount = items.Count(x => string.Equals(x.Waga, "CRIT", StringComparison.OrdinalIgnoreCase));
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-bell-fill"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Alerty</h1>
+                <p class="news-admin-header__subheading mb-0">Rejestr alertów magazynowych z wagą, treścią i statusem potwierdzenia.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Krytyczne</span><strong class="news-admin-stat__value">@criticalCount</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Potwierdzone</span><strong class="news-admin-stat__value">@acknowledgedCount</strong></div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie alertów">
+            <label for="alertSearchTerm" class="visually-hidden">Szukaj alertów</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
+                <input id="alertSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po wadze lub tresci..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj alert</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-bell-slash"></i></div>
+            <h2 class="h4 mb-2">Brak alertów</h2>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Nie ma jeszcze żadnych alertów w systemie.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj alert</a>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Waga</th>
+                            <th>Treść</th>
+                            <th>Magazyn</th>
+                            <th>Produkt</th>
+                            <th>Reguła</th>
+                            <th>Utworzono</th>
+                            <th>Potwierdzenie</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderByDescending(x => x.UtworzonoUtc).ThenByDescending(x => x.Id))
+                    {
+                        var severityClass = string.Equals(item.Waga, "CRIT", StringComparison.OrdinalIgnoreCase)
+                            ? "entity-badge--danger"
+                            : string.Equals(item.Waga, "WARN", StringComparison.OrdinalIgnoreCase)
+                                ? "entity-badge--warning"
+                                : "entity-badge--muted";
+                        <tr>
+                            <td><span class="entity-badge @severityClass">@item.Waga</span></td>
+                            <td>
+                                <div class="entity-cell-title text-truncate" title="@item.Tresc">@item.Tresc</div>
+                            </td>
+                            <td>@(item.Magazyn?.Nazwa ?? "-")</td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? "-")</div>
+                            </td>
+                            <td>@(item.Regula?.Typ ?? "-")</td>
+                            <td>@item.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <span class="entity-badge @(item.CzyPotwierdzony ? "entity-badge--success" : "entity-badge--muted")">
+                                    @(item.CzyPotwierdzony ? "Potwierdzony" : "Nowy")
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla alertu @item.Id">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

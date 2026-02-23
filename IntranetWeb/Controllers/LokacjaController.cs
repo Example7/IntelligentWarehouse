@@ -1,25 +1,25 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Controllers.Abstrakcja;
+
 namespace IntranetWeb.Controllers
 {
-    public class LokacjaController : Controller
+    public class LokacjaController : BaseSearchController<Lokacja>
     {
-        private readonly DataContext _context;
 
-        public LokacjaController(DataContext context)
-        {
-            _context = context;
-        }
+        public LokacjaController(DataContext context) : base(context) { }
 
         // GET: Lokacja
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            var intranetWebContext = _context.Lokacja.Include(l => l.Magazyn);
-            return View(await intranetWebContext.ToListAsync());
+            var query = _context.Lokacja.Include(l => l.Magazyn).AsNoTracking();
+            query = ApplySearchAny(query, searchTerm, x => x.Kod, x => x.Opis);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: Lokacja/Details/5

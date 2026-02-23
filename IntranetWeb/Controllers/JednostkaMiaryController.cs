@@ -1,23 +1,24 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Controllers.Abstrakcja;
+
 namespace IntranetWeb.Controllers
 {
-    public class JednostkaMiaryController : Controller
+    public class JednostkaMiaryController : BaseSearchController<JednostkaMiary>
     {
-        private readonly DataContext _context;
 
-        public JednostkaMiaryController(DataContext context)
-        {
-            _context = context;
-        }
+        public JednostkaMiaryController(DataContext context) : base(context) { }
 
         // GET: JednostkaMiary
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            return View(await _context.JednostkaMiary.ToListAsync());
+            var query = _context.JednostkaMiary.AsNoTracking();
+            query = ApplySearchAny(query, searchTerm, x => x.Kod, x => x.Nazwa);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: JednostkaMiary/Details/5

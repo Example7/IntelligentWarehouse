@@ -1,53 +1,98 @@
-﻿@model IEnumerable<Data.Data.Magazyn.Lokacja>
+@model IEnumerable<Data.Data.Magazyn.Lokacja>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Lokacje";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var activeCount = items.Count(x => x.CzyAktywna);
+    var warehouseCount = items.Select(x => x.IdMagazynu).Distinct().Count();
 }
 
-<h1>Index</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-geo-alt"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Lokacje</h1>
+                <p class="news-admin-header__subheading mb-0">Adresacja lokalizacji magazynowych i ich status aktywnosci.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Aktywne</span><strong class="news-admin-stat__value">@activeCount</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Magazyny</span><strong class="news-admin-stat__value">@warehouseCount</strong></div>
+        </div>
+    </section>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Magazyn)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Kod)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Opis)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CzyAktywna)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Magazyn.Nazwa)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Kod)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Opis)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CzyAktywna)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.IdLokacji">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.IdLokacji">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.IdLokacji">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie lokalizacji">
+            <label for="locationSearchTerm" class="visually-hidden">Szukaj lokalizacji</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon"></i>
+                <input id="locationSearchTerm"
+                       class="form-control news-admin-search__input"
+                       name="searchTerm"
+                       value="@searchTerm"
+                       placeholder="Szukaj po kodzie lub opisie..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" aria-label="Wyczysc wyszukiwanie">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj lokacje</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-geo-alt"></i></div>
+            <h2 class="h4 mb-2">Brak lokalizacji</h2>
+            <p class="text-muted mb-3">Dodaj pierwsza lokacje, aby przypisac adresowanie w magazynie.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj lokacje</a>
+        </section>
+    }
+    else
+    {
+        <div class="news-admin-grid">
+            @foreach (var item in items.OrderBy(x => x.Magazyn?.Nazwa).ThenBy(x => x.Kod))
+            {
+                <article class="news-card">
+                    <div class="news-card__accent"></div>
+                    <div class="news-card__body">
+                        <div class="news-card__meta-top">
+                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @item.IdLokacji</span>
+                            @if (item.CzyAktywna)
+                            {
+                                <span class="entity-badge">Aktywna</span>
+                            }
+                            else
+                            {
+                                <span class="entity-badge entity-badge--muted">Nieaktywna</span>
+                            }
+                        </div>
+
+                        <h2 class="news-card__title" title="@item.Kod">@item.Kod</h2>
+                        <p class="news-card__content" title="@item.Opis">@(string.IsNullOrWhiteSpace(item.Opis) ? "Brak opisu lokalizacji." : item.Opis)</p>
+
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">Magazyn:</span>
+                            <span class="entity-inline-meta__value">@(item.Magazyn?.Nazwa ?? "-")</span>
+                        </div>
+
+                        <div class="news-card__footer">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla lokacji @item.Kod">
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdLokacji" aria-label="Edytuj @item.Kod"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdLokacji" aria-label="Szczegoly @item.Kod"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdLokacji" aria-label="Usun @item.Kod"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>

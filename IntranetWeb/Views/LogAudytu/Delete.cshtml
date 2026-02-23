@@ -1,0 +1,56 @@
+@model Data.Data.Magazyn.LogAudytu
+
+@{
+    ViewData["Title"] = "Usuń wpis audytu";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usuń wpis audytu</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie wpisu z logu audytu.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Usunięcie wpisu audytu</strong>
+                <div>Operacja usuwa rekord historyczny z logu i może utrudnić analizę zmian.</div>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.Id</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Akcja</div><div class="news-details-item__value">@Model.Akcja</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Encja</div><div class="news-details-item__value">@Model.Encja</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">ID encji</div><div class="news-details-item__value entity-mono">@(string.IsNullOrWhiteSpace(Model.IdEncji) ? "-" : Model.IdEncji)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Użytkownik</div><div class="news-details-item__value">@(Model.Uzytkownik?.Email ?? "System")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kiedy</div><div class="news-details-item__value">@Model.KiedyUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Nowe JSON (podgląd)</div>
+                <div class="news-details-item__value news-details-item__value--content">
+                    @if (string.IsNullOrWhiteSpace(Model.NoweJson))
+                    {
+                        <span class="text-muted">Brak danych.</span>
+                    }
+                    else
+                    {
+                        <pre class="mb-0 entity-json-block">@(Model.NoweJson!.Length > 800 ? Model.NoweJson[..800] + "..." : Model.NoweJson)</pre>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="news-form-actions">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń wpis</button>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+        </form>
+    </section>
+</div>

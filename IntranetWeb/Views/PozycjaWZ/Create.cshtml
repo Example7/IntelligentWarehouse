@@ -1,0 +1,63 @@
+@model Data.Data.Magazyn.PozycjaWZ
+
+@{
+    ViewData["Title"] = "Dodaj pozycje WZ";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj pozycje WZ</h1>
+                <p class="news-admin-header__subheading mb-0">Dodaj wiersz dokumentu wydania z produktem i lokalizacją kompletacji.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Dane pozycji</h2>
+            <p class="text-muted mb-0">Wybierz dokument, produkt i opcjonalna lokalizacje oraz podaj ilość.</p>
+        </div>
+
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="IdDokumentu" class="form-label news-form-label"></label>
+                    <select asp-for="IdDokumentu" class="form-select news-form-control" asp-items="ViewBag.IdDokumentu"></select>
+                    <span asp-validation-for="IdDokumentu" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Lp" class="form-label news-form-label"></label>
+                    <input asp-for="Lp" class="form-control news-form-control" />
+                    <span asp-validation-for="Lp" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
+                    <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu"></select>
+                    <span asp-validation-for="IdProduktu" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdLokacji" class="form-label news-form-label"></label>
+                    <select asp-for="IdLokacji" class="form-select news-form-control" asp-items="ViewBag.IdLokacji"></select>
+                    <span asp-validation-for="IdLokacji" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Ilosc" class="form-label news-form-label"></label>
+                    <input asp-for="Ilosc" class="form-control news-form-control" />
+                    <span asp-validation-for="Ilosc" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz pozycje</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

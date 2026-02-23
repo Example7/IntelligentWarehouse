@@ -1,0 +1,99 @@
+@model IEnumerable<Data.Data.CMS.SzablonWydruku>
+
+@{
+    ViewData["Title"] = "Szablony wydruków";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var activeCount = items.Count(x => x.CzyAktywny);
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-filetype-docx"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szablony wydruków</h1>
+                <p class="news-admin-header__subheading mb-0">Zarządzanie szablonami dokumentów, wersjami i ścieżkami plików.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Aktywne</span><strong class="news-admin-stat__value">@activeCount</strong></div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie szablonów wydruku">
+            <label for="templateSearchTerm" class="visually-hidden">Szukaj szablonów wydruku</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon"></i>
+                <input id="templateSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po typie, nazwie, wersji, pliku lub ścieżce..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj szablon</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-file-earmark-plus"></i></div>
+            <h2 class="h4 mb-2">Brak szablonów wydruków</h2>
+            <p class="text-muted mb-3">Dodaj pierwszy szablon wydruku dla dokumentów WMS.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj szablon</a>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Typ dok.</th>
+                            <th>Nazwa</th>
+                            <th>Wersja</th>
+                            <th>Plik</th>
+                            <th>Ścieżka</th>
+                            <th>Status</th>
+                            <th>Wgrano</th>
+                            <th>Wgrał</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderBy(x => x.TypDokumentu).ThenBy(x => x.Nazwa).ThenByDescending(x => x.Wersja))
+                    {
+                        <tr>
+                            <td><span class="entity-badge entity-badge--muted">@item.TypDokumentu</span></td>
+                            <td><div class="entity-cell-title">@item.Nazwa</div></td>
+                            <td><div class="entity-cell-title">@item.Wersja</div></td>
+                            <td><div class="entity-cell-title">@item.NazwaPliku</div></td>
+                            <td><span class="entity-mono">@item.Sciezka</span></td>
+                            <td>
+                                <span class="entity-badge @(item.CzyAktywny ? "entity-badge--success" : "entity-badge--muted")">
+                                    @(item.CzyAktywny ? "Aktywny" : "Nieaktywny")
+                                </span>
+                            </td>
+                            <td>@item.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(item.Wgral?.Email ?? "-")</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla szablonu @item.Nazwa">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

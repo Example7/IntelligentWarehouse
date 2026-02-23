@@ -1,84 +1,49 @@
-﻿@model Data.Data.Magazyn.Produkt
+@model Data.Data.Magazyn.Produkt
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Szczegóły produktu";
 }
 
-<h1>Details</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-box-seam"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły produktu</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd pełnych danych produktu magazynowego.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdProduktu</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Kod</span><strong class="news-admin-stat__value">@Model.Kod</strong></div>
+        </div>
+    </section>
 
-<div>
-    <h4>Produkt</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Kod)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Kod)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nazwa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nazwa)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Opis)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Opis)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Kategoria)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Kategoria.Nazwa)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IdDomyslnejJednostki)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IdDomyslnejJednostki)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.StanMinimalny)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.StanMinimalny)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PunktPonownegoZamowienia)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PunktPonownegoZamowienia)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IloscPonownegoZamowienia)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IloscPonownegoZamowienia)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CzyAktywny)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CzyAktywny)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.UtworzonoUtc)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.UtworzonoUtc)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.RowVersion)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.RowVersion)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.IdProduktu">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.IdProduktu" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.IdProduktu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value">@Model.Kod</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kategoria</div><div class="news-details-item__value">@(Model.Kategoria?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Domyślna JM</div><div class="news-details-item__value">@(Model.DomyslnaJednostka?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Stan minimalny</div><div class="news-details-item__value">@Model.StanMinimalny</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">ROP</div><div class="news-details-item__value">@(Model.PunktPonownegoZamowienia?.ToString() ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">ROQ</div><div class="news-details-item__value">@(Model.IloscPonownegoZamowienia?.ToString() ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">RowVersion</div><div class="news-details-item__value entity-mono">@(Model.RowVersion is { Length: > 0 } ? Convert.ToBase64String(Model.RowVersion) : "-")</div></div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Opis</div>
+                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Opis) ? "Brak opisu" : Model.Opis)</div>
+            </div>
+        </div>
+    </section>
 </div>

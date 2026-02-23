@@ -1,25 +1,25 @@
-﻿using Data.Data;
-using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Data.Data;
+using Data.Data.Magazyn;
+
+using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
-    public class ProduktController : Controller
+    public class ProduktController : BaseSearchController<Produkt>
     {
-        private readonly DataContext _context;
 
-        public ProduktController(DataContext context)
-        {
-            _context = context;
-        }
+        public ProduktController(DataContext context) : base(context) { }
 
         // GET: Produkt
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            var intranetWebContext = _context.Produkt.Include(p => p.Kategoria);
-            return View(await intranetWebContext.ToListAsync());
+            var query = _context.Produkt.Include(p => p.DomyslnaJednostka).Include(p => p.Kategoria).AsNoTracking();
+            query = ApplySearchAny(query, searchTerm, x => x.Kod, x => x.Nazwa, x => x.Opis);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: Produkt/Details/5
@@ -31,6 +31,7 @@ namespace IntranetWeb.Controllers
             }
 
             var produkt = await _context.Produkt
+                .Include(p => p.DomyslnaJednostka)
                 .Include(p => p.Kategoria)
                 .FirstOrDefaultAsync(m => m.IdProduktu == id);
             if (produkt == null)
@@ -44,6 +45,7 @@ namespace IntranetWeb.Controllers
         // GET: Produkt/Create
         public IActionResult Create()
         {
+            ViewData["IdDomyslnejJednostki"] = new SelectList(_context.JednostkaMiary, "IdJednostki", "Kod");
             ViewData["IdKategorii"] = new SelectList(_context.Kategoria, "IdKategorii", "Nazwa");
             return View();
         }
@@ -53,17 +55,15 @@ namespace IntranetWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Kod,Nazwa,Opis,IdKategorii,IdDomyslnejJednostki,StanMinimalny,PunktPonownegoZamowienia,IloscPonownegoZamowienia,CzyAktywny")] Produkt produkt)
+        public async Task<IActionResult> Create([Bind("IdProduktu,Kod,Nazwa,Opis,IdKategorii,IdDomyslnejJednostki,StanMinimalny,PunktPonownegoZamowienia,IloscPonownegoZamowienia,CzyAktywny,UtworzonoUtc,RowVersion")] Produkt produkt)
         {
-            produkt.UtworzonoUtc = DateTime.UtcNow;
-
             if (ModelState.IsValid)
             {
                 _context.Add(produkt);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
+            ViewData["IdDomyslnejJednostki"] = new SelectList(_context.JednostkaMiary, "IdJednostki", "Kod", produkt.IdDomyslnejJednostki);
             ViewData["IdKategorii"] = new SelectList(_context.Kategoria, "IdKategorii", "Nazwa", produkt.IdKategorii);
             return View(produkt);
         }
@@ -81,6 +81,7 @@ namespace IntranetWeb.Controllers
             {
                 return NotFound();
             }
+            ViewData["IdDomyslnejJednostki"] = new SelectList(_context.JednostkaMiary, "IdJednostki", "Kod", produkt.IdDomyslnejJednostki);
             ViewData["IdKategorii"] = new SelectList(_context.Kategoria, "IdKategorii", "Nazwa", produkt.IdKategorii);
             return View(produkt);
         }
@@ -117,6 +118,7 @@ namespace IntranetWeb.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            ViewData["IdDomyslnejJednostki"] = new SelectList(_context.JednostkaMiary, "IdJednostki", "Kod", produkt.IdDomyslnejJednostki);
             ViewData["IdKategorii"] = new SelectList(_context.Kategoria, "IdKategorii", "Nazwa", produkt.IdKategorii);
             return View(produkt);
         }
@@ -130,6 +132,7 @@ namespace IntranetWeb.Controllers
             }
 
             var produkt = await _context.Produkt
+                .Include(p => p.DomyslnaJednostka)
                 .Include(p => p.Kategoria)
                 .FirstOrDefaultAsync(m => m.IdProduktu == id);
             if (produkt == null)

@@ -1,0 +1,79 @@
+@model Data.Data.CMS.PlikMedia
+
+@{
+    ViewData["Title"] = "Edytuj plik media";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Edytuj plik media</h1>
+                <p class="news-admin-header__subheading mb-0">Aktualizacja metadanych pliku w repozytorium CMS.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
+        </div>
+    </section>
+
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Edycja metadanych</h2>
+            <p class="text-muted mb-0">Zmień dane techniczne, opis lub użytkownika wgrywającego.</p>
+        </div>
+        <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="NazwaPliku" class="form-label news-form-label"></label>
+                    <input asp-for="NazwaPliku" class="form-control news-form-control" />
+                    <span asp-validation-for="NazwaPliku" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="ContentType" class="form-label news-form-label"></label>
+                    <input asp-for="ContentType" class="form-control news-form-control" />
+                    <span asp-validation-for="ContentType" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Sciezka" class="form-label news-form-label"></label>
+                    <input asp-for="Sciezka" class="form-control news-form-control" />
+                    <span asp-validation-for="Sciezka" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="RozmiarBajty" class="form-label news-form-label"></label>
+                    <input asp-for="RozmiarBajty" class="form-control news-form-control" />
+                    <span asp-validation-for="RozmiarBajty" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="WgranoUtc" class="form-label news-form-label"></label>
+                    <input asp-for="WgranoUtc" class="form-control news-form-control" />
+                    <span asp-validation-for="WgranoUtc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="WgralUserId" class="form-label news-form-label"></label>
+                    <select asp-for="WgralUserId" class="form-select news-form-control" asp-items="ViewBag.WgralUserId">
+                        <option value="">(brak)</option>
+                    </select>
+                    <span asp-validation-for="WgralUserId" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Opis" class="form-label news-form-label"></label>
+                    <textarea asp-for="Opis" class="form-control news-form-control news-form-control--textarea" rows="4"></textarea>
+                    <span asp-validation-for="Opis" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

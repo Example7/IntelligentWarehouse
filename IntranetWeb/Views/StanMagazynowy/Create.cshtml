@@ -1,41 +1,57 @@
-﻿@model Data.Data.Magazyn.StanMagazynowy
+@model Data.Data.Magazyn.StanMagazynowy
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Dodaj stan magazynowy";
 }
 
-<h1>Create</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj stan magazynowy</h1>
+                <p class="news-admin-header__subheading mb-0">Powiaz produkt z lokalizacja i ustaw ilosc.</p>
+            </div>
+        </div>
+    </section>
 
-<h4>StanMagazynowy</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="IdProduktu" class="control-label"></label>
-                <select asp-for="IdProduktu" class ="form-control" asp-items="ViewBag.IdProduktu"></select>
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Dane stanu</h2>
+            <p class="text-muted mb-0">Wybierz produkt, lokalizacje i wpisz ilosc.</p>
+        </div>
+
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
+                    <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu">
+                        <option value="">(wybierz produkt)</option>
+                    </select>
+                    <span asp-validation-for="IdProduktu" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdLokacji" class="form-label news-form-label"></label>
+                    <select asp-for="IdLokacji" class="form-select news-form-control" asp-items="ViewBag.IdLokacji">
+                        <option value="">(wybierz lokacje)</option>
+                    </select>
+                    <span asp-validation-for="IdLokacji" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Ilosc" class="form-label news-form-label"></label>
+                    <input asp-for="Ilosc" class="form-control news-form-control" />
+                    <span asp-validation-for="Ilosc" class="text-danger small"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="IdLokacji" class="control-label"></label>
-                <select asp-for="IdLokacji" class ="form-control" asp-items="ViewBag.IdLokacji"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Ilosc" class="control-label"></label>
-                <input asp-for="Ilosc" class="form-control" />
-                <span asp-validation-for="Ilosc" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz stan</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
             </div>
         </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    </section>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

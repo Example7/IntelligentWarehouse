@@ -1,0 +1,105 @@
+@model IEnumerable<Data.Data.CMS.PlikMedia>
+
+@{
+    ViewData["Title"] = "Media (pliki)";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    string HumanSize(long bytes)
+    {
+        string[] units = ["B", "KB", "MB", "GB"];
+        double size = bytes;
+        var i = 0;
+        while (size >= 1024 && i < units.Length - 1) { size /= 1024; i++; }
+        return $"{size:0.##} {units[i]}";
+    }
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-images"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Media (pliki)</h1>
+                <p class="news-admin-header__subheading mb-0">Repozytorium plików CMS, metadane i historia wgrania.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Rozmiar</span><strong class="news-admin-stat__value">@HumanSize(items.Sum(x => x.RozmiarBajty))</strong></div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie plików media">
+            <label for="mediaSearchTerm" class="visually-hidden">Szukaj plików media</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon"></i>
+                <input id="mediaSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po nazwie pliku, typie, ścieżce lub opisie..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj plik</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-image"></i></div>
+            <h2 class="h4 mb-2">Brak plików media</h2>
+            <p class="text-muted mb-3">Dodaj pierwszy wpis metadanych pliku do repozytorium CMS.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj plik</a>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Plik</th>
+                            <th>Typ</th>
+                            <th>Ścieżka</th>
+                            <th class="text-end">Rozmiar</th>
+                            <th>Opis</th>
+                            <th>Wgrano</th>
+                            <th>Wgrał</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderByDescending(x => x.WgranoUtc))
+                    {
+                        <tr>
+                            <td>
+                                <div class="entity-cell-title">@item.NazwaPliku</div>
+                                <div class="entity-cell-subtitle">ID: @item.Id</div>
+                            </td>
+                            <td><span class="entity-badge entity-badge--muted">@item.ContentType</span></td>
+                            <td><span class="entity-mono">@item.Sciezka</span></td>
+                            <td class="text-end">@HumanSize(item.RozmiarBajty)</td>
+                            <td>
+                                <div class="entity-cell-subtitle text-truncate" title="@item.Opis">@(string.IsNullOrWhiteSpace(item.Opis) ? "-" : item.Opis)</div>
+                            </td>
+                            <td>@item.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@(item.Wgral?.Email ?? "-")</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla pliku @item.NazwaPliku">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

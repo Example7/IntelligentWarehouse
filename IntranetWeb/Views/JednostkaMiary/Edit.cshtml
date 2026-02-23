@@ -1,44 +1,60 @@
-﻿@model Data.Data.Magazyn.JednostkaMiary
+@model Data.Data.Magazyn.JednostkaMiary
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edytuj jednostke miary";
 }
 
-<h1>Edit</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Edytuj jednostke miary</h1>
+                <p class="news-admin-header__subheading mb-0">Aktualizacja kodu, nazwy i statusu aktywnosci jednostki.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdJednostki</strong></div>
+        </div>
+    </section>
 
-<h4>JednostkaMiary</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Edycja jednostki</h2>
+            <p class="text-muted mb-0">Zmien dane slownikowe i status aktywnosci.</p>
+        </div>
+
+        <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="IdJednostki" />
-            <div class="form-group">
-                <label asp-for="Kod" class="control-label"></label>
-                <input asp-for="Kod" class="form-control" />
-                <span asp-validation-for="Kod" class="text-danger"></span>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="Kod" class="form-label news-form-label"></label>
+                    <input asp-for="Kod" class="form-control news-form-control" />
+                    <span asp-validation-for="Kod" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Nazwa" class="form-label news-form-label"></label>
+                    <input asp-for="Nazwa" class="form-control news-form-control" />
+                    <span asp-validation-for="Nazwa" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" asp-for="CzyAktywna" />
+                        <label class="form-check-label news-form-label mb-0" asp-for="CzyAktywna"></label>
+                    </div>
+                    <span asp-validation-for="CzyAktywna" class="text-danger small"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Nazwa" class="control-label"></label>
-                <input asp-for="Nazwa" class="form-control" />
-                <span asp-validation-for="Nazwa" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="CzyAktywna" /> @Html.DisplayNameFor(model => model.CzyAktywna)
-                </label>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
+                <a asp-action="Details" asp-route-id="@Model.IdJednostki" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    </section>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

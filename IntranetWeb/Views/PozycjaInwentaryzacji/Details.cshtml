@@ -1,0 +1,44 @@
+@model Data.Data.Magazyn.PozycjaInwentaryzacji
+
+@{
+    ViewData["Title"] = "Szczegóły pozycji inwentaryzacji";
+    var diff = Model.IloscPoliczona - Model.IloscOczekiwana;
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-list-check"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły pozycji inwentaryzacji</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd pozycji spisu z ilością oczekiwaną, policzoną i różnicą.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Lp</span><strong class="news-admin-stat__value">@Model.Lp</strong></div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">Dokument @(Model.Dokument?.Numer ?? "-") / pozycja @Model.Lp</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Dokument</div><div class="news-details-item__value entity-mono">@(Model.Dokument?.Numer ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lp</div><div class="news-details-item__value">@Model.Lp</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa produktu</div><div class="news-details-item__value">@(Model.Produkt?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lokacja</div><div class="news-details-item__value">@(Model.Lokacja?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilość oczekiwana</div><div class="news-details-item__value">@Model.IloscOczekiwana.ToString("0.###")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilość policzona</div><div class="news-details-item__value">@Model.IloscPoliczona.ToString("0.###")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Różnica</div><div class="news-details-item__value"><span class="entity-badge @(diff == 0 ? "entity-badge--success" : diff > 0 ? "entity-badge--warning" : "entity-badge--danger")">@diff.ToString("0.###")</span></div></div>
+        </div>
+    </section>
+</div>

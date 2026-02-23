@@ -1,0 +1,85 @@
+@model Data.Data.Magazyn.Alert
+
+@{
+    ViewData["Title"] = "Dodaj alert";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj alert</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz alert magazynowy i przypisz go do reguły, magazynu oraz produktu.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Dane alertu</h2>
+            <p class="text-muted mb-0">Uzupełnij wage, tresc i status potwierdzenia alertu.</p>
+        </div>
+
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="IdReguly" class="form-label news-form-label"></label>
+                    <select asp-for="IdReguly" class="form-select news-form-control" asp-items="ViewBag.IdReguly"></select>
+                    <span asp-validation-for="IdReguly" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdMagazynu" class="form-label news-form-label"></label>
+                    <select asp-for="IdMagazynu" class="form-select news-form-control" asp-items="ViewBag.IdMagazynu"></select>
+                    <span asp-validation-for="IdMagazynu" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
+                    <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu"></select>
+                    <span asp-validation-for="IdProduktu" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Waga" class="form-label news-form-label"></label>
+                    <input asp-for="Waga" class="form-control news-form-control" />
+                    <span asp-validation-for="Waga" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Tresc" class="form-label news-form-label"></label>
+                    <textarea asp-for="Tresc" class="form-control news-form-control news-form-control--textarea" rows="4"></textarea>
+                    <span asp-validation-for="Tresc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="UtworzonoUtc" class="form-label news-form-label"></label>
+                    <input asp-for="UtworzonoUtc" class="form-control news-form-control" />
+                    <span asp-validation-for="UtworzonoUtc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="PotwierdzilUserId" class="form-label news-form-label"></label>
+                    <input asp-for="PotwierdzilUserId" class="form-control news-form-control" />
+                    <span asp-validation-for="PotwierdzilUserId" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="PotwierdzonoUtc" class="form-label news-form-label"></label>
+                    <input asp-for="PotwierdzonoUtc" class="form-control news-form-control" />
+                    <span asp-validation-for="PotwierdzonoUtc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <div class="form-check form-switch mt-4">
+                        <input class="form-check-input" asp-for="CzyPotwierdzony" />
+                        <label class="form-check-label news-form-label mb-0" asp-for="CzyPotwierdzony"></label>
+                    </div>
+                    <span asp-validation-for="CzyPotwierdzony" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz alert</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

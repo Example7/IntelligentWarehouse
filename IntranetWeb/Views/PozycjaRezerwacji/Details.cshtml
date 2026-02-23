@@ -1,0 +1,41 @@
+@model Data.Data.Magazyn.PozycjaRezerwacji
+
+@{
+    ViewData["Title"] = "Szczegóły pozycji rezerwacji";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-list-check"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły pozycji rezerwacji</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd pozycji rezerwacji z produktem i lokalizacją.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Lp</span><strong class="news-admin-stat__value">@Model.Lp</strong></div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">Rezerwacja @(Model.Rezerwacja?.Numer ?? "-") / pozycja @Model.Lp</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Rezerwacja</div><div class="news-details-item__value entity-mono">@(Model.Rezerwacja?.Numer ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lp</div><div class="news-details-item__value">@Model.Lp</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa produktu</div><div class="news-details-item__value">@(Model.Produkt?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lokacja</div><div class="news-details-item__value">@(Model.Lokacja?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilość</div><div class="news-details-item__value">@Model.Ilosc.ToString("0.###")</div></div>
+        </div>
+    </section>
+</div>

@@ -1,77 +1,92 @@
-﻿@model Data.Data.Magazyn.Produkt
+@model Data.Data.Magazyn.Produkt
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Dodaj produkt";
 }
 
-<h1>Create</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj produkt</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz nową kartotekę produktu magazynowego.</p>
+            </div>
+        </div>
+    </section>
 
-<h4>Produkt</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Kod" class="control-label"></label>
-                <input asp-for="Kod" class="form-control" />
-                <span asp-validation-for="Kod" class="text-danger"></span>
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Dane produktu</h2>
+            <p class="text-muted mb-0">Podaj identyfikację, jednostkę oraz parametry stanów.</p>
+        </div>
+
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <input type="hidden" asp-for="UtworzonoUtc" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="Kod" class="form-label news-form-label"></label>
+                    <input asp-for="Kod" class="form-control news-form-control" />
+                    <span asp-validation-for="Kod" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Nazwa" class="form-label news-form-label"></label>
+                    <input asp-for="Nazwa" class="form-control news-form-control" />
+                    <span asp-validation-for="Nazwa" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Opis" class="form-label news-form-label"></label>
+                    <textarea asp-for="Opis" class="form-control news-form-control news-form-control--textarea" rows="5"></textarea>
+                    <span asp-validation-for="Opis" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdKategorii" class="form-label news-form-label"></label>
+                    <select asp-for="IdKategorii" class="form-select news-form-control" asp-items="ViewBag.IdKategorii"></select>
+                    <span asp-validation-for="IdKategorii" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdDomyslnejJednostki" class="form-label news-form-label"></label>
+                    <select asp-for="IdDomyslnejJednostki" class="form-select news-form-control" asp-items="ViewBag.IdDomyslnejJednostki"></select>
+                    <span asp-validation-for="IdDomyslnejJednostki" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="StanMinimalny" class="form-label news-form-label"></label>
+                    <input asp-for="StanMinimalny" class="form-control news-form-control" />
+                    <span asp-validation-for="StanMinimalny" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="PunktPonownegoZamowienia" class="form-label news-form-label"></label>
+                    <input asp-for="PunktPonownegoZamowienia" class="form-control news-form-control" />
+                    <span asp-validation-for="PunktPonownegoZamowienia" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IloscPonownegoZamowienia" class="form-label news-form-label"></label>
+                    <input asp-for="IloscPonownegoZamowienia" class="form-control news-form-control" />
+                    <span asp-validation-for="IloscPonownegoZamowienia" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="UtworzonoUtc" class="form-label news-form-label"></label>
+                    <input asp-for="UtworzonoUtc" class="form-control news-form-control" />
+                    <span asp-validation-for="UtworzonoUtc" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <div class="form-check news-form-check">
+                        <input class="form-check-input" asp-for="CzyAktywny" />
+                        <label class="form-check-label" asp-for="CzyAktywny"></label>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Nazwa" class="control-label"></label>
-                <input asp-for="Nazwa" class="form-control" />
-                <span asp-validation-for="Nazwa" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Opis" class="control-label"></label>
-                <input asp-for="Opis" class="form-control" />
-                <span asp-validation-for="Opis" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdKategorii" class="control-label"></label>
-                <select asp-for="IdKategorii" class ="form-control" asp-items="ViewBag.IdKategorii"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="IdDomyslnejJednostki" class="control-label"></label>
-                <input asp-for="IdDomyslnejJednostki" class="form-control" />
-                <span asp-validation-for="IdDomyslnejJednostki" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StanMinimalny" class="control-label"></label>
-                <input asp-for="StanMinimalny" class="form-control" />
-                <span asp-validation-for="StanMinimalny" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PunktPonownegoZamowienia" class="control-label"></label>
-                <input asp-for="PunktPonownegoZamowienia" class="form-control" />
-                <span asp-validation-for="PunktPonownegoZamowienia" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IloscPonownegoZamowienia" class="control-label"></label>
-                <input asp-for="IloscPonownegoZamowienia" class="form-control" />
-                <span asp-validation-for="IloscPonownegoZamowienia" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="CzyAktywny" /> @Html.DisplayNameFor(model => model.CzyAktywny)
-                </label>
-            </div>
-           @*  <div class="form-group">
-                <label asp-for="UtworzonoUtc" class="control-label"></label>
-                <input asp-for="UtworzonoUtc" class="form-control" />
-                <span asp-validation-for="UtworzonoUtc" class="text-danger"></span>
-            </div> *@
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz produkt</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
             </div>
         </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    </section>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

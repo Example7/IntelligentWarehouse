@@ -1,0 +1,113 @@
+@model IEnumerable<Data.Data.Magazyn.UstawienieAplikacji>
+
+@{
+    ViewData["Title"] = "Ustawienia aplikacji";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var updatedTodayCount = items.Count(x => x.ZmienionoUtc.Date == DateTime.UtcNow.Date);
+    var withDescriptionCount = items.Count(x => !string.IsNullOrWhiteSpace(x.Opis));
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-sliders"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Ustawienia aplikacji</h1>
+                <p class="news-admin-header__subheading mb-0">Konfiguracja kluczy systemowych, wartosci i opisow ustawien aplikacji.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Z opisem</span><strong class="news-admin-stat__value">@withDescriptionCount</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Zm. dzisiaj</span><strong class="news-admin-stat__value">@updatedTodayCount</strong></div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie ustawien aplikacji">
+            <label for="appSettingSearchTerm" class="visually-hidden">Szukaj ustawien aplikacji</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
+                <input id="appSettingSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po kluczu, wartosci lub opisie..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj ustawienie</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-slash-circle"></i></div>
+            <h2 class="h4 mb-2">Brak ustawien aplikacji</h2>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Nie dodano jeszcze żadnych ustawien aplikacji.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj ustawienie</a>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Klucz</th>
+                            <th>Wartosc</th>
+                            <th>Opis</th>
+                            <th>Zmieniono</th>
+                            <th>Zmienił User ID</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderBy(x => x.Klucz))
+                    {
+                        var valuePreview = string.IsNullOrWhiteSpace(item.Wartosc)
+                            ? "-"
+                            : (item.Wartosc.Length > 80 ? item.Wartosc[..80] + "..." : item.Wartosc);
+                        <tr>
+                            <td><div class="entity-cell-title entity-mono">@item.Klucz</div></td>
+                            <td>
+                                <div class="entity-cell-title text-truncate" style="max-width: 20rem;" title="@item.Wartosc">@valuePreview</div>
+                            </td>
+                            <td>
+                                <div class="entity-cell-subtitle text-truncate" style="max-width: 18rem;" title="@item.Opis">@(string.IsNullOrWhiteSpace(item.Opis) ? "-" : item.Opis)</div>
+                            </td>
+                            <td>@item.ZmienionoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td>@(item.ZmienilUserId?.ToString() ?? "-")</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla ustawienia @item.Klucz">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Klucz"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Klucz"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Klucz"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

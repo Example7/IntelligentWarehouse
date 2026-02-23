@@ -1,23 +1,24 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.CMS;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Controllers.Abstrakcja;
+
 namespace IntranetWeb.Controllers
 {
-    public class StronaController : Controller
+    public class StronaController : BaseSearchController<Strona>
     {
-        private readonly DataContext _context;
 
-        public StronaController(DataContext context)
-        {
-            _context = context;
-        }
+        public StronaController(DataContext context) : base(context) { }
 
         // GET: Strona
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm)
         {
-            return View(await _context.Strona.ToListAsync());
+            var query = _context.Strona.AsNoTracking();
+            query = ApplySearchAny(query, searchTerm, x => x.TytulLinku, x => x.Nazwa, x => x.Tresc);
+
+            return View(await query.ToListAsync());
         }
 
         // GET: Strona/Details/5

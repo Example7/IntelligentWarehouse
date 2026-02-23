@@ -1,0 +1,95 @@
+@model IEnumerable<Data.Data.Magazyn.Dostawca>
+
+@{
+    ViewData["Title"] = "Dostawcy";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var activeCount = items.Count(x => x.CzyAktywny);
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-truck"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dostawcy</h1>
+                <p class="news-admin-header__subheading mb-0">Baza dostawców i dane kontaktowe do obsługiwania przyjęć.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Aktywni</span><strong class="news-admin-stat__value">@activeCount</strong></div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie dostawcow">
+            <label for="supplierSearchTerm" class="visually-hidden">Szukaj dostawcow</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon"></i>
+                <input id="supplierSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj po nazwie, NIP, emailu, telefonie lub adresie..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj dostawce</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-truck"></i></div>
+            <h2 class="h4 mb-2">Brak dostawcow</h2>
+            <p class="text-muted mb-3">Dodaj pierwszego dostawce, aby rejestrowac dokumenty PZ.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj dostawce</a>
+        </section>
+    }
+    else
+    {
+        <div class="news-admin-grid">
+            @foreach (var item in items.OrderBy(x => x.Nazwa))
+            {
+                <article class="news-card">
+                    <div class="news-card__accent"></div>
+                    <div class="news-card__body">
+                        <div class="news-card__meta-top">
+                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @item.IdDostawcy</span>
+                            @if (item.CzyAktywny)
+                            {
+                                <span class="entity-badge">Aktywny</span>
+                            }
+                            else
+                            {
+                                <span class="entity-badge entity-badge--muted">Nieaktywny</span>
+                            }
+                        </div>
+
+                        <h2 class="news-card__title" title="@item.Nazwa">@item.Nazwa</h2>
+                        <p class="news-card__content" title="@item.Adres">@(string.IsNullOrWhiteSpace(item.Adres) ? "Brak adresu." : item.Adres)</p>
+
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">NIP:</span>
+                            <span class="entity-inline-meta__value entity-mono">@(string.IsNullOrWhiteSpace(item.NIP) ? "-" : item.NIP)</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">Kontakt:</span>
+                            <span class="entity-inline-meta__value">@(item.Email ?? item.Telefon ?? "-")</span>
+                        </div>
+
+                        <div class="news-card__footer">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla dostawcy @item.Nazwa">
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdDostawcy"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdDostawcy"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdDostawcy"><i class="bi bi-trash"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>

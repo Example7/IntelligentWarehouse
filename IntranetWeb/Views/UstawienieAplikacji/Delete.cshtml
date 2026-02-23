@@ -1,0 +1,50 @@
+@model Data.Data.Magazyn.UstawienieAplikacji
+
+@{
+    ViewData["Title"] = "Usuń ustawienie aplikacji";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usuń ustawienie aplikacji</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie wpisu konfiguracyjnego aplikacji.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Usunięcie ustawienia</strong>
+                <div>Usunięcie może zmienić zachowanie systemu. Upewnij się, że klucz nie jest wymagany przez aplikację.</div>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">Klucz</div><div class="news-details-item__value entity-mono">@Model.Klucz</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zmieniono</div><div class="news-details-item__value">@Model.ZmienionoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zmienił User ID</div><div class="news-details-item__value">@(Model.ZmienilUserId?.ToString() ?? "-")</div></div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Wartość (podgląd)</div>
+                <div class="news-details-item__value news-details-item__value--content">
+                    <pre class="mb-0 entity-json-block">@(Model.Wartosc.Length > 800 ? Model.Wartosc[..800] + "..." : Model.Wartosc)</pre>
+                </div>
+            </div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Opis</div>
+                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Opis) ? "Brak opisu." : Model.Opis)</div>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="news-form-actions">
+            <input type="hidden" asp-for="Klucz" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń ustawienie</button>
+            <a asp-action="Details" asp-route-id="@Model.Klucz" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+        </form>
+    </section>
+</div>

@@ -1,48 +1,59 @@
-﻿@model Data.Data.Magazyn.Uzytkownik
+@model Data.Data.Magazyn.Uzytkownik
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Dodaj uzytkownika";
 }
 
-<h1>Create</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj uzytkownika</h1>
+                <p class="news-admin-header__subheading mb-0">Utworz konto systemowe i ustaw dane logowania.</p>
+            </div>
+        </div>
+    </section>
 
-<h4>Uzytkownik</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Login" class="control-label"></label>
-                <input asp-for="Login" class="form-control" />
-                <span asp-validation-for="Login" class="text-danger"></span>
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Dane konta</h2>
+            <p class="text-muted mb-0">Wprowadz login, hash hasla (techniczny), email i status aktywnosci.</p>
+        </div>
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="Login" class="form-label news-form-label"></label>
+                    <input asp-for="Login" class="form-control news-form-control" />
+                    <span asp-validation-for="Login" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="Email" class="form-label news-form-label"></label>
+                    <input asp-for="Email" class="form-control news-form-control" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="HashHasla" class="form-label news-form-label"></label>
+                    <input asp-for="HashHasla" type="password" class="form-control news-form-control" autocomplete="new-password" />
+                    <span asp-validation-for="HashHasla" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" asp-for="CzyAktywny" />
+                        <label class="form-check-label news-form-label mb-0" asp-for="CzyAktywny"></label>
+                    </div>
+                    <span asp-validation-for="CzyAktywny" class="text-danger small"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="HashHasla" class="control-label"></label>
-                <input asp-for="HashHasla" class="form-control" />
-                <span asp-validation-for="HashHasla" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="CzyAktywny" /> @Html.DisplayNameFor(model => model.CzyAktywny)
-                </label>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz uzytkownika</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
             </div>
         </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
+    </section>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

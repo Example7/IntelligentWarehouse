@@ -1,53 +1,80 @@
-﻿@model IEnumerable<Data.Data.Magazyn.StanMagazynowy>
+@model IEnumerable<Data.Data.Magazyn.StanMagazynowy>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Stany magazynowe";
+    var items = Model.ToList();
+    var totalQty = items.Sum(x => x.Ilosc);
 }
 
-<h1>Index</h1>
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-stack"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Stany magazynowe</h1>
+                <p class="news-admin-header__subheading mb-0">Aktualne ilości produktów w lokalizacjach magazynowych.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Pozycji</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Suma ilości</span><strong class="news-admin-stat__value">@totalQty</strong></div>
+        </div>
+    </section>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Produkt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Lokacja)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Ilosc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.RowVersion)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Produkt.Kod)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Lokacja.Kod)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Ilosc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.RowVersion)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.IdStanu">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.IdStanu">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.IdStanu">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <section class="news-admin-toolbar">
+        <div></div>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj stan</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-stack"></i></div>
+            <h2 class="h4 mb-2">Brak stanów magazynowych</h2>
+            <p class="text-muted mb-3">Dodaj pierwszy wpis stanu dla produktu i lokalizacji.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj stan</a>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Produkt</th>
+                            <th>Lokacja</th>
+                            <th class="text-end">Ilosc</th>
+                            <th>RowVersion</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderBy(x => x.Produkt?.Kod).ThenBy(x => x.Lokacja?.Kod))
+                    {
+                        <tr>
+                            <td>
+                                <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle">ID produktu: @item.IdProduktu</div>
+                            </td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Lokacja?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle">ID lokacji: @item.IdLokacji</div>
+                            </td>
+                            <td class="text-end">@item.Ilosc</td>
+                            <td><span class="entity-mono">@(item.RowVersion is { Length: > 0 } ? Convert.ToBase64String(item.RowVersion) : "-")</span></td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla stanu @item.IdStanu">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdStanu"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdStanu"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdStanu"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

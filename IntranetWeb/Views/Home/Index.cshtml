@@ -1,8 +1,272 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model Interfaces.Dashboard.DashboardVm
+
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="news-admin-page dashboard-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-speedometer2"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dashboard</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd operacyjny magazynu, dokumentów i alertów.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats dashboard-header-stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Produkty aktywne</span><strong class="news-admin-stat__value">@Model.Kpi.ActiveProducts</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Ruchy dzisiaj</span><strong class="news-admin-stat__value">@Model.Kpi.MovementsToday</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Alerty aktywne</span><strong class="news-admin-stat__value">@Model.Kpi.ActiveAlerts</strong></div>
+        </div>
+    </section>
+
+    <section class="dashboard-kpi-grid">
+        <article class="dashboard-kpi-card">
+            <div class="dashboard-kpi-card__label">Stany magazynowe</div>
+            <div class="dashboard-kpi-card__value">@Model.Kpi.StockEntries</div>
+            <div class="dashboard-kpi-card__hint">Pozycje stanowe</div>
+        </article>
+        <article class="dashboard-kpi-card">
+            <div class="dashboard-kpi-card__label">Dokumenty PZ dzisiaj</div>
+            <div class="dashboard-kpi-card__value">@Model.Kpi.PzToday</div>
+            <div class="dashboard-kpi-card__hint">Przyjecia</div>
+        </article>
+        <article class="dashboard-kpi-card">
+            <div class="dashboard-kpi-card__label">Dokumenty WZ dzisiaj</div>
+            <div class="dashboard-kpi-card__value">@Model.Kpi.WzToday</div>
+            <div class="dashboard-kpi-card__hint">Wydania</div>
+        </article>
+        <article class="dashboard-kpi-card">
+            <div class="dashboard-kpi-card__label">Użytkownicy aktywni</div>
+            <div class="dashboard-kpi-card__value">@Model.Kpi.ActiveUsers</div>
+            <div class="dashboard-kpi-card__hint">Konta systemowe</div>
+        </article>
+    </section>
+
+    <section class="dashboard-layout">
+        <div class="dashboard-main">
+            <section class="entity-table-panel dashboard-table-panel">
+                <div class="dashboard-panel-header">
+                    <h2 class="dashboard-panel-title">Ostatnie ruchy magazynowe</h2>
+                    <a asp-controller="RuchMagazynowy" asp-action="Index" class="btn btn-sm btn-outline-secondary">Zobacz wszystkie</a>
+                </div>
+                <div class="entity-table-wrap dashboard-table-wrap">
+                    <table class="table table-hover align-middle mb-0 entity-table dashboard-table">
+                        <thead>
+                            <tr>
+                                <th>Typ</th>
+                                <th>Produkt</th>
+                                <th>Z</th>
+                                <th>Do</th>
+                                <th class="text-end">Ilosc</th>
+                                <th>Referencja</th>
+                                <th>Utworzono</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (Model.RecentMovements.Any())
+                        {
+                            @foreach (var item in Model.RecentMovements)
+                            {
+                                <tr>
+                                    <td><span class="entity-badge entity-badge--muted">@item.Type</span></td>
+                                    <td><span class="dashboard-cell-truncate" title="@item.ProductCode">@item.ProductCode</span></td>
+                                    <td>@(item.FromLocationCode ?? "-")</td>
+                                    <td>@(item.ToLocationCode ?? "-")</td>
+                                    <td class="text-end">@item.Quantity</td>
+                                    <td><span class="dashboard-cell-truncate" title="@item.Reference">@(string.IsNullOrWhiteSpace(item.Reference) ? "-" : item.Reference)</span></td>
+                                    <td>@item.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr class="dashboard-empty-row"><td colspan="7" class="text-center py-4">Brak danych</td></tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <div class="dashboard-two-col">
+                <section class="dashboard-side-panel dashboard-insight-panel">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">Metryki biznesowe</h2>
+                    </div>
+                    <div class="dashboard-insight-grid">
+                        <article class="dashboard-insight-card dashboard-insight-card--warn">
+                            <div class="dashboard-insight-card__label">Produkty poniżej minimum</div>
+                            <div class="dashboard-insight-card__value">@Model.BusinessMetrics.LowStockProducts</div>
+                            <div class="dashboard-insight-card__hint">Aktywne produkty z suma stanu poniżej progu</div>
+                        </article>
+                        <article class="dashboard-insight-card @(Model.BusinessMetrics.DraftDocumentsOlderThan24h > 0 ? "dashboard-insight-card--danger" : "dashboard-insight-card--ok")">
+                            <div class="dashboard-insight-card__label">Draft > 24h</div>
+                            <div class="dashboard-insight-card__value">@Model.BusinessMetrics.DraftDocumentsOlderThan24h</div>
+                            <div class="dashboard-insight-card__hint">PZ: @Model.BusinessMetrics.DraftPzOlderThan24h | WZ: @Model.BusinessMetrics.DraftWzOlderThan24h</div>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="dashboard-side-panel dashboard-top-products-panel">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">Top produkty (7 dni)</h2>
+                        <span class="dashboard-panel-note">wg liczby ruchów</span>
+                    </div>
+                    <div class="dashboard-top-products">
+                        @if (Model.TopProductsLast7Days.Any())
+                        {
+                            var rank = 1;
+                            @foreach (var item in Model.TopProductsLast7Days)
+                            {
+                                <article class="dashboard-top-product-item">
+                                    <div class="dashboard-top-product-item__rank">@rank</div>
+                                    <div class="dashboard-top-product-item__body">
+                                        <div class="dashboard-top-product-item__title" title="@item.ProductCode">@item.ProductCode</div>
+                                        <div class="dashboard-top-product-item__meta" title="@item.ProductName">@item.ProductName</div>
+                                    </div>
+                                    <div class="dashboard-top-product-item__stats">
+                                        <div class="dashboard-top-product-item__count">@item.MovementCount ruch.</div>
+                                        <div class="dashboard-top-product-item__qty">@item.TotalQuantity</div>
+                                    </div>
+                                </article>
+                                rank++;
+                            }
+                        }
+                        else
+                        {
+                            <div class="dashboard-doc-empty">Brak ruchów w ostatnich 7 dniach.</div>
+                        }
+                    </div>
+                </section>
+            </div>
+
+            <div class="dashboard-two-col">
+                <section class="entity-table-panel dashboard-table-panel dashboard-doc-panel">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">Ostatnie PZ</h2>
+                        <a asp-controller="DokumentPZ" asp-action="Index" class="btn btn-sm btn-outline-secondary">Lista PZ</a>
+                    </div>
+                    <div class="dashboard-doc-list">
+                        @if (Model.RecentPzDocuments.Any())
+                        {
+                            @foreach (var doc in Model.RecentPzDocuments)
+                            {
+                                <article class="dashboard-doc-item">
+                                    <div class="dashboard-doc-item__head">
+                                        <div class="dashboard-doc-item__number" title="@doc.Number">@doc.Number</div>
+                                        <span class="entity-badge @(doc.Status == "Posted" ? "entity-badge--success" : doc.Status == "Draft" ? "entity-badge--warning" : "entity-badge--muted")">@doc.Status</span>
+                                    </div>
+                                    <div class="dashboard-doc-item__meta">
+                                        <span title="@doc.WarehouseName">@doc.WarehouseName</span>
+                                        <span class="dashboard-doc-item__sep">|</span>
+                                        <span title="@doc.ContractorName">@doc.ContractorName</span>
+                                    </div>
+                                    <div class="dashboard-doc-item__time">@doc.DateUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                </article>
+                            }
+                        }
+                        else
+                        {
+                            <div class="dashboard-doc-empty">Brak danych</div>
+                        }
+                    </div>
+                </section>
+
+                <section class="entity-table-panel dashboard-table-panel dashboard-doc-panel">
+                    <div class="dashboard-panel-header">
+                        <h2 class="dashboard-panel-title">Ostatnie WZ</h2>
+                        <a asp-controller="DokumentWZ" asp-action="Index" class="btn btn-sm btn-outline-secondary">Lista WZ</a>
+                    </div>
+                    <div class="dashboard-doc-list">
+                        @if (Model.RecentWzDocuments.Any())
+                        {
+                            @foreach (var doc in Model.RecentWzDocuments)
+                            {
+                                <article class="dashboard-doc-item">
+                                    <div class="dashboard-doc-item__head">
+                                        <div class="dashboard-doc-item__number" title="@doc.Number">@doc.Number</div>
+                                        <span class="entity-badge @(doc.Status == "Posted" ? "entity-badge--success" : doc.Status == "Draft" ? "entity-badge--warning" : "entity-badge--muted")">@doc.Status</span>
+                                    </div>
+                                    <div class="dashboard-doc-item__meta">
+                                        <span title="@doc.WarehouseName">@doc.WarehouseName</span>
+                                        <span class="dashboard-doc-item__sep">|</span>
+                                        <span title="@doc.ContractorName">@doc.ContractorName</span>
+                                    </div>
+                                    <div class="dashboard-doc-item__time">@doc.DateUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                </article>
+                            }
+                        }
+                        else
+                        {
+                            <div class="dashboard-doc-empty">Brak danych</div>
+                        }
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <aside class="dashboard-side">
+            <section class="dashboard-side-panel">
+                <div class="dashboard-panel-header">
+                    <h2 class="dashboard-panel-title">Szybkie akcje</h2>
+                </div>
+                <div class="dashboard-actions">
+                    <a asp-controller="RuchMagazynowy" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj ruch magazynowy</a>
+                    <a asp-controller="DokumentPZ" asp-action="Create"><i class="bi bi-box-arrow-in-down"></i> Dodaj dokument PZ</a>
+                    <a asp-controller="DokumentWZ" asp-action="Create"><i class="bi bi-box-arrow-up-right"></i> Dodaj dokument WZ</a>
+                    <a asp-controller="Produkt" asp-action="Create"><i class="bi bi-box-seam"></i> Dodaj produkt</a>
+                    <a asp-controller="Klient" asp-action="Create"><i class="bi bi-people"></i> Dodaj klienta</a>
+                    <a asp-controller="Dostawca" asp-action="Create"><i class="bi bi-truck"></i> Dodaj dostawcę</a>
+                </div>
+            </section>
+
+            <section class="dashboard-side-panel">
+                <div class="dashboard-panel-header">
+                    <h2 class="dashboard-panel-title">Aktywne alerty</h2>
+                    <a asp-controller="Alert" asp-action="Index" class="btn btn-sm btn-outline-secondary">Lista alertów</a>
+                </div>
+                <div class="dashboard-alert-list">
+                    @if (Model.ActiveAlerts.Any())
+                    {
+                        @foreach (var alert in Model.ActiveAlerts)
+                        {
+                            <article class="dashboard-alert-item">
+                                <div class="dashboard-alert-item__top">
+                                    <span class="entity-badge @(alert.Severity == "CRIT" ? "entity-badge--danger" : alert.Severity == "WARN" ? "entity-badge--warning" : "entity-badge--muted")">@alert.Severity</span>
+                                    <span class="dashboard-alert-item__time">@alert.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+                                </div>
+                                <div class="dashboard-alert-item__message">@alert.Message</div>
+                                <div class="entity-inline-meta">
+                                    <span class="entity-inline-meta__label">Produkt:</span>
+                                    <span class="entity-inline-meta__value">@alert.ProductCode</span>
+                                </div>
+                                <div class="entity-inline-meta">
+                                    <span class="entity-inline-meta__label">Magazyn:</span>
+                                    <span class="entity-inline-meta__value">@alert.WarehouseName</span>
+                                </div>
+                            </article>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-muted">Brak aktywnych alertów.</div>
+                    }
+                </div>
+            </section>
+
+            <section class="dashboard-side-panel">
+                <div class="dashboard-panel-header">
+                    <h2 class="dashboard-panel-title">Szybkie przeglądanie</h2>
+                </div>
+                <div class="dashboard-shortcuts">
+                    <a asp-controller="Produkt" asp-action="Index">Produkty</a>
+                    <a asp-controller="StanMagazynowy" asp-action="Index">Stany magazynowe</a>
+                    <a asp-controller="RuchMagazynowy" asp-action="Index">Ruchy magazynowe</a>
+                    <a asp-controller="DokumentPZ" asp-action="Index">Dokumenty PZ</a>
+                    <a asp-controller="DokumentWZ" asp-action="Index">Dokumenty WZ</a>
+                    <a asp-controller="Alert" asp-action="Index">Alerty</a>
+                </div>
+            </section>
+        </aside>
+    </section>
 </div>

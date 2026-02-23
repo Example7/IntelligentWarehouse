@@ -1,0 +1,63 @@
+@model Data.Data.Magazyn.Partia
+
+@{
+    ViewData["Title"] = "Dodaj partie";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Dodaj partie</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz nową partie produktu z datami i dostawcą.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Dane partii</h2>
+            <p class="text-muted mb-0">Wybierz produkt, wpisz numer partii i uzupełnij daty.</p>
+        </div>
+
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
+                    <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu"></select>
+                    <span asp-validation-for="IdProduktu" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="IdDostawcy" class="form-label news-form-label"></label>
+                    <select asp-for="IdDostawcy" class="form-select news-form-control" asp-items="ViewBag.IdDostawcy"></select>
+                    <span asp-validation-for="IdDostawcy" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="NumerPartii" class="form-label news-form-label"></label>
+                    <input asp-for="NumerPartii" class="form-control news-form-control" />
+                    <span asp-validation-for="NumerPartii" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="DataProdukcji" class="form-label news-form-label"></label>
+                    <input asp-for="DataProdukcji" class="form-control news-form-control" />
+                    <span asp-validation-for="DataProdukcji" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="DataWaznosci" class="form-label news-form-label"></label>
+                    <input asp-for="DataWaznosci" class="form-control news-form-control" />
+                    <span asp-validation-for="DataWaznosci" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz partie</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

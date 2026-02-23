@@ -1,0 +1,109 @@
+@model IEnumerable<Data.Data.Magazyn.PozycjaRezerwacji>
+
+@{
+    ViewData["Title"] = "Pozycje Rezerwacji";
+    var items = Model.ToList();
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var totalQty = items.Sum(x => x.Ilosc);
+    var distinctReservations = items.Select(x => x.IdRezerwacji).Distinct().Count();
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-list-check"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Pozycje Rezerwacji</h1>
+                <p class="news-admin-header__subheading mb-0">Pozycje rezerwacji z produktem, lokalizacja i iloscia.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Rezerwacje</span><strong class="news-admin-stat__value">@distinctReservations</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Ilość</span><strong class="news-admin-stat__value">@totalQty.ToString("0.###")</strong></div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie pozycji rezerwacji">
+            <label for="reservationItemSearchTerm" class="visually-hidden">Szukaj pozycji rezerwacji</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
+                <input id="reservationItemSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                       placeholder="Szukaj pozycji..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
+            }
+        </form>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj pozycję</a>
+    </section>
+
+    @if (!items.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-list-task"></i></div>
+            <h2 class="h4 mb-2">Brak pozycji rezerwacji</h2>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Nie dodano jeszcze żadnych pozycji rezerwacji.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj pozycję</a>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
+                }
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Rezerwacja</th>
+                            <th class="text-end">Lp</th>
+                            <th>Produkt</th>
+                            <th>Lokacja</th>
+                            <th class="text-end">Ilosc</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in items.OrderBy(x => x.Rezerwacja != null ? x.Rezerwacja.Numer : string.Empty).ThenBy(x => x.Lp))
+                    {
+                        <tr>
+                            <td><div class="entity-cell-title">@(item.Rezerwacja?.Numer ?? "-")</div></td>
+                            <td class="text-end">@item.Lp</td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? "Brak nazwy")</div>
+                            </td>
+                            <td>@(item.Lokacja?.Kod ?? "-")</td>
+                            <td class="text-end">@item.Ilosc.ToString("0.###")</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla pozycji rezerwacji @item.Id">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

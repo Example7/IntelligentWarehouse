@@ -1,0 +1,44 @@
+@model Data.Data.CMS.ZalacznikDokumentu
+
+@{
+    ViewData["Title"] = "Usuń załącznik dokumentu";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header news-admin-header--danger">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Usuń załącznik dokumentu</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie powiązania pliku z dokumentem.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-delete-panel">
+        <div class="news-delete-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Usunięcie załącznika</strong>
+                <div>Sprawdź, czy załącznik nie jest potrzebny w procesie obiegu dokumentów.</div>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.Id</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.TypDokumentu)</div><div class="news-details-item__value">@Html.DisplayFor(m => m.TypDokumentu)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.IdDokumentu)</div><div class="news-details-item__value">@Html.DisplayFor(m => m.IdDokumentu)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.NazwaPliku)</div><div class="news-details-item__value">@Html.DisplayFor(m => m.NazwaPliku)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.ContentType)</div><div class="news-details-item__value">@Html.DisplayFor(m => m.ContentType)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.Wgral)</div><div class="news-details-item__value">@(Model.Wgral?.Email ?? "-")</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.Sciezka)</div><div class="news-details-item__value entity-mono">@Html.DisplayFor(m => m.Sciezka)</div></div>
+        </div>
+
+        <form asp-action="Delete" method="post" class="news-form-actions">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń załącznik</button>
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+        </form>
+    </section>
+</div>
