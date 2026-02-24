@@ -1,5 +1,6 @@
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,16 +10,18 @@ namespace IntranetWeb.Controllers
 {
     public class MagazynController : BaseSearchController<Magazyn>
     {
+        private readonly IMagazynService _magazynService;
 
-        public MagazynController(DataContext context) : base(context) { }
+        public MagazynController(DataContext context, IMagazynService magazynService) : base(context)
+        {
+            _magazynService = magazynService;
+        }
 
         // GET: Magazyn
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.Magazyn.AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Nazwa, x => x.Adres);
-
-            return View(await query.ToListAsync());
+            var model = await _magazynService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
         // GET: Magazyn/Details/5
@@ -29,14 +32,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var magazyn = await _context.Magazyn
-                .FirstOrDefaultAsync(m => m.IdMagazynu == id);
-            if (magazyn == null)
+            var detailsData = await _magazynService.GetMagazynDetailsData(id.Value);
+            if (detailsData == null)
             {
                 return NotFound();
             }
 
-            return View(magazyn);
+            return View(detailsData);
         }
 
         // GET: Magazyn/Create
@@ -127,6 +129,7 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
+            await UstawInformacjeODependencjachUsuwaniaAsync(magazyn.IdMagazynu);
             return View(magazyn);
         }
 
@@ -136,18 +139,90 @@ namespace IntranetWeb.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var magazyn = await _context.Magazyn.FindAsync(id);
-            if (magazyn != null)
+            if (magazyn == null)
             {
-                _context.Magazyn.Remove(magazyn);
+                return RedirectToAction(nameof(Index));
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var blokady = await PobierzBlokadyUsuwaniaAsync(id);
+            if (SumaBlokad(blokady) > 0)
+            {
+                UstawViewBagBlokad(blokady);
+                ModelState.AddModelError(string.Empty, "Nie można usunąć magazynu, ponieważ ma powiązane rekordy.");
+                return View("Delete", magazyn);
+            }
+
+            try
+            {
+                _context.Magazyn.Remove(magazyn);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                await UstawInformacjeODependencjachUsuwaniaAsync(id);
+                ModelState.AddModelError(string.Empty, "Nie udało się usunąć magazynu z powodu istniejących powiązań.");
+                return View("Delete", magazyn);
+            }
         }
 
         private bool MagazynExists(int id)
         {
             return _context.Magazyn.Any(e => e.IdMagazynu == id);
+        }
+
+        private sealed record BlokadyMagazynu(
+            int Lokacje,
+            int DokumentyPz,
+            int DokumentyWz,
+            int DokumentyMm,
+            int Inwentaryzacje,
+            int Rezerwacje,
+            int RegulyAlertow,
+            int Alerty);
+
+        private async Task<BlokadyMagazynu> PobierzBlokadyUsuwaniaAsync(int idMagazynu)
+        {
+            var lokacje = await _context.Lokacja.CountAsync(x => x.IdMagazynu == idMagazynu);
+            var dokumentyPz = await _context.DokumentPZ.CountAsync(x => x.IdMagazynu == idMagazynu);
+            var dokumentyWz = await _context.DokumentWZ.CountAsync(x => x.IdMagazynu == idMagazynu);
+            var dokumentyMm = await _context.DokumentMM.CountAsync(x => x.IdMagazynu == idMagazynu);
+            var inwentaryzacje = await _context.Inwentaryzacja.CountAsync(x => x.IdMagazynu == idMagazynu);
+            var rezerwacje = await _context.Rezerwacja.CountAsync(x => x.IdMagazynu == idMagazynu);
+            var regulyAlertow = await _context.RegulaAlertu.CountAsync(x => x.IdMagazynu == idMagazynu);
+            var alerty = await _context.Alert.CountAsync(x => x.IdMagazynu == idMagazynu);
+
+            return new BlokadyMagazynu(
+                lokacje,
+                dokumentyPz,
+                dokumentyWz,
+                dokumentyMm,
+                inwentaryzacje,
+                rezerwacje,
+                regulyAlertow,
+                alerty);
+        }
+
+        private static int SumaBlokad(BlokadyMagazynu b) =>
+            b.Lokacje + b.DokumentyPz + b.DokumentyWz + b.DokumentyMm + b.Inwentaryzacje + b.Rezerwacje + b.RegulyAlertow + b.Alerty;
+
+        private async Task UstawInformacjeODependencjachUsuwaniaAsync(int idMagazynu)
+        {
+            var blokady = await PobierzBlokadyUsuwaniaAsync(idMagazynu);
+            UstawViewBagBlokad(blokady);
+        }
+
+        private void UstawViewBagBlokad(BlokadyMagazynu blokady)
+        {
+            ViewBag.LiczbaLokacji = blokady.Lokacje;
+            ViewBag.LiczbaDokumentowPz = blokady.DokumentyPz;
+            ViewBag.LiczbaDokumentowWz = blokady.DokumentyWz;
+            ViewBag.LiczbaDokumentowMm = blokady.DokumentyMm;
+            ViewBag.LiczbaInwentaryzacji = blokady.Inwentaryzacje;
+            ViewBag.LiczbaRezerwacji = blokady.Rezerwacje;
+            ViewBag.LiczbaRegulAlertow = blokady.RegulyAlertow;
+            ViewBag.LiczbaAlertow = blokady.Alerty;
+            ViewBag.CzyMoznaUsunac = SumaBlokad(blokady) == 0;
         }
     }
 }

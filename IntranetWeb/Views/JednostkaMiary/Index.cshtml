@@ -1,10 +1,10 @@
-@model IEnumerable<Data.Data.Magazyn.JednostkaMiary>
+﻿@model Interfaces.Magazyn.Dtos.JednostkaMiaryIndexDto
 
 @{
     ViewData["Title"] = "Jednostki miary";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
-    var activeCount = items.Count(x => x.CzyAktywna);
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var activeCount = items.Count(x => x.JednostkaMiary.CzyAktywna);
 }
 
 <div class="news-admin-page">
@@ -13,11 +13,11 @@
             <span class="news-admin-header__icon"><i class="bi bi-rulers"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Jednostki miary</h1>
-                <p class="news-admin-header__subheading mb-0">Slownik jednostek uzywanych w produktach i procesach magazynowych.</p>
+                <p class="news-admin-header__subheading mb-0">Słownik jednostek używanych w produktach i procesach magazynowych.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Łacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Lacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Aktywne</span><strong class="news-admin-stat__value">@activeCount</strong></div>
         </div>
     </section>
@@ -36,12 +36,12 @@
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" aria-label="Wyczysc wyszukiwanie">
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" aria-label="Wyczyść wyszukiwanie">
                     <i class="bi bi-x-lg"></i>
                 </a>
             }
         </form>
-        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj jednostke</a>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj jednostkę</a>
     </section>
 
     @if (!items.Any())
@@ -49,21 +49,22 @@
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-rulers"></i></div>
             <h2 class="h4 mb-2">Brak jednostek miary</h2>
-            <p class="text-muted mb-3">Dodaj pierwsza jednostke, aby uzywac jej w kartotekach produktow.</p>
-            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj jednostke</a>
+            <p class="text-muted mb-3">Dodaj pierwszą jednostkę, aby używać jej w kartotekach produktów.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj jednostkę</a>
         </section>
     }
     else
     {
         <div class="news-admin-grid">
-            @foreach (var item in items.OrderBy(x => x.Kod).ThenBy(x => x.Nazwa))
+            @foreach (var item in items.OrderBy(x => x.JednostkaMiary.Kod).ThenBy(x => x.JednostkaMiary.Nazwa))
             {
+                var jm = item.JednostkaMiary;
                 <article class="news-card">
                     <div class="news-card__accent"></div>
                     <div class="news-card__body">
                         <div class="news-card__meta-top">
-                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @item.IdJednostki</span>
-                            @if (item.CzyAktywna)
+                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @jm.IdJednostki</span>
+                            @if (jm.CzyAktywna)
                             {
                                 <span class="entity-badge">Aktywna</span>
                             }
@@ -73,19 +74,23 @@
                             }
                         </div>
 
-                        <h2 class="news-card__title" title="@item.Kod">@item.Kod</h2>
-                        <p class="news-card__content" title="@item.Nazwa">@item.Nazwa</p>
+                        <h2 class="news-card__title" title="@jm.Kod">@jm.Kod</h2>
+                        <p class="news-card__content" title="@jm.Nazwa">@jm.Nazwa</p>
 
                         <div class="entity-inline-meta">
                             <span class="entity-inline-meta__label">Kod:</span>
-                            <span class="entity-inline-meta__value entity-mono">@item.Kod</span>
+                            <span class="entity-inline-meta__value entity-mono">@jm.Kod</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">Produkty:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaProduktow</span>
                         </div>
 
                         <div class="news-card__footer">
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla jednostki @item.Kod">
-                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdJednostki" aria-label="Edytuj @item.Kod"><i class="bi bi-pencil"></i></a>
-                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdJednostki" aria-label="Szczegoly @item.Kod"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdJednostki" aria-label="Usun @item.Kod"><i class="bi bi-trash"></i></a>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla jednostki @jm.Kod">
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@jm.IdJednostki" aria-label="Edytuj @jm.Kod"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@jm.IdJednostki" aria-label="Szczegóły @jm.Kod"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@jm.IdJednostki" aria-label="Usuń @jm.Kod"><i class="bi bi-trash"></i></a>
                             </div>
                         </div>
                     </div>

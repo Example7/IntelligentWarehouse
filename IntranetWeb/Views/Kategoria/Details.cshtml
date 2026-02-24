@@ -1,10 +1,9 @@
-﻿@model Data.Data.Magazyn.Kategoria
+@model Interfaces.Magazyn.Dtos.KategoriaDetailsDto
 
 @{
     ViewData["Title"] = "Szczegóły kategorii";
-    var liczbyProduktow = ViewBag.LiczbyProduktow as IDictionary<int, int> ?? new Dictionary<int, int>();
-    var liczbyPodkategorii = ViewBag.LiczbyPodkategorii as IDictionary<int, int> ?? new Dictionary<int, int>();
-    var produktyKategorii = ViewBag.ProduktyKategorii as List<Data.Data.Magazyn.Produkt> ?? new List<Data.Data.Magazyn.Produkt>();
+    var kategoria = Model.Kategoria;
+    var produktyKategorii = Model.ProduktyKategorii;
 }
 
 <div class="news-admin-page">
@@ -17,29 +16,29 @@
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Produkty</span><strong class="news-admin-stat__value">@(liczbyProduktow.TryGetValue(Model.IdKategorii, out var lp) ? lp : 0)</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Podkategorie</span><strong class="news-admin-stat__value">@(liczbyPodkategorii.TryGetValue(Model.IdKategorii, out var lpk) ? lpk : 0)</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdKategorii</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Produkty</span><strong class="news-admin-stat__value">@Model.LiczbaProduktow</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Podkategorie</span><strong class="news-admin-stat__value">@Model.LiczbaPodkategorii</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@kategoria.IdKategorii</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <h2 class="news-details-panel__title">@kategoria.Nazwa</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdKategorii" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdKategorii" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Edit" asp-route-id="@kategoria.IdKategorii" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@kategoria.IdKategorii" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Przypisane produkty</div><div class="news-details-item__value">@(liczbyProduktow.TryGetValue(Model.IdKategorii, out var lpGrid) ? lpGrid : 0)</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Podkategorie</div><div class="news-details-item__value">@(liczbyPodkategorii.TryGetValue(Model.IdKategorii, out var lpkGrid) ? lpkGrid : 0)</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Nadrzędna</div><div class="news-details-item__value">@(Model.NadrzednaKategoria?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Przypisane produkty</div><div class="news-details-item__value">@Model.LiczbaProduktow</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Podkategorie</div><div class="news-details-item__value">@Model.LiczbaPodkategorii</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@kategoria.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nadrzędna</div><div class="news-details-item__value">@(kategoria.NadrzednaKategoria?.Nazwa ?? "-")</div></div>
             <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">Ścieżka</div>
-                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Sciezka) ? "Brak ścieżki" : Model.Sciezka)</div>
+                <div class="news-details-item__label">Ściezka</div>
+                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(kategoria.Sciezka) ? "Brak ściezki" : kategoria.Sciezka)</div>
             </div>
         </div>
     </section>

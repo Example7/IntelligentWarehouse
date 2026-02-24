@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.JednostkaMiary
 
 @{
-    ViewData["Title"] = "Dodaj jednostke miary";
+    ViewData["Title"] = "Dodaj jednostkę miary";
 }
 
 <div class="news-admin-page">
@@ -9,8 +9,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Dodaj jednostke miary</h1>
-                <p class="news-admin-header__subheading mb-0">Utworz nowa jednostke do wykorzystania w magazynie i kartotekach produktow.</p>
+                <h1 class="news-admin-header__heading mb-1">Dodaj jednostkę miary</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz nową jednostkę do wykorzystania w magazynie i kartotekach produktów.</p>
             </div>
         </div>
     </section>
@@ -18,7 +18,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane jednostki</h2>
-            <p class="text-muted mb-0">Wprowadz kod, nazwe i ustaw status aktywnosci.</p>
+            <p class="text-muted mb-0">Wprowadź kod, nazwę i ustaw status aktywności.</p>
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
@@ -44,8 +44,8 @@
             </div>
 
             <div class="news-form-actions">
-                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz jednostke</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz jednostkę</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
             </div>
         </form>
     </section>

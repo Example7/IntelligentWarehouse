@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.Lokacja
 
 @{
-    ViewData["Title"] = "Usun lokacje";
+    ViewData["Title"] = "Usuń lokację";
 }
 
 <div class="news-admin-page">
@@ -9,8 +9,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Usun lokacje</h1>
-                <p class="news-admin-header__subheading mb-0">Potwierdz usuniecie lokalizacji magazynowej.</p>
+                <h1 class="news-admin-header__heading mb-1">Usuń lokację</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie lokalizacji magazynowej.</p>
             </div>
         </div>
     </section>
@@ -19,8 +19,8 @@
         <div class="news-delete-warning" role="alert">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
-                <strong>Usuniecie lokalizacji</strong>
-                <div>Operacja moze byc zablokowana, jesli lokacja posiada stany magazynowe lub jest uzywana w ruchach.</div>
+                <strong>Usunięcie lokalizacji</strong>
+                <div>Operacja może być zablokowana, jeśli lokacja posiada stany magazynowe lub jest używana w ruchach.</div>
             </div>
         </div>
 
@@ -37,8 +37,8 @@
 
         <form asp-action="Delete" method="post" class="news-form-actions">
             <input type="hidden" asp-for="IdLokacji" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun lokacje</button>
-            <a asp-action="Details" asp-route-id="@Model.IdLokacji" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń lokację</button>
+            <a asp-action="Details" asp-route-id="@Model.IdLokacji" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

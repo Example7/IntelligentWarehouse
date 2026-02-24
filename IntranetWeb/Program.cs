@@ -1,7 +1,6 @@
 using Data.Data;
-using Interfaces.Dashboard;
 using Microsoft.EntityFrameworkCore;
-using Services.Dashboard;
+using Services.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<DataContext>(options =>
@@ -9,7 +8,8 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddDashboardAppServices();
+builder.Services.AddWarehouseAppServices();
 
 var app = builder.Build();
 

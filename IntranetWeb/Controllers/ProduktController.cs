@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
@@ -10,8 +11,12 @@ namespace IntranetWeb.Controllers
 {
     public class ProduktController : BaseSearchController<Produkt>
     {
+        private readonly IProduktService _produktService;
 
-        public ProduktController(DataContext context) : base(context) { }
+        public ProduktController(DataContext context, IProduktService produktService) : base(context)
+        {
+            _produktService = produktService;
+        }
 
         // GET: Produkt
         public async Task<IActionResult> Index(string? searchTerm)
@@ -30,16 +35,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var produkt = await _context.Produkt
-                .Include(p => p.DomyslnaJednostka)
-                .Include(p => p.Kategoria)
-                .FirstOrDefaultAsync(m => m.IdProduktu == id);
-            if (produkt == null)
+            var detailsData = await _produktService.GetDetailsDataAsync(id.Value);
+            if (detailsData == null)
             {
                 return NotFound();
             }
 
-            return View(produkt);
+            return View(detailsData);
         }
 
         // GET: Produkt/Create

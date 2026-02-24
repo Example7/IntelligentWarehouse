@@ -1,8 +1,10 @@
-﻿@model Data.Data.Magazyn.Produkt
+﻿@model Interfaces.Magazyn.Dtos.ProduktDetailsDto
 
 @{
     ViewData["Title"] = "Szczegóły produktu";
-    var jednostkaMiary = Model.DomyslnaJednostka?.Kod ?? "j.m.";
+    var produkt = Model.Produkt;
+    var jednostkaMiary = produkt.DomyslnaJednostka?.Kod ?? "j.m.";
+    string Fmt(decimal value) => value.ToString("0.###");
 }
 
 <div class="news-admin-page">
@@ -11,39 +13,340 @@
             <span class="news-admin-header__icon"><i class="bi bi-box-seam"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szczegóły produktu</h1>
-                <p class="news-admin-header__subheading mb-0">Podgląd pełnych danych produktu magazynowego.</p>
+                <p class="news-admin-header__subheading mb-0">Podgląd pelnych danych produktu magazynowego oraz jego aktywności.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdProduktu</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Kod</span><strong class="news-admin-stat__value">@Model.Kod</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Stan</span><strong class="news-admin-stat__value">@Fmt(Model.AktualnyStan) @jednostkaMiary</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Lokacje</span><strong class="news-admin-stat__value">@Model.LiczbaLokacjiZeStanem</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Alerty</span><strong class="news-admin-stat__value">@Model.LiczbaAlertow</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@produkt.IdProduktu</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Kod</span><strong class="news-admin-stat__value">@produkt.Kod</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <h2 class="news-details-panel__title">@produkt.Nazwa</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdProduktu" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdProduktu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Edit" asp-route-id="@produkt.IdProduktu" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@produkt.IdProduktu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value">@Model.Kod</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kategoria</div><div class="news-details-item__value">@(Model.Kategoria?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Domyślna jednostka miary</div><div class="news-details-item__value">@(Model.DomyslnaJednostka?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Stan minimalny</div><div class="news-details-item__value">@Model.StanMinimalny.ToString("0.###") @jednostkaMiary</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Punkt ponownego zamówienia (ROP)</div><div class="news-details-item__value">@(Model.PunktPonownegoZamowienia.HasValue ? $"{Model.PunktPonownegoZamowienia.Value.ToString("0.###")} {jednostkaMiary}" : "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Ilość ponownego zamówienia (ROQ)</div><div class="news-details-item__value">@(Model.IloscPonownegoZamowienia.HasValue ? $"{Model.IloscPonownegoZamowienia.Value.ToString("0.###")} {jednostkaMiary}" : "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value">@produkt.Kod</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@produkt.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kategoria</div><div class="news-details-item__value">@(produkt.Kategoria?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Domyslna jednostka miary</div><div class="news-details-item__value">@(produkt.DomyslnaJednostka?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Aktualny stan</div><div class="news-details-item__value">@Fmt(Model.AktualnyStan) @jednostkaMiary</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zarezerwowane (pozycje rezerwacji)</div><div class="news-details-item__value">@Fmt(Model.IloscZarezerwowana) @jednostkaMiary</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Stan minimalny</div><div class="news-details-item__value">@Fmt(produkt.StanMinimalny) @jednostkaMiary</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(produkt.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Punkt ponownego zamowienia (ROP)</div><div class="news-details-item__value">@(produkt.PunktPonownegoZamowienia.HasValue ? $"{Fmt(produkt.PunktPonownegoZamowienia.Value)} {jednostkaMiary}" : "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilosc ponownego zamowienia (ROQ)</div><div class="news-details-item__value">@(produkt.IloscPonownegoZamowienia.HasValue ? $"{Fmt(produkt.IloscPonownegoZamowienia.Value)} {jednostkaMiary}" : "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Alerty / nowe</div><div class="news-details-item__value">@Model.LiczbaAlertow / @Model.LiczbaNowychAlertow</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Pozycje rezerwacji</div><div class="news-details-item__value">@Model.LiczbaPozycjiRezerwacji</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@produkt.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Opis</div>
-                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Opis) ? "Brak opisu" : Model.Opis)</div>
+                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(produkt.Opis) ? "Brak opisu" : produkt.Opis)</div>
             </div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Stany per lokacja <span class="category-products-count">(@Model.StanyMagazynowe.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">Aktualne rozłożenie stanu produktu w lokacjach magazynowych.</p>
+            </div>
+        </div>
+        <div class="category-products-panel__body">
+            @if (!Model.StanyMagazynowe.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-grid-3x3-gap"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak stanu magazynowego</div>
+                        <div class="category-products-empty__text">Produkt nie ma jeszcze zapisanych stanów magazynowych.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell">
+                    <div class="entity-table-wrap">
+                        <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Magazyn</th>
+                                    <th>Lokacja</th>
+                                    <th class="text-end">Ilość</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var stan in Model.StanyMagazynowe)
+                                {
+                                    <tr>
+                                        <td>@(stan.Lokacja?.Magazyn?.Nazwa ?? "-")</td>
+                                        <td>
+                                            <div class="entity-cell-title entity-mono">@(stan.Lokacja?.Kod ?? "-")</div>
+                                            <div class="entity-cell-subtitle">@(stan.Lokacja?.Opis ?? "Brak opisu")</div>
+                                        </td>
+                                        <td class="text-end">@Fmt(stan.Ilosc) @jednostkaMiary</td>
+                                        <td class="text-end">
+                                            @if (stan.Lokacja != null)
+                                            {
+                                                <div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla lokacji @(stan.Lokacja.Kod)">
+                                                    <a class="btn btn-outline-info" asp-controller="Lokacja" asp-action="Details" asp-route-id="@stan.Lokacja.IdLokacji" title="Szczegoly lokacji"><i class="bi bi-eye"></i></a>
+                                                    <a class="btn btn-outline-warning" asp-controller="Lokacja" asp-action="Edit" asp-route-id="@stan.Lokacja.IdLokacji" title="Edytuj lokacje"><i class="bi bi-pencil"></i></a>
+                                                </div>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Ostatnie ruchy PZ / WZ / MM</h2>
+                <p class="category-products-panel__subtitle mb-0">Najnowsze pozycje dokumentów zawierających ten produkt.</p>
+            </div>
+        </div>
+        <div class="category-products-panel__body">
+            <div class="row g-3">
+                <div class="col-12 col-xl-4">
+                    <div class="category-products-table-shell">
+                        <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center"><strong>PZ</strong><a asp-controller="DokumentPZ" asp-action="Index" class="btn btn-sm btn-outline-secondary">Lista</a></div>
+                        @if (!Model.OstatniePozycjePz.Any())
+                        {
+                            <div class="p-3 text-muted small">Brak pozycji PZ.</div>
+                        }
+                        else
+                        {
+                            <div class="entity-table-wrap">
+                                <table class="table table-hover align-middle mb-0 entity-table">
+                                    <thead><tr><th>Dokument</th><th class="text-end">Ilosc</th><th>Data</th><th class="text-end">Akcje</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var p in Model.OstatniePozycjePz)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="entity-cell-title">@p.Dokument.Numer</div>
+                                                    <div class="entity-cell-subtitle">@(p.Lokacja?.Kod ?? "-")</div>
+                                                </td>
+                                                <td class="text-end">@Fmt(p.Ilosc) @jednostkaMiary</td>
+                                                <td>@p.Dokument.DataPrzyjeciaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                                <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentPZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegoly PZ"><i class="bi bi-eye"></i></a></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-12 col-xl-4">
+                    <div class="category-products-table-shell">
+                        <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center"><strong>WZ</strong><a asp-controller="DokumentWZ" asp-action="Index" class="btn btn-sm btn-outline-secondary">Lista</a></div>
+                        @if (!Model.OstatniePozycjeWz.Any())
+                        {
+                            <div class="p-3 text-muted small">Brak pozycji WZ.</div>
+                        }
+                        else
+                        {
+                            <div class="entity-table-wrap">
+                                <table class="table table-hover align-middle mb-0 entity-table">
+                                    <thead><tr><th>Dokument</th><th class="text-end">Ilosc</th><th>Data</th><th class="text-end">Akcje</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var p in Model.OstatniePozycjeWz)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="entity-cell-title">@p.Dokument.Numer</div>
+                                                    <div class="entity-cell-subtitle">@(p.Lokacja?.Kod ?? "(bez lokacji)")</div>
+                                                </td>
+                                                <td class="text-end">@Fmt(p.Ilosc) @jednostkaMiary</td>
+                                                <td>@p.Dokument.DataWydaniaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                                <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentWZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegoly WZ"><i class="bi bi-eye"></i></a></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-12 col-xl-4">
+                    <div class="category-products-table-shell">
+                        <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center"><strong>MM</strong><a asp-controller="DokumentMM" asp-action="Index" class="btn btn-sm btn-outline-secondary">Lista</a></div>
+                        @if (!Model.OstatniePozycjeMm.Any())
+                        {
+                            <div class="p-3 text-muted small">Brak pozycji MM.</div>
+                        }
+                        else
+                        {
+                            <div class="entity-table-wrap">
+                                <table class="table table-hover align-middle mb-0 entity-table">
+                                    <thead><tr><th>Dokument</th><th class="text-end">Ilosc</th><th>Data</th><th class="text-end">Akcje</th></tr></thead>
+                                    <tbody>
+                                        @foreach (var p in Model.OstatniePozycjeMm)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="entity-cell-title">@p.Dokument.Numer</div>
+                                                    <div class="entity-cell-subtitle">@(p.LokacjaZ.Kod) -> @(p.LokacjaDo.Kod)</div>
+                                                </td>
+                                                <td class="text-end">@Fmt(p.Ilosc) @jednostkaMiary</td>
+                                                <td>@p.Dokument.DataUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                                <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentMM" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegoly MM"><i class="bi bi-eye"></i></a></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Ostatnie rezerwacje <span class="category-products-count">(@Model.OstatniePozycjeRezerwacji.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">10 najnowszych pozycji rezerwacji dla tego produktu.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                @if (Model.OstatniePozycjeRezerwacji.Any())
+                {
+                    <a asp-controller="Rezerwacja" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-bookmark-check me-1"></i> Lista rezerwacji</a>
+                }
+            </div>
+        </div>
+        <div class="category-products-panel__body">
+            @if (!Model.OstatniePozycjeRezerwacji.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-bookmark"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak rezerwacji</div>
+                        <div class="category-products-empty__text">Produkt nie występuje jeszcze w pozycjach rezerwacji.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell"><div class="entity-table-wrap">
+                    <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                        <thead>
+                            <tr>
+                                <th>Rezerwacja</th>
+                                <th>Magazyn</th>
+                                <th>Lokacja</th>
+                                <th class="text-end">Ilość</th>
+                                <th>Status</th>
+                                <th>Wygasa</th>
+                                <th class="text-end">Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.OstatniePozycjeRezerwacji)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="entity-cell-title">@p.Rezerwacja.Numer</div>
+                                        <div class="entity-cell-subtitle">@p.Rezerwacja.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                    </td>
+                                    <td>@(p.Rezerwacja.Magazyn?.Nazwa ?? "-")</td>
+                                    <td>@(p.Lokacja?.Kod ?? "-")</td>
+                                    <td class="text-end">@Fmt(p.Ilosc) @jednostkaMiary</td>
+                                    <td><span class="entity-badge entity-badge--muted">@p.Rezerwacja.Status</span></td>
+                                    <td>@(p.Rezerwacja.WygasaUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                                    <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="Rezerwacja" asp-action="Details" asp-route-id="@p.Rezerwacja.Id" title="Szczegoly rezerwacji"><i class="bi bi-eye"></i></a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div></div>
+            }
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Ostatnie alerty <span class="category-products-count">(@Model.OstatnieAlerty.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">10 najnowszych alertów dla tego produktu.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                @if (Model.OstatnieAlerty.Any())
+                {
+                    <a asp-controller="Alert" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-bell me-1"></i> Lista alertów</a>
+                }
+            </div>
+        </div>
+        <div class="category-products-panel__body">
+            @if (!Model.OstatnieAlerty.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-bell-slash"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak alertów</div>
+                        <div class="category-products-empty__text">Dla tego produktu nie wygenerowano jeszcze alertów.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell"><div class="entity-table-wrap">
+                    <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                        <thead>
+                            <tr>
+                                <th>Waga</th>
+                                <th>Treść</th>
+                                <th>Magazyn</th>
+                                <th>Reguła</th>
+                                <th>Utworzono</th>
+                                <th>Status</th>
+                                <th class="text-end">Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var alert in Model.OstatnieAlerty)
+                            {
+                                var severityClass = string.Equals(alert.Waga, "CRIT", StringComparison.OrdinalIgnoreCase)
+                                    ? "entity-badge--danger"
+                                    : string.Equals(alert.Waga, "WARN", StringComparison.OrdinalIgnoreCase)
+                                        ? "entity-badge--warning"
+                                        : "entity-badge--muted";
+                                <tr>
+                                    <td><span class="entity-badge @severityClass">@alert.Waga</span></td>
+                                    <td><div class="entity-cell-title text-truncate" title="@alert.Tresc">@alert.Tresc</div></td>
+                                    <td>@(alert.Magazyn?.Nazwa ?? "-")</td>
+                                    <td>@(alert.Regula?.Typ ?? "-")</td>
+                                    <td>@alert.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td><span class="entity-badge @(alert.CzyPotwierdzony ? "entity-badge--success" : "entity-badge--muted")">@(alert.CzyPotwierdzony ? "Potwierdzony" : "Nowy")</span></td>
+                                    <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="Alert" asp-action="Details" asp-route-id="@alert.Id" title="Szczegóły alertu"><i class="bi bi-eye"></i></a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div></div>
+            }
         </div>
     </section>
 </div>

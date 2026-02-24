@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.Lokacja
 
 @{
-    ViewData["Title"] = "Edytuj lokacje";
+    ViewData["Title"] = "Edytuj lokację";
 }
 
 <div class="news-admin-page">
@@ -9,7 +9,7 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Edytuj lokacje</h1>
+                <h1 class="news-admin-header__heading mb-1">Edytuj lokację</h1>
                 <p class="news-admin-header__subheading mb-0">Aktualizacja przypisania magazynu, kodu i opisu lokalizacji.</p>
             </div>
         </div>
@@ -21,7 +21,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Edycja lokalizacji</h2>
-            <p class="text-muted mb-0">Zmien magazyn, kod, opis lub status aktywnosci lokalizacji.</p>
+            <p class="text-muted mb-0">Zmien magazyn, kod, opis lub status aktywności lokalizacji.</p>
         </div>
 
         <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
@@ -55,7 +55,7 @@
             </div>
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
-                <a asp-action="Details" asp-route-id="@Model.IdLokacji" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+                <a asp-action="Details" asp-route-id="@Model.IdLokacji" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>

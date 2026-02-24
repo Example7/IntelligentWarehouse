@@ -1,12 +1,13 @@
-﻿using AdminWeb;
 using Data.Data;
 using Microsoft.EntityFrameworkCore;
+using Services.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DataContext") ?? throw new InvalidOperationException("Connection string 'DataContext' not found.")));
 
 // Dependency Injection
-DependecyInjectionFactory.Resolve(builder.Services, builder.Configuration);
+builder.Services.AddCmsAppServices();
+builder.Services.AddWarehouseAppServices();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 

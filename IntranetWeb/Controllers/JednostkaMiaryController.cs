@@ -1,5 +1,6 @@
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,16 +10,18 @@ namespace IntranetWeb.Controllers
 {
     public class JednostkaMiaryController : BaseSearchController<JednostkaMiary>
     {
+        private readonly IJednostkaMiaryService _jednostkaMiaryService;
 
-        public JednostkaMiaryController(DataContext context) : base(context) { }
+        public JednostkaMiaryController(DataContext context, IJednostkaMiaryService jednostkaMiaryService) : base(context)
+        {
+            _jednostkaMiaryService = jednostkaMiaryService;
+        }
 
         // GET: JednostkaMiary
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.JednostkaMiary.AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Kod, x => x.Nazwa);
-
-            return View(await query.ToListAsync());
+            var model = await _jednostkaMiaryService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
         // GET: JednostkaMiary/Details/5
@@ -29,14 +32,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var jednostkaMiary = await _context.JednostkaMiary
-                .FirstOrDefaultAsync(m => m.IdJednostki == id);
-            if (jednostkaMiary == null)
+            var detailsData = await _jednostkaMiaryService.GetDetailsDataAsync(id.Value);
+            if (detailsData == null)
             {
                 return NotFound();
             }
 
-            return View(jednostkaMiary);
+            return View(detailsData);
         }
 
         // GET: JednostkaMiary/Create
@@ -46,8 +48,6 @@ namespace IntranetWeb.Controllers
         }
 
         // POST: JednostkaMiary/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdJednostki,Kod,Nazwa,CzyAktywna")] JednostkaMiary jednostkaMiary)
@@ -78,8 +78,6 @@ namespace IntranetWeb.Controllers
         }
 
         // POST: JednostkaMiary/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("IdJednostki,Kod,Nazwa,CzyAktywna")] JednostkaMiary jednostkaMiary)
@@ -102,10 +100,8 @@ namespace IntranetWeb.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -120,14 +116,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var jednostkaMiary = await _context.JednostkaMiary
-                .FirstOrDefaultAsync(m => m.IdJednostki == id);
-            if (jednostkaMiary == null)
+            var deleteData = await _jednostkaMiaryService.GetDeleteDataAsync(id.Value);
+            if (deleteData == null)
             {
                 return NotFound();
             }
 
-            return View(jednostkaMiary);
+            return View(deleteData);
         }
 
         // POST: JednostkaMiary/Delete/5
@@ -136,13 +131,41 @@ namespace IntranetWeb.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var jednostkaMiary = await _context.JednostkaMiary.FindAsync(id);
-            if (jednostkaMiary != null)
+            if (jednostkaMiary == null)
             {
-                _context.JednostkaMiary.Remove(jednostkaMiary);
+                return RedirectToAction(nameof(Index));
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var liczbaProduktow = await _jednostkaMiaryService.GetAssignedProductsCountAsync(id);
+            if (liczbaProduktow > 0)
+            {
+                var deleteData = await _jednostkaMiaryService.GetDeleteDataAsync(id);
+                if (deleteData == null)
+                {
+                    return NotFound();
+                }
+
+                ModelState.AddModelError(string.Empty, "Nie mozna usunac jednostki miary, poniewaz jest przypisana do produktow.");
+                return View("Delete", deleteData);
+            }
+
+            try
+            {
+                _context.JednostkaMiary.Remove(jednostkaMiary);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                var deleteData = await _jednostkaMiaryService.GetDeleteDataAsync(id);
+                if (deleteData == null)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ModelState.AddModelError(string.Empty, "Nie udalo sie usunac jednostki miary z powodu istniejacych powiazan.");
+                return View("Delete", deleteData);
+            }
         }
 
         private bool JednostkaMiaryExists(int id)

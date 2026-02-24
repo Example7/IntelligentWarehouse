@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
@@ -10,8 +11,12 @@ namespace IntranetWeb.Controllers
 {
     public class KategoriaController : BaseSearchController<Kategoria>
     {
+        private readonly IKategoriaService _kategoriaService;
 
-        public KategoriaController(DataContext context) : base(context) { }
+        public KategoriaController(DataContext context, IKategoriaService kategoriaService) : base(context)
+        {
+            _kategoriaService = kategoriaService;
+        }
 
         // GET: Kategoria
         public async Task<IActionResult> Index(string? searchTerm)
@@ -32,22 +37,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var kategoria = await _context.Kategoria
-                .Include(k => k.NadrzednaKategoria)
-                .FirstOrDefaultAsync(m => m.IdKategorii == id);
-            if (kategoria == null)
+            var detailsData = await _kategoriaService.GetDetailsDataAsync(id.Value);
+            if (detailsData == null)
             {
                 return NotFound();
             }
 
-            await UstawLicznikiKategoriiAsync(new[] { kategoria.IdKategorii });
-            ViewBag.ProduktyKategorii = await _context.Produkt
-                .AsNoTracking()
-                .Where(p => p.IdKategorii == kategoria.IdKategorii)
-                .OrderBy(p => p.Kod)
-                .ThenBy(p => p.Nazwa)
-                .ToListAsync();
-            return View(kategoria);
+            return View(detailsData);
         }
 
         // GET: Kategoria/Create
@@ -58,15 +54,13 @@ namespace IntranetWeb.Controllers
         }
 
         // POST: Kategoria/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdKategorii,IdNadrzednejKategorii,Nazwa")] Kategoria kategoria)
         {
             if (kategoria.IdNadrzednejKategorii.HasValue && !await KategoriaExistsAsync(kategoria.IdNadrzednejKategorii.Value))
             {
-                ModelState.AddModelError(nameof(Kategoria.IdNadrzednejKategorii), "Wybrana kategoria nadrzędna nie istnieje.");
+                ModelState.AddModelError(nameof(Kategoria.IdNadrzednejKategorii), "Wybrana kategoria nadrzedna nie istnieje.");
             }
 
             if (ModelState.IsValid)
@@ -98,8 +92,6 @@ namespace IntranetWeb.Controllers
         }
 
         // POST: Kategoria/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("IdKategorii,IdNadrzednejKategorii,Nazwa")] Kategoria kategoria)
@@ -111,17 +103,17 @@ namespace IntranetWeb.Controllers
 
             if (kategoria.IdNadrzednejKategorii == kategoria.IdKategorii)
             {
-                ModelState.AddModelError(nameof(Kategoria.IdNadrzednejKategorii), "Kategoria nie może być nadrzędna dla samej siebie.");
+                ModelState.AddModelError(nameof(Kategoria.IdNadrzednejKategorii), "Kategoria nie moze byc nadrzedna dla samej siebie.");
             }
 
             if (kategoria.IdNadrzednejKategorii.HasValue && !await KategoriaExistsAsync(kategoria.IdNadrzednejKategorii.Value))
             {
-                ModelState.AddModelError(nameof(Kategoria.IdNadrzednejKategorii), "Wybrana kategoria nadrzędna nie istnieje.");
+                ModelState.AddModelError(nameof(Kategoria.IdNadrzednejKategorii), "Wybrana kategoria nadrzedna nie istnieje.");
             }
 
             if (kategoria.IdNadrzednejKategorii.HasValue && await PowodujeCyklAsync(kategoria.IdKategorii, kategoria.IdNadrzednejKategorii))
             {
-                ModelState.AddModelError(nameof(Kategoria.IdNadrzednejKategorii), "Nie można ustawić podkategorii jako kategorii nadrzędnej.");
+                ModelState.AddModelError(nameof(Kategoria.IdNadrzednejKategorii), "Nie mozna ustawic podkategorii jako kategorii nadrzednej.");
             }
 
             if (ModelState.IsValid)
@@ -147,10 +139,7 @@ namespace IntranetWeb.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -166,16 +155,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var kategoria = await _context.Kategoria
-                .Include(k => k.NadrzednaKategoria)
-                .FirstOrDefaultAsync(m => m.IdKategorii == id);
-            if (kategoria == null)
+            var deleteData = await _kategoriaService.GetDeleteDataAsync(id.Value);
+            if (deleteData == null)
             {
                 return NotFound();
             }
 
-            await UstawInformacjeODependencjachUsuwaniaAsync(kategoria.IdKategorii);
-            return View(kategoria);
+            return View(deleteData);
         }
 
         // POST: Kategoria/Delete/5
@@ -192,12 +178,17 @@ namespace IntranetWeb.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var (liczbaProduktow, liczbaPodkategorii) = await PobierzBlokadyUsuwaniaAsync(id);
+            var (liczbaProduktow, liczbaPodkategorii) = await _kategoriaService.GetDeleteBlockersAsync(id);
             if (liczbaProduktow > 0 || liczbaPodkategorii > 0)
             {
-                await UstawInformacjeODependencjachUsuwaniaAsync(kategoria.IdKategorii, liczbaProduktow, liczbaPodkategorii);
-                ModelState.AddModelError(string.Empty, "Nie można usunąć kategorii, ponieważ ma przypisane produkty lub podkategorie.");
-                return View("Delete", kategoria);
+                var deleteData = await _kategoriaService.GetDeleteDataAsync(kategoria.IdKategorii);
+                if (deleteData == null)
+                {
+                    return NotFound();
+                }
+
+                ModelState.AddModelError(string.Empty, "Nie mozna usunac kategorii, poniewaz ma przypisane produkty lub podkategorie.");
+                return View("Delete", deleteData);
             }
 
             try
@@ -208,9 +199,14 @@ namespace IntranetWeb.Controllers
             }
             catch (DbUpdateException)
             {
-                await UstawInformacjeODependencjachUsuwaniaAsync(kategoria.IdKategorii);
-                ModelState.AddModelError(string.Empty, "Nie udało się usunąć kategorii z powodu istniejących powiązań.");
-                return View("Delete", kategoria);
+                var deleteData = await _kategoriaService.GetDeleteDataAsync(kategoria.IdKategorii);
+                if (deleteData == null)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ModelState.AddModelError(string.Empty, "Nie udalo sie usunac kategorii z powodu istniejacych powiazan.");
+                return View("Delete", deleteData);
             }
         }
 
@@ -273,24 +269,6 @@ namespace IntranetWeb.Controllers
             }
 
             return false;
-        }
-
-        private async Task<(int liczbaProduktow, int liczbaPodkategorii)> PobierzBlokadyUsuwaniaAsync(int idKategorii)
-        {
-            var liczbaProduktow = await _context.Produkt.CountAsync(p => p.IdKategorii == idKategorii);
-            var liczbaPodkategorii = await _context.Kategoria.CountAsync(k => k.IdNadrzednejKategorii == idKategorii);
-            return (liczbaProduktow, liczbaPodkategorii);
-        }
-
-        private async Task UstawInformacjeODependencjachUsuwaniaAsync(int idKategorii, int? liczbaProduktow = null, int? liczbaPodkategorii = null)
-        {
-            var blokady = liczbaProduktow.HasValue && liczbaPodkategorii.HasValue
-                ? (liczbaProduktow.Value, liczbaPodkategorii.Value)
-                : await PobierzBlokadyUsuwaniaAsync(idKategorii);
-
-            ViewBag.LiczbaProduktow = blokady.Item1;
-            ViewBag.LiczbaPodkategorii = blokady.Item2;
-            ViewBag.CzyMoznaUsunac = blokady.Item1 == 0 && blokady.Item2 == 0;
         }
 
         private async Task UstawLicznikiKategoriiAsync(IEnumerable<int> idsKategorii)

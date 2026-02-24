@@ -1,11 +1,11 @@
-@model IEnumerable<Data.Data.Magazyn.Lokacja>
+﻿@model Interfaces.Magazyn.Dtos.LokacjaIndexDto
 
 @{
     ViewData["Title"] = "Lokacje";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
-    var activeCount = items.Count(x => x.CzyAktywna);
-    var warehouseCount = items.Select(x => x.IdMagazynu).Distinct().Count();
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var activeCount = items.Count(x => x.Lokacja.CzyAktywna);
+    var warehouseCount = items.Select(x => x.Lokacja.IdMagazynu).Distinct().Count();
 }
 
 <div class="news-admin-page">
@@ -14,7 +14,7 @@
             <span class="news-admin-header__icon"><i class="bi bi-geo-alt"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Lokacje</h1>
-                <p class="news-admin-header__subheading mb-0">Adresacja lokalizacji magazynowych i ich status aktywnosci.</p>
+                <p class="news-admin-header__subheading mb-0">Adresacja lokalizacji magazynowych i ich status aktywności.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -43,7 +43,7 @@
                 </a>
             }
         </form>
-        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj lokacje</a>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj lokację</a>
     </section>
 
     @if (!items.Any())
@@ -51,21 +51,22 @@
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-geo-alt"></i></div>
             <h2 class="h4 mb-2">Brak lokalizacji</h2>
-            <p class="text-muted mb-3">Dodaj pierwsza lokacje, aby przypisac adresowanie w magazynie.</p>
-            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj lokacje</a>
+            <p class="text-muted mb-3">Dodaj pierwszą lokację, aby przypisać adresowanie w magazynie.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj lokację</a>
         </section>
     }
     else
     {
         <div class="news-admin-grid">
-            @foreach (var item in items.OrderBy(x => x.Magazyn?.Nazwa).ThenBy(x => x.Kod))
+            @foreach (var item in items.OrderBy(x => x.Lokacja.Magazyn?.Nazwa).ThenBy(x => x.Lokacja.Kod))
             {
+                var lokacja = item.Lokacja;
                 <article class="news-card">
                     <div class="news-card__accent"></div>
                     <div class="news-card__body">
                         <div class="news-card__meta-top">
-                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @item.IdLokacji</span>
-                            @if (item.CzyAktywna)
+                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @lokacja.IdLokacji</span>
+                            @if (lokacja.CzyAktywna)
                             {
                                 <span class="entity-badge">Aktywna</span>
                             }
@@ -75,19 +76,25 @@
                             }
                         </div>
 
-                        <h2 class="news-card__title" title="@item.Kod">@item.Kod</h2>
-                        <p class="news-card__content" title="@item.Opis">@(string.IsNullOrWhiteSpace(item.Opis) ? "Brak opisu lokalizacji." : item.Opis)</p>
+                        <h2 class="news-card__title" title="@lokacja.Kod">@lokacja.Kod</h2>
+                        <p class="news-card__content" title="@lokacja.Opis">@(string.IsNullOrWhiteSpace(lokacja.Opis) ? "Brak opisu lokalizacji." : lokacja.Opis)</p>
 
                         <div class="entity-inline-meta">
                             <span class="entity-inline-meta__label">Magazyn:</span>
-                            <span class="entity-inline-meta__value">@(item.Magazyn?.Nazwa ?? "-")</span>
+                            <span class="entity-inline-meta__value">@(lokacja.Magazyn?.Nazwa ?? "-")</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">Produkty:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaProduktow</span>
+                            <span class="entity-inline-meta__label ms-3">Rezerwacje:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaRezerwacji</span>
                         </div>
 
                         <div class="news-card__footer">
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla lokacji @item.Kod">
-                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdLokacji" aria-label="Edytuj @item.Kod"><i class="bi bi-pencil"></i></a>
-                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdLokacji" aria-label="Szczegoly @item.Kod"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdLokacji" aria-label="Usun @item.Kod"><i class="bi bi-trash"></i></a>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla lokacji @lokacja.Kod">
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@lokacja.IdLokacji" aria-label="Edytuj @lokacja.Kod"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@lokacja.IdLokacji" aria-label="Szczegóły @lokacja.Kod"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@lokacja.IdLokacji" aria-label="Usuń @lokacja.Kod"><i class="bi bi-trash"></i></a>
                             </div>
                         </div>
                     </div>

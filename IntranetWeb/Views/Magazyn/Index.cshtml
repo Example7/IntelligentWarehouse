@@ -1,10 +1,10 @@
-@model IEnumerable<Data.Data.Magazyn.Magazyn>
+﻿@model Interfaces.Magazyn.Dtos.MagazynIndexDto
 
 @{
     ViewData["Title"] = "Magazyny";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
-    var activeCount = items.Count(x => x.CzyAktywny);
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var activeCount = items.Count(x => x.Magazyn.CzyAktywny);
 }
 
 <div class="news-admin-page">
@@ -13,18 +13,18 @@
             <span class="news-admin-header__icon"><i class="bi bi-building"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Magazyny</h1>
-                <p class="news-admin-header__subheading mb-0">Lista magazynow i ich podstawowych danych adresowych.</p>
+                <p class="news-admin-header__subheading mb-0">Lista magazynów i ich podstawowych danych adresowych.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Łacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Aktywne</span><strong class="news-admin-stat__value">@activeCount</strong></div>
         </div>
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie magazynow">
-            <label for="warehouseSearchTerm" class="visually-hidden">Szukaj magazynow</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie magazynów">
+            <label for="warehouseSearchTerm" class="visually-hidden">Szukaj magazynów</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon"></i>
                 <input id="warehouseSearchTerm"
@@ -36,7 +36,7 @@
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" aria-label="Wyczysc wyszukiwanie">
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" aria-label="Wyczyść wyszukiwanie">
                     <i class="bi bi-x-lg"></i>
                 </a>
             }
@@ -48,22 +48,23 @@
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-building"></i></div>
-            <h2 class="h4 mb-2">Brak magazynow</h2>
-            <p class="text-muted mb-3">Dodaj pierwszy magazyn, aby rozpoczas zarzadzanie lokalizacjami i stanami.</p>
+            <h2 class="h4 mb-2">Brak magazynów</h2>
+            <p class="text-muted mb-3">Dodaj pierwszy magazyn, aby rozpocząć zarządzanie lokalizacjami i stanami.</p>
             <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj magazyn</a>
         </section>
     }
     else
     {
         <div class="news-admin-grid">
-            @foreach (var item in items.OrderBy(x => x.Nazwa))
+            @foreach (var item in items.OrderBy(x => x.Magazyn.Nazwa))
             {
+                var magazyn = item.Magazyn;
                 <article class="news-card">
                     <div class="news-card__accent"></div>
                     <div class="news-card__body">
                         <div class="news-card__meta-top">
-                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @item.IdMagazynu</span>
-                            @if (item.CzyAktywny)
+                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @magazyn.IdMagazynu</span>
+                            @if (magazyn.CzyAktywny)
                             {
                                 <span class="entity-badge">Aktywny</span>
                             }
@@ -73,19 +74,31 @@
                             }
                         </div>
 
-                        <h2 class="news-card__title" title="@item.Nazwa">@item.Nazwa</h2>
-                        <p class="news-card__content" title="@item.Adres">@(string.IsNullOrWhiteSpace(item.Adres) ? "Brak adresu." : item.Adres)</p>
+                        <h2 class="news-card__title" title="@magazyn.Nazwa">@magazyn.Nazwa</h2>
+                        <p class="news-card__content" title="@magazyn.Adres">@(string.IsNullOrWhiteSpace(magazyn.Adres) ? "Brak adresu." : magazyn.Adres)</p>
 
                         <div class="entity-inline-meta">
                             <span class="entity-inline-meta__label">Adres:</span>
-                            <span class="entity-inline-meta__value">@(string.IsNullOrWhiteSpace(item.Adres) ? "-" : item.Adres)</span>
+                            <span class="entity-inline-meta__value">@(string.IsNullOrWhiteSpace(magazyn.Adres) ? "-" : magazyn.Adres)</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">Lokacje:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaLokacji</span>
+                            <span class="entity-inline-meta__label ms-3">Rezerwacje:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaRezerwacji</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">PZ/WZ/MM:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaDokumentowPz/@item.LiczbaDokumentowWz/@item.LiczbaDokumentowMm</span>
+                            <span class="entity-inline-meta__label ms-3">Alerty:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaAlertow</span>
                         </div>
 
                         <div class="news-card__footer">
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla magazynu @item.Nazwa">
-                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdMagazynu" aria-label="Edytuj @item.Nazwa"><i class="bi bi-pencil"></i></a>
-                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdMagazynu" aria-label="Szczegoly @item.Nazwa"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdMagazynu" aria-label="Usun @item.Nazwa"><i class="bi bi-trash"></i></a>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla magazynu @magazyn.Nazwa">
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@magazyn.IdMagazynu" aria-label="Edytuj @magazyn.Nazwa"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@magazyn.IdMagazynu" aria-label="Szczegóły @magazyn.Nazwa"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@magazyn.IdMagazynu" aria-label="Usuń @magazyn.Nazwa"><i class="bi bi-trash"></i></a>
                             </div>
                         </div>
                     </div>

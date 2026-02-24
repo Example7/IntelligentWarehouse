@@ -1,7 +1,24 @@
-@model Data.Data.Magazyn.Magazyn
+@model Interfaces.Magazyn.Dtos.MagazynDetailsDto
 
 @{
-    ViewData["Title"] = "Szczegoly magazynu";
+    ViewData["Title"] = "Szczegó³y magazynu";
+    var magazyn = Model.Magazyn;
+    var lokacjeMagazynu = Model.LokacjeMagazynu;
+    var liczbaLokacji = Model.LiczbaLokacji;
+    var liczbaDokumentowPz = Model.LiczbaDokumentowPz;
+    var liczbaDokumentowWz = Model.LiczbaDokumentowWz;
+    var liczbaDokumentowMm = Model.LiczbaDokumentowMm;
+    var liczbaInwentaryzacji = Model.LiczbaInwentaryzacji;
+    var liczbaRezerwacji = Model.LiczbaRezerwacji;
+    var liczbaRegulAlertow = Model.LiczbaRegulAlertow;
+    var liczbaAlertow = Model.LiczbaAlertow;
+    var regulyAlertowMagazynu = Model.RegulyAlertowMagazynu;
+    var ostatnieAlertyMagazynu = Model.OstatnieAlertyMagazynu;
+    var ostatnieDokumentyPz = Model.OstatnieDokumentyPz;
+    var ostatnieDokumentyWz = Model.OstatnieDokumentyWz;
+    var ostatnieDokumentyMm = Model.OstatnieDokumentyMm;
+    var ostatnieRezerwacjeMagazynu = Model.OstatnieRezerwacjeMagazynu;
+    var ostatnieInwentaryzacjeMagazynu = Model.OstatnieInwentaryzacjeMagazynu;
 }
 
 <div class="news-admin-page">
@@ -9,33 +26,341 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-building"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Szczegoly magazynu</h1>
-                <p class="news-admin-header__subheading mb-0">Podglad danych magazynu i jego statusu.</p>
+                <h1 class="news-admin-header__heading mb-1">Szczegó³y magazynu</h1>
+                <p class="news-admin-header__subheading mb-0">Podgl¹d danych magazynu i powi¹zanych rekordów.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdMagazynu</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Lokacje</span><strong class="news-admin-stat__value">@liczbaLokacji</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@magazyn.IdMagazynu</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(magazyn.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <h2 class="news-details-panel__title">@magazyn.Nazwa</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdMagazynu" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdMagazynu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Edit" asp-route-id="@magazyn.IdMagazynu" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@magazyn.IdMagazynu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuñ</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@magazyn.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(magazyn.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lokacje</div><div class="news-details-item__value">@liczbaLokacji</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty PZ / WZ / MM</div><div class="news-details-item__value">@liczbaDokumentowPz / @liczbaDokumentowWz / @liczbaDokumentowMm</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Inwentaryzacje / Rezerwacje</div><div class="news-details-item__value">@liczbaInwentaryzacji / @liczbaRezerwacji</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Regu³y alertów / Alerty</div><div class="news-details-item__value">@liczbaRegulAlertow / @liczbaAlertow</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Adres</div>
-                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Adres) ? "Brak adresu" : Model.Adres)</div>
+                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(magazyn.Adres) ? "Brak adresu" : magazyn.Adres)</div>
             </div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Powi¹zane lokacje <span class="category-products-count">(@lokacjeMagazynu.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">Lokacje przypisane do tego magazynu.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                @if (lokacjeMagazynu.Any())
+                {
+                    <a asp-controller="Lokacja" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-geo-alt me-1"></i> Lista lokacji
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="category-products-panel__body">
+            @if (!lokacjeMagazynu.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-grid-3x3-gap"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak lokacji</div>
+                        <div class="category-products-empty__text">Ten magazyn nie ma jeszcze zdefiniowanych lokacji.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell">
+                    <div class="entity-table-wrap">
+                        <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Kod</th>
+                                    <th>Opis</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var lokacja in lokacjeMagazynu)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="entity-cell-title entity-mono">@lokacja.Kod</div>
+                                            <div class="entity-cell-subtitle">ID lokacji: @lokacja.IdLokacji</div>
+                                        </td>
+                                        <td>
+                                            <div class="entity-cell-title">@(string.IsNullOrWhiteSpace(lokacja.Opis) ? "Brak opisu" : lokacja.Opis)</div>
+                                        </td>
+                                        <td>
+                                            <span class="entity-badge @(lokacja.CzyAktywna ? "entity-badge--success" : "entity-badge--muted")">
+                                                @(lokacja.CzyAktywna ? "Aktywna" : "Nieaktywna")
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla lokacji @lokacja.Kod">
+                                                <a class="btn btn-outline-info" asp-controller="Lokacja" asp-action="Details" asp-route-id="@lokacja.IdLokacji" title="Szczegó³y lokacji"><i class="bi bi-eye"></i></a>
+                                                <a class="btn btn-outline-warning" asp-controller="Lokacja" asp-action="Edit" asp-route-id="@lokacja.IdLokacji" title="Edytuj lokacjê"><i class="bi bi-pencil"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Regu³y alertów <span class="category-products-count">(@regulyAlertowMagazynu.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">Regu³y skonfigurowane dla tego magazynu.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                @if (regulyAlertowMagazynu.Any())
+                {
+                    <a asp-controller="RegulaAlertu" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-bell me-1"></i> Lista regu³
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="category-products-panel__body">
+            @if (!regulyAlertowMagazynu.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-bell-slash"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak regu³ alertów</div>
+                        <div class="category-products-empty__text">Dla tego magazynu nie skonfigurowano jeszcze regu³ alertów.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell">
+                    <div class="entity-table-wrap">
+                        <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Typ</th>
+                                    <th>Produkt</th>
+                                    <th class="text-end">Próg</th>
+                                    <th>Status</th>
+                                    <th>Utworzono</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var regula in regulyAlertowMagazynu)
+                                {
+                                    <tr>
+                                        <td><span class="entity-badge entity-badge--muted">@regula.Typ</span></td>
+                                        <td>
+                                            <div class="entity-cell-title">@(regula.Produkt?.Kod ?? "Wszystkie produkty")</div>
+                                            <div class="entity-cell-subtitle">@(regula.Produkt?.Nazwa ?? "Regu³a ogólna dla magazynu")</div>
+                                        </td>
+                                        <td class="text-end">@regula.Prog.ToString("0.###")</td>
+                                        <td>
+                                            <span class="entity-badge @(regula.CzyWlaczona ? "entity-badge--success" : "entity-badge--muted")">
+                                                @(regula.CzyWlaczona ? "W³¹czona" : "Wy³¹czona")
+                                            </span>
+                                        </td>
+                                        <td>@regula.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla regu³y alertu @regula.Id">
+                                                <a class="btn btn-outline-info" asp-controller="RegulaAlertu" asp-action="Details" asp-route-id="@regula.Id" title="Szczegó³y regu³y"><i class="bi bi-eye"></i></a>
+                                                <a class="btn btn-outline-warning" asp-controller="RegulaAlertu" asp-action="Edit" asp-route-id="@regula.Id" title="Edytuj regu³ê"><i class="bi bi-pencil"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Ostatnie alerty <span class="category-products-count">(@ostatnieAlertyMagazynu.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">10 najnowszych alertów wygenerowanych dla tego magazynu.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                @if (ostatnieAlertyMagazynu.Any())
+                {
+                    <a asp-controller="Alert" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-bell-fill me-1"></i> Lista alertów
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="category-products-panel__body">
+            @if (!ostatnieAlertyMagazynu.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-bell"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak alertów</div>
+                        <div class="category-products-empty__text">Dla tego magazynu nie wygenerowano jeszcze alertów.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell">
+                    <div class="entity-table-wrap">
+                        <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Waga</th>
+                                    <th>Treœæ</th>
+                                    <th>Produkt</th>
+                                    <th>Regu³a</th>
+                                    <th>Utworzono</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var alert in ostatnieAlertyMagazynu)
+                                {
+                                    var severityClass = string.Equals(alert.Waga, "CRIT", StringComparison.OrdinalIgnoreCase)
+                                        ? "entity-badge--danger"
+                                        : string.Equals(alert.Waga, "WARN", StringComparison.OrdinalIgnoreCase)
+                                            ? "entity-badge--warning"
+                                            : "entity-badge--muted";
+                                    <tr>
+                                        <td><span class="entity-badge @severityClass">@alert.Waga</span></td>
+                                        <td><div class="entity-cell-title text-truncate" title="@alert.Tresc">@alert.Tresc</div></td>
+                                        <td><div class="entity-cell-title">@(alert.Produkt?.Kod ?? "-")</div><div class="entity-cell-subtitle">@(alert.Produkt?.Nazwa ?? "-")</div></td>
+                                        <td>@(alert.Regula?.Typ ?? "-")</td>
+                                        <td>@alert.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td><span class="entity-badge @(alert.CzyPotwierdzony ? "entity-badge--success" : "entity-badge--muted")">@(alert.CzyPotwierdzony ? "Potwierdzony" : "Nowy")</span></td>
+                                        <td class="text-end"><div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla alertu @alert.Id"><a class="btn btn-outline-info" asp-controller="Alert" asp-action="Details" asp-route-id="@alert.Id" title="Szczegó³y alertu"><i class="bi bi-eye"></i></a><a class="btn btn-outline-warning" asp-controller="Alert" asp-action="Edit" asp-route-id="@alert.Id" title="Edytuj alert"><i class="bi bi-pencil"></i></a></div></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Ostatnie dokumenty PZ / WZ / MM</h2>
+                <p class="category-products-panel__subtitle mb-0">Najnowsze dokumenty magazynowe przypisane do tego magazynu.</p>
+            </div>
+        </div>
+        <div class="category-products-panel__body">
+            <div class="row g-3">
+                <div class="col-12 col-xl-4">
+                    <div class="category-products-table-shell">
+                        <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center"><strong>PZ</strong><a asp-controller="DokumentPZ" asp-action="Index" class="btn btn-sm btn-outline-secondary">Lista</a></div>
+                        @if (!ostatnieDokumentyPz.Any()) { <div class="p-3 text-muted small">Brak dokumentów PZ.</div> }
+                        else
+                        {
+                            <div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Numer</th><th>Status</th><th>Data</th><th class="text-end">Akcje</th></tr></thead><tbody>
+                            @foreach (var d in ostatnieDokumentyPz)
+                            {<tr><td><div class="entity-cell-title">@d.Numer</div></td><td><span class="entity-badge entity-badge--muted">@d.Status</span></td><td>@d.DataPrzyjeciaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td><td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentPZ" asp-action="Details" asp-route-id="@d.Id" title="Szczegó³y PZ"><i class="bi bi-eye"></i></a></td></tr>}
+                            </tbody></table></div>
+                        }
+                    </div>
+                </div>
+                <div class="col-12 col-xl-4">
+                    <div class="category-products-table-shell">
+                        <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center"><strong>WZ</strong><a asp-controller="DokumentWZ" asp-action="Index" class="btn btn-sm btn-outline-secondary">Lista</a></div>
+                        @if (!ostatnieDokumentyWz.Any()) { <div class="p-3 text-muted small">Brak dokumentów WZ.</div> }
+                        else
+                        {
+                            <div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Numer</th><th>Status</th><th>Data</th><th class="text-end">Akcje</th></tr></thead><tbody>
+                            @foreach (var d in ostatnieDokumentyWz)
+                            {<tr><td><div class="entity-cell-title">@d.Numer</div></td><td><span class="entity-badge entity-badge--muted">@d.Status</span></td><td>@d.DataWydaniaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td><td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentWZ" asp-action="Details" asp-route-id="@d.Id" title="Szczegó³y WZ"><i class="bi bi-eye"></i></a></td></tr>}
+                            </tbody></table></div>
+                        }
+                    </div>
+                </div>
+                <div class="col-12 col-xl-4">
+                    <div class="category-products-table-shell">
+                        <div class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center"><strong>MM</strong><a asp-controller="DokumentMM" asp-action="Index" class="btn btn-sm btn-outline-secondary">Lista</a></div>
+                        @if (!ostatnieDokumentyMm.Any()) { <div class="p-3 text-muted small">Brak dokumentów MM.</div> }
+                        else
+                        {
+                            <div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Numer</th><th>Status</th><th>Data</th><th class="text-end">Akcje</th></tr></thead><tbody>
+                            @foreach (var d in ostatnieDokumentyMm)
+                            {<tr><td><div class="entity-cell-title">@d.Numer</div></td><td><span class="entity-badge entity-badge--muted">@d.Status</span></td><td>@d.DataUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td><td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentMM" asp-action="Details" asp-route-id="@d.Id" title="Szczegó³y MM"><i class="bi bi-eye"></i></a></td></tr>}
+                            </tbody></table></div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div><h2 class="news-details-panel__title">Ostatnie rezerwacje <span class="category-products-count">(@ostatnieRezerwacjeMagazynu.Count)</span></h2><p class="category-products-panel__subtitle mb-0">10 najnowszych rezerwacji dla tego magazynu.</p></div>
+            <div class="news-details-panel__actions">@if (ostatnieRezerwacjeMagazynu.Any()) { <a asp-controller="Rezerwacja" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-bookmark-check me-1"></i> Lista rezerwacji</a> }</div>
+        </div>
+        <div class="category-products-panel__body">
+            @if (!ostatnieRezerwacjeMagazynu.Any())
+            { <div class="category-products-empty"><div class="category-products-empty__icon"><i class="bi bi-bookmark"></i></div><div><div class="category-products-empty__title">Brak rezerwacji</div><div class="category-products-empty__text">Dla tego magazynu nie ma jeszcze rezerwacji.</div></div></div> }
+            else
+            {
+                <div class="category-products-table-shell"><div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table category-products-table"><thead><tr><th>Numer</th><th>Status</th><th>Utworzono</th><th>Wygasa</th><th class="text-end">Akcje</th></tr></thead><tbody>
+                @foreach (var r in ostatnieRezerwacjeMagazynu)
+                { <tr><td><div class="entity-cell-title">@r.Numer</div></td><td><span class="entity-badge entity-badge--muted">@r.Status</span></td><td>@r.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td><td>@(r.WygasaUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</td><td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="Rezerwacja" asp-action="Details" asp-route-id="@r.Id" title="Szczegó³y rezerwacji"><i class="bi bi-eye"></i></a></td></tr> }
+                </tbody></table></div></div>
+            }
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div><h2 class="news-details-panel__title">Ostatnie inwentaryzacje <span class="category-products-count">(@ostatnieInwentaryzacjeMagazynu.Count)</span></h2><p class="category-products-panel__subtitle mb-0">10 najnowszych inwentaryzacji dla tego magazynu.</p></div>
+            <div class="news-details-panel__actions">@if (ostatnieInwentaryzacjeMagazynu.Any()) { <a asp-controller="Inwentaryzacja" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-clipboard-check me-1"></i> Lista inwentaryzacji</a> }</div>
+        </div>
+        <div class="category-products-panel__body">
+            @if (!ostatnieInwentaryzacjeMagazynu.Any())
+            { <div class="category-products-empty"><div class="category-products-empty__icon"><i class="bi bi-clipboard"></i></div><div><div class="category-products-empty__title">Brak inwentaryzacji</div><div class="category-products-empty__text">Dla tego magazynu nie ma jeszcze inwentaryzacji.</div></div></div> }
+            else
+            {
+                <div class="category-products-table-shell"><div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table category-products-table"><thead><tr><th>Numer</th><th>Status</th><th>Start</th><th>Koniec</th><th class="text-end">Akcje</th></tr></thead><tbody>
+                @foreach (var i in ostatnieInwentaryzacjeMagazynu)
+                { <tr><td><div class="entity-cell-title">@i.Numer</div></td><td><span class="entity-badge entity-badge--muted">@i.Status</span></td><td>@i.StartUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td><td>@(i.KoniecUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</td><td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="Inwentaryzacja" asp-action="Details" asp-route-id="@i.Id" title="Szczegó³y inwentaryzacji"><i class="bi bi-eye"></i></a></td></tr> }
+                </tbody></table></div></div>
+            }
         </div>
     </section>
 </div>

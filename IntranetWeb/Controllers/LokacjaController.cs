@@ -1,5 +1,6 @@
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,16 +11,18 @@ namespace IntranetWeb.Controllers
 {
     public class LokacjaController : BaseSearchController<Lokacja>
     {
+        private readonly ILokacjaService _lokacjaService;
 
-        public LokacjaController(DataContext context) : base(context) { }
+        public LokacjaController(DataContext context, ILokacjaService lokacjaService) : base(context)
+        {
+            _lokacjaService = lokacjaService;
+        }
 
         // GET: Lokacja
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.Lokacja.Include(l => l.Magazyn).AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Kod, x => x.Opis);
-
-            return View(await query.ToListAsync());
+            var model = await _lokacjaService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
         // GET: Lokacja/Details/5
@@ -30,15 +33,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var lokacja = await _context.Lokacja
-                .Include(l => l.Magazyn)
-                .FirstOrDefaultAsync(m => m.IdLokacji == id);
-            if (lokacja == null)
+            var detailsData = await _lokacjaService.GetDetailsDataAsync(id.Value);
+            if (detailsData == null)
             {
                 return NotFound();
             }
 
-            return View(lokacja);
+            return View(detailsData);
         }
 
         // GET: Lokacja/Create

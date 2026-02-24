@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.Magazyn
 
 @{
-    ViewData["Title"] = "Usun magazyn";
+    ViewData["Title"] = "Usuń magazyn";
 }
 
 <div class="news-admin-page">
@@ -9,8 +9,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Usun magazyn</h1>
-                <p class="news-admin-header__subheading mb-0">Potwierdz usuniecie magazynu z systemu.</p>
+                <h1 class="news-admin-header__heading mb-1">Usuń magazyn</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie magazynu z systemu.</p>
             </div>
         </div>
     </section>
@@ -19,15 +19,24 @@
         <div class="news-delete-warning" role="alert">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
-                <strong>Usuniecie magazynu</strong>
-                <div>Operacja moze byc zablokowana, jesli istnieja powiazane lokalizacje, stany lub dokumenty.</div>
+                <strong>Usunięcie magazynu</strong>
+                <div>Operacja może być zablokowana, jeśli istnieją powiązane lokalizacje, stany lub dokumenty.</div>
             </div>
         </div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
         <div class="news-details-grid">
             <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.IdMagazynu</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lokacje</div><div class="news-details-item__value">@((int?)ViewBag.LiczbaLokacji ?? 0)</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty PZ</div><div class="news-details-item__value">@((int?)ViewBag.LiczbaDokumentowPz ?? 0)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty WZ</div><div class="news-details-item__value">@((int?)ViewBag.LiczbaDokumentowWz ?? 0)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty MM</div><div class="news-details-item__value">@((int?)ViewBag.LiczbaDokumentowMm ?? 0)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Inwentaryzacje</div><div class="news-details-item__value">@((int?)ViewBag.LiczbaInwentaryzacji ?? 0)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Rezerwacje</div><div class="news-details-item__value">@((int?)ViewBag.LiczbaRezerwacji ?? 0)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Reguły alertów</div><div class="news-details-item__value">@((int?)ViewBag.LiczbaRegulAlertow ?? 0)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Alerty</div><div class="news-details-item__value">@((int?)ViewBag.LiczbaAlertow ?? 0)</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Adres</div>
                 <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Adres) ? "Brak adresu" : Model.Adres)</div>
@@ -36,8 +45,8 @@
 
         <form asp-action="Delete" method="post" class="news-form-actions">
             <input type="hidden" asp-for="IdMagazynu" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun magazyn</button>
-            <a asp-action="Details" asp-route-id="@Model.IdMagazynu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <button type="submit" class="btn btn-danger news-form-actions__primary" disabled="@(!(bool)(ViewBag.CzyMoznaUsunac ?? false))"><i class="bi bi-trash3-fill"></i> Usuń magazyn</button>
+            <a asp-action="Details" asp-route-id="@Model.IdMagazynu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

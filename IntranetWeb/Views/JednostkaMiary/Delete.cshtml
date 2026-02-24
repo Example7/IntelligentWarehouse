@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.JednostkaMiary
+@model Interfaces.Magazyn.Dtos.JednostkaMiaryDeleteDto
 
 @{
     ViewData["Title"] = "Usun jednostke miary";
+    var jednostka = Model.JednostkaMiary;
 }
 
 <div class="news-admin-page">
@@ -20,24 +21,26 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
                 <strong>Usuniecie jednostki</strong>
-                <div>Operacja moze byc zablokowana, jesli jednostka jest uzywana przez produkty lub dokumenty.</div>
+                <div>Operacja moze byc zablokowana, jesli jednostka jest przypisana do produktow lub dokumentow.</div>
             </div>
         </div>
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.IdJednostki</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value entity-mono">@Model.Kod</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywna ? "Aktywna" : "Nieaktywna")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@jednostka.IdJednostki</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value entity-mono">@jednostka.Kod</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Przypisane produkty</div><div class="news-details-item__value">@Model.LiczbaProduktow</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(jednostka.CzyAktywna ? "Aktywna" : "Nieaktywna")</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Nazwa</div>
-                <div class="news-details-item__value news-details-item__value--content">@Model.Nazwa</div>
+                <div class="news-details-item__value news-details-item__value--content">@jednostka.Nazwa</div>
             </div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="IdJednostki" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun jednostke</button>
-            <a asp-action="Details" asp-route-id="@Model.IdJednostki" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <input type="hidden" name="id" value="@jednostka.IdJednostki" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary" disabled="@(!Model.CzyMoznaUsunac)"><i class="bi bi-trash3-fill"></i> Usun jednostke</button>
+            <a asp-action="Details" asp-route-id="@jednostka.IdJednostki" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

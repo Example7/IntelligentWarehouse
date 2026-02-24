@@ -1,7 +1,10 @@
-@model Data.Data.Magazyn.JednostkaMiary
+@model Interfaces.Magazyn.Dtos.JednostkaMiaryDetailsDto
 
 @{
-    ViewData["Title"] = "Szczegoly jednostki miary";
+    ViewData["Title"] = "Szczegóły jednostki miary";
+    var jednostka = Model.JednostkaMiary;
+    var liczbaProduktow = Model.LiczbaProduktow;
+    var produktyJednostki = Model.ProduktyJednostki;
 }
 
 <div class="news-admin-page">
@@ -9,32 +12,106 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-rulers"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Szczegoly jednostki miary</h1>
-                <p class="news-admin-header__subheading mb-0">Podglad danych slownikowych jednostki.</p>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły jednostki miary</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd danych słownikowych jednostki.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdJednostki</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Produkty</span><strong class="news-admin-stat__value">@liczbaProduktow</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@jednostka.IdJednostki</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Kod</h2>
+            <h2 class="news-details-panel__title">@jednostka.Kod</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdJednostki" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdJednostki" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Edit" asp-route-id="@jednostka.IdJednostki" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@jednostka.IdJednostki" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value entity-mono">@Model.Kod</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywna ? "Aktywna" : "Nieaktywna")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value entity-mono">@jednostka.Kod</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Przypisane produkty</div><div class="news-details-item__value">@liczbaProduktow</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(jednostka.CzyAktywna ? "Aktywna" : "Nieaktywna")</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Nazwa</div>
-                <div class="news-details-item__value news-details-item__value--content">@Model.Nazwa</div>
+                <div class="news-details-item__value news-details-item__value--content">@jednostka.Nazwa</div>
             </div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Przypisane produkty <span class="category-products-count">(@produktyJednostki.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">Produkty, które mają te jednostkę jako domyślną jednostkę miary.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                @if (produktyJednostki.Any())
+                {
+                    <a asp-controller="Produkt" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-box-seam me-1"></i> Lista produktow
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="category-products-panel__body">
+            @if (!produktyJednostki.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-inbox"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak przypisanych produktow</div>
+                        <div class="category-products-empty__text">Ta jednostka miary nie jest jeszcze ustawiona jako domyślna dla zadnego produktu.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell">
+                    <div class="entity-table-wrap">
+                        <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Kod</th>
+                                    <th>Nazwa</th>
+                                    <th>Kategoria</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var produkt in produktyJednostki)
+                                {
+                                    <tr>
+                                        <td><div class="entity-cell-title entity-mono">@produkt.Kod</div></td>
+                                        <td>
+                                            <div class="entity-cell-title">@produkt.Nazwa</div>
+                                            <div class="entity-cell-subtitle">ID produktu: @produkt.IdProduktu</div>
+                                        </td>
+                                        <td>@(produkt.Kategoria?.Nazwa ?? "-")</td>
+                                        <td>
+                                            <span class="entity-badge @(produkt.CzyAktywny ? "entity-badge--success" : "entity-badge--muted")">
+                                                @(produkt.CzyAktywny ? "Aktywny" : "Nieaktywny")
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla produktu @produkt.Nazwa">
+                                                <a class="btn btn-outline-info" asp-controller="Produkt" asp-action="Details" asp-route-id="@produkt.IdProduktu" title="Szczegóły produktu"><i class="bi bi-eye"></i></a>
+                                                <a class="btn btn-outline-warning" asp-controller="Produkt" asp-action="Edit" asp-route-id="@produkt.IdProduktu" title="Edytuj produkt"><i class="bi bi-pencil"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
         </div>
     </section>
 </div>
