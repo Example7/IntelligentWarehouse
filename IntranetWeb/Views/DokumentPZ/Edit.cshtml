@@ -10,7 +10,7 @@
             <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Edytuj dokument PZ</h1>
-                <p class="news-admin-header__subheading mb-0">Zmien dane przyjecia magazynowego i zapisz zmiany.</p>
+                <p class="news-admin-header__subheading mb-0">Zmień dane przyjęcia magazynowego i zapisz zmiany.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -22,12 +22,13 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Edycja dokumentu</h2>
-            <p class="text-muted mb-0">Zaktualizuj powiazania, status i informacje dodatkowe.</p>
+            <p class="text-muted mb-0">Zaktualizuj dane dokumentu. Pola systemowe są tylko do podglądu.</p>
         </div>
 
         <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="Id" />
             <input type="hidden" asp-for="RowVersion" />
+            <input type="hidden" asp-for="IdUtworzyl" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
 
             <div class="news-form-grid">
@@ -37,34 +38,41 @@
                     <span asp-validation-for="Numer" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="Status" class="form-label news-form-label"></label>
-                    <input asp-for="Status" class="form-control news-form-control" />
+                    <label asp-for="Status" class="form-label news-form-label">Status</label>
+                    <select asp-for="Status" class="form-select news-form-control" asp-items="ViewBag.StatusOptions"></select>
                     <span asp-validation-for="Status" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="IdMagazynu" class="form-label news-form-label"></label>
+                    <label asp-for="IdMagazynu" class="form-label news-form-label">Magazyn</label>
                     <select asp-for="IdMagazynu" class="form-select news-form-control" asp-items="ViewBag.IdMagazynu"></select>
                     <span asp-validation-for="IdMagazynu" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="IdDostawcy" class="form-label news-form-label"></label>
+                    <label asp-for="IdDostawcy" class="form-label news-form-label">Dostawca</label>
                     <select asp-for="IdDostawcy" class="form-select news-form-control" asp-items="ViewBag.IdDostawcy"></select>
                     <span asp-validation-for="IdDostawcy" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="IdUtworzyl" class="form-label news-form-label"></label>
-                    <select asp-for="IdUtworzyl" class="form-select news-form-control" asp-items="ViewBag.IdUtworzyl"></select>
-                    <span asp-validation-for="IdUtworzyl" class="text-danger small"></span>
+                    <label class="form-label news-form-label">Utworzył</label>
+                    <input type="text" class="form-control news-form-control" value="@((string?)ViewBag.AutorDokumentuEmail ?? "-")" readonly />
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="DataPrzyjeciaUtc" class="form-label news-form-label"></label>
+                    <label asp-for="DataPrzyjeciaUtc" class="form-label news-form-label">Data przyjęcia</label>
                     <input asp-for="DataPrzyjeciaUtc" class="form-control news-form-control" />
                     <span asp-validation-for="DataPrzyjeciaUtc" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="ZaksiegowanoUtc" class="form-label news-form-label"></label>
-                    <input asp-for="ZaksiegowanoUtc" class="form-control news-form-control" />
-                    <span asp-validation-for="ZaksiegowanoUtc" class="text-danger small"></span>
+                    <label class="form-label news-form-label">Zaksięgowano</label>
+                    @if (Model.ZaksiegowanoUtc.HasValue)
+                    {
+                        <input type="text" class="form-control news-form-control" value="@Model.ZaksiegowanoUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" readonly />
+                    }
+                    else
+                    {
+                        <div class="form-control news-form-control d-flex align-items-center">
+                            <span class="entity-badge entity-badge--muted">Nie zaksięgowano</span>
+                        </div>
+                    }
                 </div>
                 <div class="news-form-field news-form-field--full">
                     <label asp-for="Notatka" class="form-label news-form-label"></label>
@@ -75,7 +83,7 @@
 
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>

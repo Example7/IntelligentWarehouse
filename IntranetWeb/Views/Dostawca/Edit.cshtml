@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.Dostawca
 
 @{
-    ViewData["Title"] = "Edytuj dostawce";
+    ViewData["Title"] = "Edytuj dostawcę";
 }
 
 <div class="news-admin-page">
@@ -9,8 +9,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Edytuj dostawce</h1>
-                <p class="news-admin-header__subheading mb-0">Aktualizacja danych dostawcy i statusu aktywnosci.</p>
+                <h1 class="news-admin-header__heading mb-1">Edytuj dostawcę</h1>
+                <p class="news-admin-header__subheading mb-0">Aktualizacja danych dostawcy i statusu aktywności.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -21,7 +21,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Edycja dostawcy</h2>
-            <p class="text-muted mb-0">Zmien dane kontaktowe, identyfikacyjne i parametry rekordu.</p>
+            <p class="text-muted mb-0">Zmień dane kontaktowe, identyfikacyjne i parametry rekordu.</p>
         </div>
 
         <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
@@ -55,11 +55,6 @@
                     <span asp-validation-for="Adres" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="UtworzonoUtc" class="form-label news-form-label"></label>
-                    <input asp-for="UtworzonoUtc" class="form-control news-form-control" />
-                    <span asp-validation-for="UtworzonoUtc" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" asp-for="CzyAktywny" />
                         <label class="form-check-label news-form-label mb-0" asp-for="CzyAktywny"></label>
@@ -69,7 +64,7 @@
             </div>
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
-                <a asp-action="Details" asp-route-id="@Model.IdDostawcy" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+                <a asp-action="Details" asp-route-id="@Model.IdDostawcy" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>

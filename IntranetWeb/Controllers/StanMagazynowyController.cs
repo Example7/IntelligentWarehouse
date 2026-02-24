@@ -1,7 +1,8 @@
-using Data.Data;
+﻿using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
+using Interfaces.Magazyn.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 using IntranetWeb.Controllers.Abstrakcja;
@@ -10,16 +11,18 @@ namespace IntranetWeb.Controllers
 {
     public class StanMagazynowyController : BaseSearchController<StanMagazynowy>
     {
+        private readonly IStanMagazynowyService _stanMagazynowyService;
 
-        public StanMagazynowyController(DataContext context) : base(context) { }
+        public StanMagazynowyController(DataContext context, IStanMagazynowyService stanMagazynowyService) : base(context)
+        {
+            _stanMagazynowyService = stanMagazynowyService;
+        }
 
         // GET: StanMagazynowy
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.StanMagazynowy.Include(s => s.Lokacja).Include(s => s.Produkt).AsNoTracking();
-            query = ApplySearchAny(query, searchTerm);
-
-            return View(await query.ToListAsync());
+            var model = await _stanMagazynowyService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
         // GET: StanMagazynowy/Details/5
@@ -32,7 +35,9 @@ namespace IntranetWeb.Controllers
 
             var stanMagazynowy = await _context.StanMagazynowy
                 .Include(s => s.Lokacja)
+                    .ThenInclude(l => l.Magazyn)
                 .Include(s => s.Produkt)
+                    .ThenInclude(p => p.DomyslnaJednostka)
                 .FirstOrDefaultAsync(m => m.IdStanu == id);
             if (stanMagazynowy == null)
             {
@@ -43,29 +48,28 @@ namespace IntranetWeb.Controllers
         }
 
         // GET: StanMagazynowy/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["IdLokacji"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod");
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod");
-            return View();
+            var model = await _stanMagazynowyService.GetCreateFormAsync();
+            return View(model);
         }
 
         // POST: StanMagazynowy/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdStanu,IdProduktu,IdLokacji,Ilosc,RowVersion")] StanMagazynowy stanMagazynowy)
+        public async Task<IActionResult> Create(StanMagazynowyFormDto model)
         {
+            var stanMagazynowy = model.StanMagazynowy;
+
             if (ModelState.IsValid)
             {
                 _context.Add(stanMagazynowy);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdLokacji"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", stanMagazynowy.IdLokacji);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", stanMagazynowy.IdProduktu);
-            return View(stanMagazynowy);
+
+            var formModel = await _stanMagazynowyService.PrepareFormAsync(stanMagazynowy, isEdit: false);
+            return View(formModel);
         }
 
         // GET: StanMagazynowy/Edit/5
@@ -76,23 +80,21 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var stanMagazynowy = await _context.StanMagazynowy.FindAsync(id);
-            if (stanMagazynowy == null)
+            var model = await _stanMagazynowyService.GetEditFormAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
-            ViewData["IdLokacji"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", stanMagazynowy.IdLokacji);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", stanMagazynowy.IdProduktu);
-            return View(stanMagazynowy);
+
+            return View(model);
         }
 
         // POST: StanMagazynowy/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IdStanu,IdProduktu,IdLokacji,Ilosc,RowVersion")] StanMagazynowy stanMagazynowy)
+        public async Task<IActionResult> Edit(int id, StanMagazynowyFormDto model)
         {
+            var stanMagazynowy = model.StanMagazynowy;
             if (id != stanMagazynowy.IdStanu)
             {
                 return NotFound();
@@ -111,16 +113,15 @@ namespace IntranetWeb.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdLokacji"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", stanMagazynowy.IdLokacji);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", stanMagazynowy.IdProduktu);
-            return View(stanMagazynowy);
+
+            var formModel = await _stanMagazynowyService.PrepareFormAsync(stanMagazynowy, isEdit: true);
+            return View(formModel);
         }
 
         // GET: StanMagazynowy/Delete/5
@@ -133,7 +134,9 @@ namespace IntranetWeb.Controllers
 
             var stanMagazynowy = await _context.StanMagazynowy
                 .Include(s => s.Lokacja)
+                    .ThenInclude(l => l.Magazyn)
                 .Include(s => s.Produkt)
+                    .ThenInclude(p => p.DomyslnaJednostka)
                 .FirstOrDefaultAsync(m => m.IdStanu == id);
             if (stanMagazynowy == null)
             {

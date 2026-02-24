@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
+using Interfaces.Magazyn.Dtos;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
@@ -10,16 +12,18 @@ namespace IntranetWeb.Controllers
 {
     public class ProduktJednostkaController : BaseSearchController<ProduktJednostka>
     {
+        private readonly IProduktJednostkaService _produktJednostkaService;
 
-        public ProduktJednostkaController(DataContext context) : base(context) { }
+        public ProduktJednostkaController(DataContext context, IProduktJednostkaService produktJednostkaService) : base(context)
+        {
+            _produktJednostkaService = produktJednostkaService;
+        }
 
         // GET: ProduktJednostka
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.ProduktJednostka.Include(p => p.Jednostka).Include(p => p.Produkt).AsNoTracking();
-            query = ApplySearchAny(query, searchTerm);
-
-            return View(await query.ToListAsync());
+            var model = await _produktJednostkaService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
         // GET: ProduktJednostka/Details/5
@@ -30,24 +34,20 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var produktJednostka = await _context.ProduktJednostka
-                .Include(p => p.Jednostka)
-                .Include(p => p.Produkt)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (produktJednostka == null)
+            var model = await _produktJednostkaService.GetDetailsDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(produktJednostka);
+            return View(model);
         }
 
         // GET: ProduktJednostka/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["IdJednostki"] = new SelectList(_context.JednostkaMiary, "IdJednostki", "Kod");
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod");
-            return View();
+            await PopulateSelectsAsync(null, null);
+            return View(new ProduktJednostka { PrzelicznikDoDomyslnej = 1m });
         }
 
         // POST: ProduktJednostka/Create
@@ -57,14 +57,30 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,IdProduktu,IdJednostki,PrzelicznikDoDomyslnej")] ProduktJednostka produktJednostka)
         {
+            await PopulateSelectsAsync(produktJednostka.IdProduktu, produktJednostka.IdJednostki);
+            Normalize(produktJednostka);
+            await ValidateProduktJednostkaAsync(produktJednostka);
+
             if (ModelState.IsValid)
             {
-                _context.Add(produktJednostka);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(produktJednostka);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException)
+                {
+                    if (await ExistsPairAsync(produktJednostka.IdProduktu, produktJednostka.IdJednostki, null))
+                    {
+                        ModelState.AddModelError(nameof(ProduktJednostka.IdJednostki), "To powiązanie produktu z jednostką miary już istnieje.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Nie udało się zapisać jednostki produktu.");
+                    }
+                }
             }
-            ViewData["IdJednostki"] = new SelectList(_context.JednostkaMiary, "IdJednostki", "Kod", produktJednostka.IdJednostki);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", produktJednostka.IdProduktu);
             return View(produktJednostka);
         }
 
@@ -81,8 +97,7 @@ namespace IntranetWeb.Controllers
             {
                 return NotFound();
             }
-            ViewData["IdJednostki"] = new SelectList(_context.JednostkaMiary, "IdJednostki", "Kod", produktJednostka.IdJednostki);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", produktJednostka.IdProduktu);
+            await PopulateSelectsAsync(produktJednostka.IdProduktu, produktJednostka.IdJednostki);
             return View(produktJednostka);
         }
 
@@ -93,16 +108,28 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,IdProduktu,IdJednostki,PrzelicznikDoDomyslnej")] ProduktJednostka produktJednostka)
         {
+            await PopulateSelectsAsync(produktJednostka.IdProduktu, produktJednostka.IdJednostki);
             if (id != produktJednostka.Id)
             {
                 return NotFound();
             }
 
+            Normalize(produktJednostka);
+            await ValidateProduktJednostkaAsync(produktJednostka, produktJednostka.Id);
+
             if (ModelState.IsValid)
             {
+                var existing = await _context.ProduktJednostka.FirstOrDefaultAsync(x => x.Id == id);
+                if (existing == null)
+                {
+                    return NotFound();
+                }
+
                 try
                 {
-                    _context.Update(produktJednostka);
+                    existing.IdProduktu = produktJednostka.IdProduktu;
+                    existing.IdJednostki = produktJednostka.IdJednostki;
+                    existing.PrzelicznikDoDomyslnej = produktJednostka.PrzelicznikDoDomyslnej;
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -116,10 +143,22 @@ namespace IntranetWeb.Controllers
                         throw;
                     }
                 }
+                catch (DbUpdateException)
+                {
+                    if (await ExistsPairAsync(produktJednostka.IdProduktu, produktJednostka.IdJednostki, produktJednostka.Id))
+                    {
+                        ModelState.AddModelError(nameof(ProduktJednostka.IdJednostki), "To powiązanie produktu z jednostką miary już istnieje.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Nie udało się zapisać zmian jednostki produktu.");
+                    }
+
+                    return View(produktJednostka);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdJednostki"] = new SelectList(_context.JednostkaMiary, "IdJednostki", "Kod", produktJednostka.IdJednostki);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", produktJednostka.IdProduktu);
             return View(produktJednostka);
         }
 
@@ -131,16 +170,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var produktJednostka = await _context.ProduktJednostka
-                .Include(p => p.Jednostka)
-                .Include(p => p.Produkt)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (produktJednostka == null)
+            var model = await _produktJednostkaService.GetDeleteDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(produktJednostka);
+            return View(model);
         }
 
         // POST: ProduktJednostka/Delete/5
@@ -161,6 +197,70 @@ namespace IntranetWeb.Controllers
         private bool ProduktJednostkaExists(int id)
         {
             return _context.ProduktJednostka.Any(e => e.Id == id);
+        }
+
+        private static void Normalize(ProduktJednostka produktJednostka)
+        {
+            if (produktJednostka.PrzelicznikDoDomyslnej < 0)
+            {
+                produktJednostka.PrzelicznikDoDomyslnej = Math.Abs(produktJednostka.PrzelicznikDoDomyslnej);
+            }
+        }
+
+        private async Task ValidateProduktJednostkaAsync(ProduktJednostka produktJednostka, int? excludeId = null)
+        {
+            if (produktJednostka.PrzelicznikDoDomyslnej <= 0m)
+            {
+                ModelState.AddModelError(nameof(ProduktJednostka.PrzelicznikDoDomyslnej), "Przelicznik musi być większy od 0.");
+            }
+
+            if (produktJednostka.IdProduktu > 0 && produktJednostka.IdJednostki > 0 &&
+                await ExistsPairAsync(produktJednostka.IdProduktu, produktJednostka.IdJednostki, excludeId))
+            {
+                ModelState.AddModelError(nameof(ProduktJednostka.IdJednostki), "To powiązanie produktu z jednostką miary już istnieje.");
+            }
+        }
+
+        private Task<bool> ExistsPairAsync(int idProduktu, int idJednostki, int? excludeId)
+        {
+            var query = _context.ProduktJednostka.AsNoTracking()
+                .Where(x => x.IdProduktu == idProduktu && x.IdJednostki == idJednostki);
+
+            if (excludeId.HasValue)
+            {
+                query = query.Where(x => x.Id != excludeId.Value);
+            }
+
+            return query.AnyAsync();
+        }
+
+        private async Task PopulateSelectsAsync(int? selectedProduktId, int? selectedJednostkaId)
+        {
+            var produkty = await _context.Produkt
+                .AsNoTracking()
+                .Include(p => p.DomyslnaJednostka)
+                .OrderBy(p => p.Kod)
+                .ThenBy(p => p.Nazwa)
+                .Select(p => new
+                {
+                    p.IdProduktu,
+                    Label = p.Kod + " - " + p.Nazwa + " (" + (p.DomyslnaJednostka != null ? p.DomyslnaJednostka.Kod : "j.m.") + ")"
+                })
+                .ToListAsync();
+
+            var jednostki = await _context.JednostkaMiary
+                .AsNoTracking()
+                .OrderBy(j => j.Kod)
+                .ThenBy(j => j.Nazwa)
+                .Select(j => new
+                {
+                    j.IdJednostki,
+                    Label = j.Kod + " - " + j.Nazwa
+                })
+                .ToListAsync();
+
+            ViewData["IdProduktu"] = new SelectList(produkty, "IdProduktu", "Label", selectedProduktId);
+            ViewData["IdJednostki"] = new SelectList(jednostki, "IdJednostki", "Label", selectedJednostkaId);
         }
     }
 }

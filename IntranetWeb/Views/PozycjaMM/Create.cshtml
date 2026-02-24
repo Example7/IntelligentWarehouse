@@ -10,7 +10,7 @@
             <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Dodaj pozycje MM</h1>
-                <p class="news-admin-header__subheading mb-0">Dodaj wiersz przesuniecia z produktem oraz lokalizacja z/do.</p>
+                <p class="news-admin-header__subheading mb-0">Dodaj wiersz dokumentu przesuniecia z produktem i lokacjami.</p>
             </div>
         </div>
     </section>
@@ -18,43 +18,52 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane pozycji</h2>
-            <p class="text-muted mb-0">Wybierz dokument, produkt, lokalizacje z/do i podaj ilosc.</p>
+            <p class="text-muted mb-0">Wybierz dokument MM (Draft), produkt, lokacje Z/Do oraz podaj ilosc.</p>
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+
             <div class="news-form-grid">
                 <div class="news-form-field">
-                    <label asp-for="IdDokumentu" class="form-label news-form-label"></label>
+                    <label asp-for="IdDokumentu" class="form-label news-form-label">Dokument MM</label>
                     <select asp-for="IdDokumentu" class="form-select news-form-control" asp-items="ViewBag.IdDokumentu"></select>
                     <span asp-validation-for="IdDokumentu" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="Lp" class="form-label news-form-label"></label>
-                    <input asp-for="Lp" class="form-control news-form-control" />
+                    <label asp-for="Lp" class="form-label news-form-label">Lp</label>
+                    <input asp-for="Lp" class="form-control news-form-control" min="1" />
+                    <div class="form-text">Domyslnie ustawiany jest kolejny numer pozycji dla wybranego dokumentu MM.</div>
                     <span asp-validation-for="Lp" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
+                    <label asp-for="IdProduktu" class="form-label news-form-label">Produkt</label>
                     <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu"></select>
                     <span asp-validation-for="IdProduktu" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdLokacjiZ" class="form-label news-form-label"></label>
+                    <label asp-for="IdLokacjiZ" class="form-label news-form-label">Z lokacji</label>
                     <select asp-for="IdLokacjiZ" class="form-select news-form-control" asp-items="ViewBag.IdLokacjiZ"></select>
                     <span asp-validation-for="IdLokacjiZ" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdLokacjiDo" class="form-label news-form-label"></label>
+                    <label asp-for="IdLokacjiDo" class="form-label news-form-label">Do lokacji</label>
                     <select asp-for="IdLokacjiDo" class="form-select news-form-control" asp-items="ViewBag.IdLokacjiDo"></select>
                     <span asp-validation-for="IdLokacjiDo" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="Ilosc" class="form-label news-form-label"></label>
-                    <input asp-for="Ilosc" class="form-control news-form-control" />
+                    <label asp-for="Ilosc" class="form-label news-form-label">Ilosc</label>
+                    <input asp-for="Ilosc" class="form-control news-form-control" step="0.001" value="@(Model.Ilosc == 0 ? "" : Model.Ilosc.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))" placeholder="np. 10" />
+                    <div class="form-text">Jednostka: <span id="mmItemUomHint">j.m.</span></div>
                     <span asp-validation-for="Ilosc" class="text-danger small"></span>
                 </div>
             </div>
+
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz pozycje</button>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
@@ -65,4 +74,27 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        (() => {
+            const docSelect = document.getElementById('IdDokumentu');
+            const lpInput = document.getElementById('Lp');
+            const productSelect = document.getElementById('IdProduktu');
+            const uomHint = document.getElementById('mmItemUomHint');
+            const nextLpByDocument = @Html.Raw((string?)ViewData["NextLpByDocumentJson"] ?? "{}");
+            const productUomMap = @Html.Raw((string?)ViewData["ProductUomMapJson"] ?? "{}");
+            const applyNextLp = () => {
+                const docId = Number.parseInt(docSelect?.value || '', 10);
+                const nextLp = nextLpByDocument[docId];
+                if (typeof nextLp === 'number' && nextLp > 0 && lpInput) lpInput.value = String(nextLp);
+            };
+            const applyUom = () => {
+                const pid = Number.parseInt(productSelect?.value || '', 10);
+                if (uomHint) uomHint.textContent = productUomMap[pid] || 'j.m.';
+            };
+            docSelect?.addEventListener('change', applyNextLp);
+            productSelect?.addEventListener('change', applyUom);
+            if (!lpInput?.value || lpInput.value === '0' || lpInput.value === '1') applyNextLp();
+            applyUom();
+        })();
+    </script>
 }

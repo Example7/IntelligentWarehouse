@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.StanMagazynowy
+﻿@model Interfaces.Magazyn.Dtos.StanMagazynowyFormDto
 
 @{
     ViewData["Title"] = "Dodaj stan magazynowy";
+    var currentJm = Model.CurrentProductUom ?? "j.m.";
 }
 
 <div class="news-admin-page">
@@ -10,7 +11,7 @@
             <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Dodaj stan magazynowy</h1>
-                <p class="news-admin-header__subheading mb-0">Powiaz produkt z lokalizacja i ustaw ilosc.</p>
+                <p class="news-admin-header__subheading mb-0">Powiąż produkt z lokalizacją i ustaw ilość.</p>
             </div>
         </div>
     </section>
@@ -18,35 +19,47 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane stanu</h2>
-            <p class="text-muted mb-0">Wybierz produkt, lokalizacje i wpisz ilosc.</p>
+            <p class="text-muted mb-0">Wybierz produkt, lokalizacje i wpisz ilość.</p>
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
             <div class="news-form-grid">
                 <div class="news-form-field">
-                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
-                    <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu">
+                    <label asp-for="StanMagazynowy.IdProduktu" class="form-label news-form-label"></label>
+                    <select asp-for="StanMagazynowy.IdProduktu" class="form-select news-form-control">
                         <option value="">(wybierz produkt)</option>
+                        @foreach (var item in Model.Produkty)
+                        {
+                            <option value="@item.Value" selected="@(item.Value == Model.StanMagazynowy.IdProduktu ? "selected" : null)">@item.Text</option>
+                        }
                     </select>
-                    <span asp-validation-for="IdProduktu" class="text-danger small"></span>
+                    <span asp-validation-for="StanMagazynowy.IdProduktu" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="IdLokacji" class="form-label news-form-label"></label>
-                    <select asp-for="IdLokacji" class="form-select news-form-control" asp-items="ViewBag.IdLokacji">
+                    <label asp-for="StanMagazynowy.IdLokacji" class="form-label news-form-label"></label>
+                    <select asp-for="StanMagazynowy.IdLokacji" class="form-select news-form-control">
                         <option value="">(wybierz lokacje)</option>
+                        @foreach (var item in Model.Lokacje)
+                        {
+                            <option value="@item.Value" selected="@(item.Value == Model.StanMagazynowy.IdLokacji ? "selected" : null)">@item.Text</option>
+                        }
                     </select>
-                    <span asp-validation-for="IdLokacji" class="text-danger small"></span>
+                    <span asp-validation-for="StanMagazynowy.IdLokacji" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field news-form-field--full">
-                    <label asp-for="Ilosc" class="form-label news-form-label"></label>
-                    <input asp-for="Ilosc" class="form-control news-form-control" />
-                    <span asp-validation-for="Ilosc" class="text-danger small"></span>
+                    <label asp-for="StanMagazynowy.Ilosc" class="form-label news-form-label"></label>
+                    <input asp-for="StanMagazynowy.Ilosc" type="number" step="0.001" class="form-control news-form-control" />
+                    <div class="small text-muted mt-1">
+                        Jednostka dla wybranego produktu:
+                        <span class="entity-badge entity-badge--muted" id="stockUomValue">@currentJm</span>
+                    </div>
+                    <span asp-validation-for="StanMagazynowy.Ilosc" class="text-danger small"></span>
                 </div>
             </div>
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz stan</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
             </div>
         </form>
     </section>
@@ -54,4 +67,21 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        (function () {
+            const productSelect = document.getElementById("StanMagazynowy_IdProduktu");
+            const uomValue = document.getElementById("stockUomValue");
+            const uomMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ProductUomMap));
+
+            if (!productSelect || !uomValue) return;
+
+            const updateUom = () => {
+                const key = productSelect.value;
+                uomValue.textContent = (uomMap && uomMap[key]) ? uomMap[key] : "j.m.";
+            };
+
+            productSelect.addEventListener("change", updateUom);
+            updateUom();
+        })();
+    </script>
 }

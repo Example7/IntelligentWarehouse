@@ -13,6 +13,7 @@ namespace Data.Data.Magazyn
 
         [Required]
         [Column("ProductId")]
+        [Display(Name = "Produkt")]
         public int IdProduktu { get; set; }
 
         [ValidateNever]
@@ -21,6 +22,7 @@ namespace Data.Data.Magazyn
 
         [Required]
         [Column("UomId")]
+        [Display(Name = "Jednostka miary")]
         public int IdJednostki { get; set; }
 
         [ValidateNever]
@@ -29,6 +31,7 @@ namespace Data.Data.Magazyn
 
         [Required]
         [Column("FactorToDefault", TypeName = "decimal(18,6)")]
+        [Display(Name = "Przelicznik do domyślnej")]
         public decimal PrzelicznikDoDomyslnej { get; set; }
     }
 }

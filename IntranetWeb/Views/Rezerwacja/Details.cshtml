@@ -1,51 +1,278 @@
-@model Data.Data.Magazyn.Rezerwacja
+@model Interfaces.Magazyn.Dtos.RezerwacjaDetailsDto
 
 @{
     ViewData["Title"] = "Szczegoly rezerwacji";
-    var isExpired = Model.WygasaUtc.HasValue && Model.WygasaUtc <= DateTime.UtcNow;
+
+    var d = Model.Dokument;
+
+    var isEditable =
+        !string.Equals(d.Status, "Completed", StringComparison.OrdinalIgnoreCase) &&
+        !string.Equals(d.Status, "Cancelled", StringComparison.OrdinalIgnoreCase) &&
+        !string.Equals(d.Status, "Released", StringComparison.OrdinalIgnoreCase);
+    var canActivate = string.Equals(d.Status, "Draft", StringComparison.OrdinalIgnoreCase);
+    var canRelease = string.Equals(d.Status, "Active", StringComparison.OrdinalIgnoreCase);
+
+    var statusClass =
+        string.Equals(d.Status, "Active", StringComparison.OrdinalIgnoreCase) ? "entity-badge--success" :
+        string.Equals(d.Status, "Draft", StringComparison.OrdinalIgnoreCase) ? "entity-badge--warning" :
+        string.Equals(d.Status, "Completed", StringComparison.OrdinalIgnoreCase) ? "entity-badge--info" :
+        "entity-badge--muted";
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon"><i class="bi bi-file-earmark-text"></i></span>
+            <span class="news-admin-header__icon">
+                <i class="bi bi-bookmark-check"></i>
+            </span>
+
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szczegóły rezerwacji</h1>
-                <p class="news-admin-header__subheading mb-0">Podgląd dokumentu rezerwacji, terminów i statusu.</p>
+                <p class="news-admin-header__subheading mb-0">
+                    Podgląd rezerwacji, statusu oraz pozycji rezerwacji.
+                </p>
             </div>
         </div>
+
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@Model.Status</strong></div>
+            <div class="news-admin-stat">
+                <span class="news-admin-stat__label">Pozycje</span>
+                <strong class="news-admin-stat__value">@Model.LiczbaPozycji</strong>
+            </div>
+
+            <div class="news-admin-stat">
+                <span class="news-admin-stat__label">Status</span>
+                <strong class="news-admin-stat__value">@d.Status</strong>
+            </div>
+
+            <div class="news-admin-stat">
+                <span class="news-admin-stat__label">ID</span>
+                <strong class="news-admin-stat__value">@d.Id</strong>
+            </div>
         </div>
     </section>
 
+    @if (TempData["RezerwacjaStatusSuccess"] is string successMessage && !string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="alert alert-success mt-3">
+            <i class="bi bi-check-circle me-1"></i>@successMessage
+        </div>
+    }
+
+    @if (TempData["RezerwacjaStatusError"] is string errorMessage && !string.IsNullOrWhiteSpace(errorMessage))
+    {
+        <div class="alert alert-danger mt-3">
+            <div><i class="bi bi-exclamation-triangle me-1"></i>@errorMessage</div>
+            @if (TempData["RezerwacjaStatusErrorDetails"] is string errorDetails && !string.IsNullOrWhiteSpace(errorDetails))
+            {
+                <div class="small mt-1">@errorDetails</div>
+            }
+        </div>
+    }
+
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Numer</h2>
+            <h2 class="news-details-panel__title">@d.Numer</h2>
+
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
+                @if (canActivate)
+                {
+                    <form asp-action="Activate" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@d.Id" />
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-play-circle me-1"></i> Aktywuj
+                        </button>
+                    </form>
+                }
+
+                @if (canRelease)
+                {
+                    <form asp-action="Release" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@d.Id" />
+                        <button type="submit" class="btn btn-outline-warning">
+                            <i class="bi bi-unlock me-1"></i> Zwolnij
+                        </button>
+                    </form>
+                }
+
+                @if (isEditable)
+                {
+                    <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-primary">
+                        <i class="bi bi-pencil-square me-1"></i> Edytuj
+                    </a>
+                }
+                else
+                {
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            disabled
+                            title="Edycja zablokowana">
+                        <i class="bi bi-pencil-square me-1"></i> Edytuj
+                    </button>
+                }
+
+                <a asp-action="Delete" asp-route-id="@d.Id" class="btn btn-outline-danger">
+                    <i class="bi bi-trash me-1"></i> Usuń
+                </a>
+
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i> Lista
+                </a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Numer</div><div class="news-details-item__value entity-mono">@Model.Numer</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value"><span class="entity-badge @(isExpired ? "entity-badge--danger" : "entity-badge--warning")">@Model.Status</span></div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(Model.Magazyn?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzył</div><div class="news-details-item__value">@(Model.Utworzyl?.Email ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Wygasa</div><div class="news-details-item__value">@(Model.WygasaUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Pozycji</div><div class="news-details-item__value">@Model.Pozycje.Count</div></div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Numer</div>
+                <div class="news-details-item__value entity-mono">@d.Numer</div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Status</div>
+                <div class="news-details-item__value">
+                    <span class="entity-badge @statusClass">@d.Status</span>
+                </div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Magazyn</div>
+                <div class="news-details-item__value">@(d.Magazyn?.Nazwa ?? "-")</div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Utworzył</div>
+                <div class="news-details-item__value">@(d.Utworzyl?.Email ?? "-")</div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Utworzono</div>
+                <div class="news-details-item__value">
+                    @d.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                </div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Wygasa</div>
+                <div class="news-details-item__value">
+                    @(d.WygasaUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")
+                </div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Pozycji</div>
+                <div class="news-details-item__value">@Model.LiczbaPozycji</div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Suma ilości (mieszane JM)</div>
+                <div class="news-details-item__value">@Model.SumaIlosci.ToString("0.###")</div>
+            </div>
+
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Notatka</div>
-                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Notatka) ? "Brak notatki" : Model.Notatka)</div>
-            </div>
-            <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">RowVersion</div>
-                <div class="news-details-item__value entity-mono">@(Model.RowVersion is { Length: > 0 } ? Convert.ToBase64String(Model.RowVersion) : "-")</div>
+                <div class="news-details-item__value news-details-item__value--content">
+                    @(string.IsNullOrWhiteSpace(d.Notatka) ? "Brak notatki" : d.Notatka)
+                </div>
             </div>
         </div>
+    </section>
+
+    <section class="entity-table-panel mt-3">
+        <div class="entity-table-panel__header d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2">
+            <div>
+                <h3 class="mb-0 h5">Pozycje rezerwacji (@Model.LiczbaPozycji)</h3>
+                <div class="text-muted small">Pozycje przypisane do tej rezerwacji.</div>
+            </div>
+
+            <a class="btn btn-sm btn-outline-secondary"
+               asp-controller="PozycjaRezerwacji"
+               asp-action="Index">
+                <i class="bi bi-list-ul me-1"></i> Lista pozycji
+            </a>
+        </div>
+
+        @if (!Model.Pozycje.Any())
+        {
+            <div class="news-admin-empty py-4">
+                <div class="news-admin-empty__icon">
+                    <i class="bi bi-list-task"></i>
+                </div>
+                <h4 class="h6 mb-1">Brak pozycji rezerwacji</h4>
+                <p class="text-muted mb-0">Ta rezerwacja nie ma jeszcze pozycji.</p>
+            </div>
+        }
+        else
+        {
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th class="text-end">Lp</th>
+                            <th>Produkt</th>
+                            <th>Lokacja</th>
+                            <th class="text-end">Ilosc</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var p in Model.Pozycje)
+                        {
+                            var jm = p.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
+
+                            <tr>
+                                <td class="text-end">@p.Lp</td>
+
+                                <td>
+                                    <div class="entity-cell-title">@(p.Produkt?.Kod ?? "-")</div>
+                                    <div class="entity-cell-subtitle">@(p.Produkt?.Nazwa ?? "Brak nazwy")</div>
+                                </td>
+
+                                <td>
+                                    <div class="entity-cell-title">@(p.Lokacja?.Kod ?? "(brak)")</div>
+                                    <div class="entity-cell-subtitle">
+                                        @(p.Lokacja?.Magazyn?.Nazwa ?? (p.Lokacja == null ? "Bez wskazanej lokacji" : "-"))
+                                    </div>
+                                </td>
+
+                                <td class="text-end">@p.Ilosc.ToString("0.###") @jm</td>
+
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a class="btn btn-outline-info"
+                                           asp-controller="PozycjaRezerwacji"
+                                           asp-action="Details"
+                                           asp-route-id="@p.Id">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+
+                                        @if (isEditable)
+                                        {
+                                            <a class="btn btn-outline-warning"
+                                               asp-controller="PozycjaRezerwacji"
+                                               asp-action="Edit"
+                                               asp-route-id="@p.Id">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-outline-secondary"
+                                                    disabled
+                                                    title="Edycja zablokowana">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     </section>
 </div>

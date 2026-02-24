@@ -13,6 +13,7 @@ namespace Data.Data.Magazyn
 
         [Required]
         [Column("ProductId")]
+        [Display(Name = "Produkt")]
         public int IdProduktu { get; set; }
 
         [ValidateNever]
@@ -21,15 +22,19 @@ namespace Data.Data.Magazyn
 
         [Required, MaxLength(80)]
         [Column("BatchNumber")]
+        [Display(Name = "Numer partii")]
         public string NumerPartii { get; set; } = null!;
 
         [Column("ProductionDate", TypeName = "date")]
+        [Display(Name = "Data produkcji")]
         public DateTime? DataProdukcji { get; set; }
 
         [Column("ExpiryDate", TypeName = "date")]
+        [Display(Name = "Data ważności")]
         public DateTime? DataWaznosci { get; set; }
 
         [Column("SupplierId")]
+        [Display(Name = "Dostawca")]
         public int? IdDostawcy { get; set; }
 
         [ValidateNever]

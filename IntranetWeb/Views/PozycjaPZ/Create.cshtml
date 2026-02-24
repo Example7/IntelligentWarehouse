@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.PozycjaPZ
 
 @{
-    ViewData["Title"] = "Dodaj pozycje PZ";
+    ViewData["Title"] = "Dodaj pozycję PZ";
 }
 
 <div class="news-admin-page">
@@ -9,8 +9,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Dodaj pozycje PZ</h1>
-                <p class="news-admin-header__subheading mb-0">Dodaj wiersz dokumentu przyjecia z produktem, lokalizacja i cena.</p>
+                <h1 class="news-admin-header__heading mb-1">Dodaj pozycję PZ</h1>
+                <p class="news-admin-header__subheading mb-0">Dodaj wiersz dokumentu przyjęcia z produktem, lokacją i ceną.</p>
             </div>
         </div>
     </section>
@@ -18,7 +18,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane pozycji</h2>
-            <p class="text-muted mb-0">Wybierz dokument, produkt i lokalizacje oraz podaj ilosc.</p>
+            <p class="text-muted mb-0">Wybierz dokument PZ (Draft), produkt i lokacje oraz podaj ilość i cene.</p>
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
@@ -26,40 +26,43 @@
 
             <div class="news-form-grid">
                 <div class="news-form-field">
-                    <label asp-for="IdDokumentu" class="form-label news-form-label"></label>
+                    <label asp-for="IdDokumentu" class="form-label news-form-label">Dokument PZ</label>
                     <select asp-for="IdDokumentu" class="form-select news-form-control" asp-items="ViewBag.IdDokumentu"></select>
                     <span asp-validation-for="IdDokumentu" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="Lp" class="form-label news-form-label"></label>
-                    <input asp-for="Lp" class="form-control news-form-control" />
+                    <label asp-for="Lp" class="form-label news-form-label">Lp</label>
+                    <input asp-for="Lp" class="form-control news-form-control" min="1" />
+                    <div class="form-text">Domyślnie ustawiany jest kolejny numer pozycji dla wybranego dokumentu PZ.</div>
                     <span asp-validation-for="Lp" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
+                    <label asp-for="IdProduktu" class="form-label news-form-label">Produkt</label>
                     <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu"></select>
                     <span asp-validation-for="IdProduktu" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="IdLokacji" class="form-label news-form-label"></label>
+                    <label asp-for="IdLokacji" class="form-label news-form-label">Lokacja</label>
                     <select asp-for="IdLokacji" class="form-select news-form-control" asp-items="ViewBag.IdLokacji"></select>
                     <span asp-validation-for="IdLokacji" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="Ilosc" class="form-label news-form-label"></label>
-                    <input asp-for="Ilosc" class="form-control news-form-control" />
+                    <label asp-for="Ilosc" class="form-label news-form-label">Ilość</label>
+                    <input asp-for="Ilosc" class="form-control news-form-control" step="0.001"
+                           value="@(Model.Ilosc == 0 ? "" : Model.Ilosc.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))"
+                           placeholder="np. 10" />
                     <span asp-validation-for="Ilosc" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="CenaJednostkowa" class="form-label news-form-label"></label>
-                    <input asp-for="CenaJednostkowa" class="form-control news-form-control" />
+                    <label asp-for="CenaJednostkowa" class="form-label news-form-label">Cena jednostkowa (PLN)</label>
+                    <input asp-for="CenaJednostkowa" class="form-control news-form-control" step="0.01" />
                     <span asp-validation-for="CenaJednostkowa" class="text-danger small"></span>
                 </div>
             </div>
 
             <div class="news-form-actions">
-                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz pozycje</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz pozycję</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
             </div>
         </form>
     </section>
@@ -67,4 +70,29 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        (() => {
+            const docSelect = document.getElementById('IdDokumentu');
+            const lpInput = document.getElementById('Lp');
+            const nextLpByDocument = @Html.Raw((string?)ViewData["NextLpByDocumentJson"] ?? "{}");
+
+            if (!docSelect || !lpInput) return;
+
+            const applyNextLp = () => {
+                const docId = Number.parseInt(docSelect.value, 10);
+                if (!Number.isFinite(docId)) return;
+
+                const nextLp = nextLpByDocument[docId];
+                if (typeof nextLp === 'number' && nextLp > 0) {
+                    lpInput.value = String(nextLp);
+                }
+            };
+
+            docSelect.addEventListener('change', applyNextLp);
+
+            if (!lpInput.value || lpInput.value === '0' || lpInput.value === '1') {
+                applyNextLp();
+            }
+        })();
+    </script>
 }

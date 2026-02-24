@@ -107,6 +107,15 @@ namespace Services.Magazyn
                 .Take(10)
                 .ToListAsync();
 
+            var aktywneRezerwacjePoProdukcie = await _context.PozycjaRezerwacji
+                .AsNoTracking()
+                .Where(p =>
+                    p.IdLokacji == idLokacji &&
+                    p.Rezerwacja.Status == "Active")
+                .GroupBy(p => p.IdProduktu)
+                .Select(g => new { IdProduktu = g.Key, Qty = g.Sum(x => x.Ilosc) })
+                .ToDictionaryAsync(x => x.IdProduktu, x => x.Qty);
+
             var ostatniePozycjePz = await _context.PozycjaPZ
                 .AsNoTracking()
                 .Include(p => p.Dokument)
@@ -160,6 +169,7 @@ namespace Services.Magazyn
                 AktualnyStan = stanyLokacji.Sum(s => s.Ilosc),
                 LiczbaProduktow = stanyLokacji.Count,
                 LiczbaRezerwacji = ostatniePozycjeRezerwacji.Count,
+                AktywneRezerwacjePoProdukcie = aktywneRezerwacjePoProdukcie,
                 OstatniePozycjeRezerwacji = ostatniePozycjeRezerwacji,
                 OstatniePozycjePz = ostatniePozycjePz,
                 OstatniePozycjeWz = ostatniePozycjeWz,

@@ -1,9 +1,9 @@
-@model IEnumerable<Data.Data.Magazyn.DokumentPZ>
+@model Interfaces.Magazyn.Dtos.DokumentPZIndexDto
 
 @{
     ViewData["Title"] = "Przyjecia PZ";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
     var postedCount = items.Count(x => string.Equals(x.Status, "Posted", StringComparison.OrdinalIgnoreCase));
     var draftCount = items.Count(x => string.Equals(x.Status, "Draft", StringComparison.OrdinalIgnoreCase));
 }

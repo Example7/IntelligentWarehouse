@@ -1,16 +1,27 @@
-@model Data.Data.Magazyn.Rezerwacja
+@model Interfaces.Magazyn.Dtos.RezerwacjaDeleteDto
 
 @{
-    ViewData["Title"] = "Usun rezerwacje";
+    ViewData["Title"] = "Usuń rezerwacje";
+
+    var d = Model.Dokument;
+
+    var statusClass =
+        string.Equals(d.Status, "Active", StringComparison.OrdinalIgnoreCase) ? "entity-badge--success" :
+        string.Equals(d.Status, "Draft", StringComparison.OrdinalIgnoreCase) ? "entity-badge--warning" :
+        string.Equals(d.Status, "Completed", StringComparison.OrdinalIgnoreCase) ? "entity-badge--info" :
+        "entity-badge--muted";
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header news-admin-header--danger">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <span class="news-admin-header__icon news-admin-header__icon--danger">
+                <i class="bi bi-trash3"></i>
+            </span>
+
             <div>
                 <h1 class="news-admin-header__heading mb-1">Usuń rezerwacje</h1>
-                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie dokumentu rezerwacji magazynowej.</p>
+                <p class="news-admin-header__subheading mb-0">Potwierdz usunięcie rezerwacji.</p>
             </div>
         </div>
     </section>
@@ -20,28 +31,83 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
                 <strong>Usunięcie rezerwacji</strong>
-                <div>Dokument może być powiązany z pozycjami rezerwacji i procesem wydania.</div>
+                <div>Operacja jest blokowana, jeśli rezerwacja ma powiązane pozycje.</div>
             </div>
         </div>
 
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger mt-3">
+                <div asp-validation-summary="All" class="mb-0"></div>
+            </div>
+        }
+
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Numer</div><div class="news-details-item__value entity-mono">@Model.Numer</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(Model.Magazyn?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@Model.Status</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Wygasa</div><div class="news-details-item__value">@(Model.WygasaUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzył</div><div class="news-details-item__value">@(Model.Utworzyl?.Email ?? "-")</div></div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Numer</div>
+                <div class="news-details-item__value entity-mono">@d.Numer</div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Status</div>
+                <div class="news-details-item__value">
+                    <span class="entity-badge @statusClass">@d.Status</span>
+                </div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Magazyn</div>
+                <div class="news-details-item__value">@(d.Magazyn?.Nazwa ?? "-")</div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Utworzył</div>
+                <div class="news-details-item__value">@(d.Utworzyl?.Email ?? "-")</div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Utworzono</div>
+                <div class="news-details-item__value">
+                    @d.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                </div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Wygasa</div>
+                <div class="news-details-item__value">
+                    @(d.WygasaUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")
+                </div>
+            </div>
+
+            <div class="news-details-item">
+                <div class="news-details-item__label">Pozycje rezerwacji</div>
+                <div class="news-details-item__value">@Model.LiczbaPozycji</div>
+            </div>
+
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Notatka</div>
-                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Notatka) ? "Brak notatki" : Model.Notatka)</div>
+                <div class="news-details-item__value news-details-item__value--content">
+                    @(string.IsNullOrWhiteSpace(d.Notatka) ? "Brak notatki" : d.Notatka)
+                </div>
             </div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="Id" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń rezerwacje</button>
-            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
-            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
+            <input type="hidden" asp-for="Dokument.Id" name="Id" />
+
+            <button type="submit"
+                    class="btn btn-danger news-form-actions__primary"
+                    @(Model.CzyMoznaUsunac ? null : "disabled")>
+                <i class="bi bi-trash3-fill"></i> Usuń rezerwacje
+            </button>
+
+            <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-outline-info">
+                <i class="bi bi-eye"></i> Szczegóły
+            </a>
+
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Anuluj
+            </a>
         </form>
     </section>
 </div>

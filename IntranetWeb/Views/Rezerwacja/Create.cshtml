@@ -1,16 +1,19 @@
 @model Data.Data.Magazyn.Rezerwacja
 
 @{
-    ViewData["Title"] = "Dodaj rezerwacje";
+    ViewData["Title"] = "Dodaj rezerwację";
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <span class="news-admin-header__icon">
+                <i class="bi bi-plus-square"></i>
+            </span>
+
             <div>
-                <h1 class="news-admin-header__heading mb-1">Dodaj rezerwacje</h1>
-                <p class="news-admin-header__subheading mb-0">Utwórz nową rezerwację magazynową z terminem wygaszenia.</p>
+                <h1 class="news-admin-header__heading mb-1">Dodaj rezerwację</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz nową rezerwację magazynową.</p>
             </div>
         </div>
     </section>
@@ -18,56 +21,78 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane rezerwacji</h2>
-            <p class="text-muted mb-0">Uzupełnij numer, magazyn, status, daty i notatkę.</p>
+            <p class="text-muted mb-0">Uzupełnij numer, magazyn i datę wygaszenia (opcjonalnie).</p>
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger news-form-validation"
+                 role="alert">
+            </div>
+
             <div class="news-form-grid">
                 <div class="news-form-field">
                     <label asp-for="Numer" class="form-label news-form-label"></label>
                     <input asp-for="Numer" class="form-control news-form-control" />
                     <span asp-validation-for="Numer" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="Status" class="form-label news-form-label"></label>
-                    <input asp-for="Status" class="form-control news-form-control" />
-                    <span asp-validation-for="Status" class="text-danger small"></span>
+                    <label class="form-label news-form-label">Status</label>
+                    <div class="form-control news-form-control d-flex align-items-center">
+                        <span class="entity-badge entity-badge--warning">Draft</span>
+                    </div>
+                    <input type="hidden" asp-for="Status" value="Draft" />
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdMagazynu" class="form-label news-form-label"></label>
-                    <select asp-for="IdMagazynu" class="form-select news-form-control" asp-items="ViewBag.IdMagazynu"></select>
+                    <label asp-for="IdMagazynu" class="form-label news-form-label">Magazyn</label>
+                    <select asp-for="IdMagazynu"
+                            class="form-select news-form-control"
+                            asp-items="ViewBag.IdMagazynu">
+                    </select>
                     <span asp-validation-for="IdMagazynu" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdUtworzyl" class="form-label news-form-label"></label>
-                    <select asp-for="IdUtworzyl" class="form-select news-form-control" asp-items="ViewBag.IdUtworzyl"></select>
+                    <label asp-for="IdUtworzyl" class="form-label news-form-label">Utworzył</label>
+                    <select asp-for="IdUtworzyl"
+                            class="form-select news-form-control"
+                            asp-items="ViewBag.IdUtworzyl">
+                    </select>
                     <span asp-validation-for="IdUtworzyl" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="UtworzonoUtc" class="form-label news-form-label"></label>
-                    <input asp-for="UtworzonoUtc" class="form-control news-form-control" />
-                    <span asp-validation-for="UtworzonoUtc" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <label asp-for="WygasaUtc" class="form-label news-form-label"></label>
+                    <label asp-for="WygasaUtc" class="form-label news-form-label">Wygasa</label>
                     <input asp-for="WygasaUtc" class="form-control news-form-control" />
                     <span asp-validation-for="WygasaUtc" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field news-form-field--full">
                     <label asp-for="Notatka" class="form-label news-form-label"></label>
-                    <textarea asp-for="Notatka" class="form-control news-form-control news-form-control--textarea" rows="4"></textarea>
+                    <textarea asp-for="Notatka"
+                              class="form-control news-form-control news-form-control--textarea"
+                              rows="4"></textarea>
                     <span asp-validation-for="Notatka" class="text-danger small"></span>
                 </div>
             </div>
+
             <div class="news-form-actions">
-                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz rezerwacje</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroć do listy</a>
+                <button type="submit" class="btn btn-primary news-form-actions__primary">
+                    <i class="bi bi-check2-circle"></i> Zapisz rezerwację
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Wróć do listy
+                </a>
             </div>
         </form>
     </section>
 </div>
 
 @section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

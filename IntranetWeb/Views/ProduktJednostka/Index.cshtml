@@ -1,9 +1,9 @@
-@model IEnumerable<Data.Data.Magazyn.ProduktJednostka>
+﻿@model Interfaces.Magazyn.Dtos.ProduktJednostkaIndexDto
 
 @{
-    ViewData["Title"] = "Jednostki produktow";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    ViewData["Title"] = "Jednostki produktów";
+    var items = (Model.Items ?? new()).ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
     var distinctProducts = items.Select(x => x.IdProduktu).Distinct().Count();
     var distinctUoms = items.Select(x => x.IdJednostki).Distinct().Count();
 }
@@ -25,12 +25,12 @@
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie jednostek produktow">
-            <label for="productUomSearchTerm" class="visually-hidden">Szukaj jednostek produktow</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie jednostek produktów">
+            <label for="productUomSearchTerm" class="visually-hidden">Szukaj jednostek produktów</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
                 <input id="productUomSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
-                       placeholder="Szukaj powiazan..." />
+                       placeholder="Szukaj po produkcie lub jednostce..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -49,7 +49,7 @@
             <p class="text-muted mb-3">
                 @if (string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    <span>Nie dodano jeszcze powiązań produkt-JM.</span>
+                    <span>Nie dodano jeszcze powiązań produkt–JM.</span>
                 }
                 else
                 {
@@ -73,27 +73,32 @@
                     <thead>
                         <tr>
                             <th>Produkt</th>
-                            <th>Kod produktu</th>
                             <th>Jednostka</th>
-                            <th>Kod JM</th>
                             <th class="text-end">Przelicznik</th>
                             <th class="text-end">Akcje</th>
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in items.OrderBy(x => x.Produkt != null ? x.Produkt.Nazwa : string.Empty).ThenBy(x => x.Jednostka != null ? x.Jednostka.Kod : string.Empty))
+                    @foreach (var item in items)
                     {
                         <tr>
-                            <td>@(item.Produkt?.Nazwa ?? "-")</td>
-                            <td><span class="entity-cell-subtitle entity-mono">@(item.Produkt?.Kod ?? "-")</span></td>
-                            <td>@(item.Jednostka?.Nazwa ?? "-")</td>
-                            <td><span class="entity-badge entity-badge--muted">@(item.Jednostka?.Kod ?? "-")</span></td>
-                            <td class="text-end">@item.PrzelicznikDoDomyslnej.ToString("0.######")</td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? "-")</div>
+                            </td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Jednostka?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle">@(item.Jednostka?.Nazwa ?? "-")</div>
+                            </td>
+                            <td class="text-end">
+                                <span class="entity-mono">@item.PrzelicznikDoDomyslnej.ToString("0.######")</span>
+                                <div class="entity-cell-subtitle">do domyślnej JM produktu</div>
+                            </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla jednostki produktu @item.Id">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id" title="Edytuj powiązanie"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły powiązania"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usuń powiązanie"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

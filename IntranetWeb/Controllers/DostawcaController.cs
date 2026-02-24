@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
@@ -9,16 +10,18 @@ namespace IntranetWeb.Controllers
 {
     public class DostawcaController : BaseSearchController<Dostawca>
     {
+        private readonly IDostawcaService _dostawcaService;
 
-        public DostawcaController(DataContext context) : base(context) { }
+        public DostawcaController(DataContext context, IDostawcaService dostawcaService) : base(context)
+        {
+            _dostawcaService = dostawcaService;
+        }
 
         // GET: Dostawca
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.Dostawca.AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Nazwa, x => x.NIP, x => x.Email, x => x.Telefon, x => x.Adres);
-
-            return View(await query.ToListAsync());
+            var model = await _dostawcaService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
         // GET: Dostawca/Details/5
@@ -29,14 +32,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var dostawca = await _context.Dostawca
-                .FirstOrDefaultAsync(m => m.IdDostawcy == id);
-            if (dostawca == null)
+            var model = await _dostawcaService.GetDetailsDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(dostawca);
+            return View(model);
         }
 
         // GET: Dostawca/Create
@@ -50,10 +52,11 @@ namespace IntranetWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdDostawcy,Nazwa,NIP,Email,Telefon,Adres,CzyAktywny,UtworzonoUtc,RowVersion")] Dostawca dostawca)
+        public async Task<IActionResult> Create([Bind("IdDostawcy,Nazwa,NIP,Email,Telefon,Adres,CzyAktywny")] Dostawca dostawca)
         {
             if (ModelState.IsValid)
             {
+                dostawca.UtworzonoUtc = DateTime.UtcNow;
                 _context.Add(dostawca);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -82,7 +85,7 @@ namespace IntranetWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IdDostawcy,Nazwa,NIP,Email,Telefon,Adres,CzyAktywny,UtworzonoUtc,RowVersion")] Dostawca dostawca)
+        public async Task<IActionResult> Edit(int id, [Bind("IdDostawcy,Nazwa,NIP,Email,Telefon,Adres,CzyAktywny,RowVersion")] Dostawca dostawca)
         {
             if (id != dostawca.IdDostawcy)
             {
@@ -93,7 +96,20 @@ namespace IntranetWeb.Controllers
             {
                 try
                 {
-                    _context.Update(dostawca);
+                    var existing = await _context.Dostawca.FirstOrDefaultAsync(x => x.IdDostawcy == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existing.Nazwa = dostawca.Nazwa;
+                    existing.NIP = dostawca.NIP;
+                    existing.Email = dostawca.Email;
+                    existing.Telefon = dostawca.Telefon;
+                    existing.Adres = dostawca.Adres;
+                    existing.CzyAktywny = dostawca.CzyAktywny;
+
+                    _context.Entry(existing).Property(x => x.RowVersion).OriginalValue = dostawca.RowVersion;
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -120,14 +136,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var dostawca = await _context.Dostawca
-                .FirstOrDefaultAsync(m => m.IdDostawcy == id);
-            if (dostawca == null)
+            var model = await _dostawcaService.GetDeleteDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(dostawca);
+            return View(model);
         }
 
         // POST: Dostawca/Delete/5
@@ -135,14 +150,41 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var deleteData = await _dostawcaService.GetDeleteDataAsync(id);
+            if (deleteData == null)
+            {
+                return NotFound();
+            }
+
+            if (!deleteData.CzyMoznaUsunac)
+            {
+                var blockers = new List<string>();
+                if (deleteData.LiczbaDokumentowPz > 0) blockers.Add($"dokumenty PZ: {deleteData.LiczbaDokumentowPz}");
+                if (deleteData.LiczbaPartii > 0) blockers.Add($"partie: {deleteData.LiczbaPartii}");
+                ModelState.AddModelError(string.Empty, $"Nie mozna usunac dostawcy, poniewaz ma powiazane rekordy ({string.Join(", ", blockers)}).");
+                return View("Delete", deleteData);
+            }
+
             var dostawca = await _context.Dostawca.FindAsync(id);
             if (dostawca != null)
             {
                 _context.Dostawca.Remove(dostawca);
             }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Nie udalo sie usunac dostawcy, poniewaz ma powiazane rekordy (np. dokumenty PZ lub partie).");
+                deleteData = await _dostawcaService.GetDeleteDataAsync(id);
+                if (deleteData == null)
+                {
+                    return NotFound();
+                }
+                return View("Delete", deleteData);
+            }
         }
 
         private bool DostawcaExists(int id)
@@ -151,3 +193,4 @@ namespace IntranetWeb.Controllers
         }
     }
 }
+

@@ -1,7 +1,12 @@
 @model Data.Data.Magazyn.RuchMagazynowy
+@using Data.Data.Magazyn
 
 @{
     ViewData["Title"] = "Szczegoly ruchu magazynowego";
+    var productCode = Model.Produkt?.Kod ?? "-";
+    var productName = string.IsNullOrWhiteSpace(Model.Produkt?.Nazwa) ? null : Model.Produkt!.Nazwa;
+    var uomCode = Model.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
+    var iloscLabel = $"{Model.Ilosc.ToString("0.###")} {uomCode}";
 }
 
 <div class="news-admin-page">
@@ -9,8 +14,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-arrow-left-right"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Szczegoly ruchu magazynowego</h1>
-                <p class="news-admin-header__subheading mb-0">Podglad pelnych danych operacji magazynowej.</p>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły ruchu magazynowego</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd pełnych danych operacji magazynowej.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -24,19 +29,70 @@
             <h2 class="news-details-panel__title">Ruch produktu @(Model.Produkt?.Kod ?? "-")</h2>
             <div class="news-details-panel__actions">
                 <a asp-action="Edit" asp-route-id="@Model.IdRuchu" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdRuchu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Delete" asp-route-id="@Model.IdRuchu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Typ</div><div class="news-details-item__value">@Model.Typ</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Lokacja z</div><div class="news-details-item__value">@(Model.LokacjaZ?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Lokacja do</div><div class="news-details-item__value">@(Model.LokacjaDo?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Ilosc</div><div class="news-details-item__value">@Model.Ilosc</div></div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Typ</div>
+                <div class="news-details-item__value">
+                    @await Html.PartialAsync("_MovementTypeBadge", Model.Typ)
+                </div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Produkt</div>
+                <div class="news-details-item__value">
+                    <div>@productCode</div>
+                    @if (!string.IsNullOrWhiteSpace(productName))
+                    {
+                        <div class="small text-muted mt-1">@productName</div>
+                    }
+                    @if (Model.Produkt != null)
+                    {
+                        <div class="mt-2">
+                            <a asp-controller="Produkt" asp-action="Details" asp-route-id="@Model.Produkt.IdProduktu" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-box me-1"></i> Szczegóły produktu
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Lokacja z</div>
+                <div class="news-details-item__value">
+                    <div>@(Model.LokacjaZ?.Kod ?? "-")</div>
+                    <div class="small text-muted mt-1">@(Model.LokacjaZ?.Magazyn?.Nazwa ?? "-")</div>
+                    @if (Model.LokacjaZ != null)
+                    {
+                        <div class="mt-2">
+                            <a asp-controller="Lokacja" asp-action="Details" asp-route-id="@Model.LokacjaZ.IdLokacji" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-geo-alt me-1"></i> Szczegóły lokacji
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Lokacja do</div>
+                <div class="news-details-item__value">
+                    <div>@(Model.LokacjaDo?.Kod ?? "-")</div>
+                    <div class="small text-muted mt-1">@(Model.LokacjaDo?.Magazyn?.Nazwa ?? "-")</div>
+                    @if (Model.LokacjaDo != null)
+                    {
+                        <div class="mt-2">
+                            <a asp-controller="Lokacja" asp-action="Details" asp-route-id="@Model.LokacjaDo.IdLokacji" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-geo-alt me-1"></i> Szczegóły lokacji
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilość</div><div class="news-details-item__value">@iloscLabel</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Jednostka miary</div><div class="news-details-item__value">@uomCode</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Uzytkownik</div><div class="news-details-item__value">@(Model.Uzytkownik?.Email ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Użytkownik</div><div class="news-details-item__value">@(Model.Uzytkownik?.Email ?? "-")</div></div>
             <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Referencja</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(Model.Referencja) ? "-" : Model.Referencja)</div></div>
             <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Notatka</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Notatka) ? "Brak notatki" : Model.Notatka)</div></div>
         </div>

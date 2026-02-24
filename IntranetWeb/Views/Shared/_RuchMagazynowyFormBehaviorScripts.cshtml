@@ -1,0 +1,79 @@
+<script>
+    (function () {
+        const typeSelect = document.getElementById("Typ");
+        const fromSelect = document.getElementById("IdLokacjiZ");
+        const toSelect = document.getElementById("IdLokacjiDo");
+        const typeHint = document.getElementById("movementTypeHint");
+        const fromHint = document.getElementById("movementFromHint");
+        const toHint = document.getElementById("movementToHint");
+
+        if (!typeSelect || !fromSelect || !toSelect) return;
+
+        const types = {
+            przyjecie: "1",
+            wydanie: "2",
+            przesuniecie: "3",
+            korekta: "4",
+            inwentaryzacja: "5"
+        };
+
+        const setDisabled = (el, disabled) => {
+            el.disabled = disabled;
+            el.classList.toggle("is-disabled", disabled);
+        };
+
+        const updateByType = () => {
+            const value = typeSelect.value;
+
+            setDisabled(fromSelect, false);
+            setDisabled(toSelect, false);
+
+            if (typeHint) typeHint.textContent = "";
+            if (fromHint) fromHint.textContent = "";
+            if (toHint) toHint.textContent = "";
+
+            if (!value) {
+                setDisabled(fromSelect, true);
+                setDisabled(toSelect, true);
+                if (typeHint) typeHint.textContent = "Wybierz typ ruchu, aby zobaczyć które pola lokacji są wymagane.";
+                if (fromHint) fromHint.textContent = "Pole zostanie aktywowane po wyborze typu.";
+                if (toHint) toHint.textContent = "Pole zostanie aktywowane po wyborze typu.";
+                return;
+            }
+
+            if (value === types.przyjecie) {
+                setDisabled(fromSelect, true);
+                fromSelect.value = "";
+                if (typeHint) typeHint.textContent = "Przyjęcie: wybierz tylko lokacje docelową (Do lokacji).";
+                if (fromHint) fromHint.textContent = "Dla przyjęcia pozostaw brak (towar wchodzi do magazynu).";
+                if (toHint) toHint.textContent = "Wybierz lokacje docelową, do której trafi towar.";
+                return;
+            }
+
+            if (value === types.wydanie) {
+                setDisabled(toSelect, true);
+                toSelect.value = "";
+                if (typeHint) typeHint.textContent = "Wydanie: wybierz tylko lokacje źródłową (Z lokacji).";
+                if (fromHint) fromHint.textContent = "Wybierz lokacje, z której towar jest wydawany.";
+                if (toHint) toHint.textContent = "Dla wydania pozostaw brak (towar wychodzi z magazynu).";
+                return;
+            }
+
+            if (value === types.przesuniecie) {
+                if (typeHint) typeHint.textContent = "Przesunięcie: wybierz lokacje źródłową i docelową (muszą być różne).";
+                if (fromHint) fromHint.textContent = "Lokacja, z której zabierasz towar.";
+                if (toHint) toHint.textContent = "Lokacja, do której przenosisz towar.";
+                return;
+            }
+
+            if (value === types.korekta || value === types.inwentaryzacja) {
+                if (typeHint) typeHint.textContent = "Korekta/Inwentaryzacja: wybierz jedna lokacje. 'Do' oznacza korekte na plus, 'Z' korekte na minus.";
+                if (fromHint) fromHint.textContent = "Użyj dla korekty na minus (zmniejszenie stanu).";
+                if (toHint) toHint.textContent = "Użyj dla korekty na plus (zwiekszenie stanu).";
+            }
+        };
+
+        typeSelect.addEventListener("change", updateByType);
+        updateByType();
+    })();
+</script>

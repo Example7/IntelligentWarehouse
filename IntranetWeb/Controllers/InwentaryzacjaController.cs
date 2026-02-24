@@ -1,28 +1,31 @@
+using Data.Data;
+using Data.Data.Magazyn;
+using Interfaces.Magazyn;
+using Interfaces.Magazyn.Dtos;
+using IntranetWeb.Controllers.Abstrakcja;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Data.Data;
-using Data.Data.Magazyn;
-
-using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
     public class InwentaryzacjaController : BaseSearchController<Inwentaryzacja>
     {
+        private readonly IInwentaryzacjaService _inwentaryzacjaService;
+        private static readonly string[] DozwoloneStatusyCreate = ["Draft"];
+        private static readonly string[] DozwoloneStatusyEdit = ["Draft", "Cancelled"];
 
-        public InwentaryzacjaController(DataContext context) : base(context) { }
-
-        // GET: Inwentaryzacja
-        public async Task<IActionResult> Index(string? searchTerm)
+        public InwentaryzacjaController(DataContext context, IInwentaryzacjaService inwentaryzacjaService) : base(context)
         {
-            var query = _context.Inwentaryzacja.Include(i => i.Magazyn).Include(i => i.Utworzyl).AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Numer, x => x.Status, x => x.Notatka);
-
-            return View(await query.ToListAsync());
+            _inwentaryzacjaService = inwentaryzacjaService;
         }
 
-        // GET: Inwentaryzacja/Details/5
+        public async Task<IActionResult> Index(string? searchTerm)
+        {
+            var model = await _inwentaryzacjaService.GetIndexDataAsync(searchTerm);
+            return View(model);
+        }
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -30,45 +33,60 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var inwentaryzacja = await _context.Inwentaryzacja
-                .Include(i => i.Magazyn)
-                .Include(i => i.Utworzyl)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (inwentaryzacja == null)
+            var model = await _inwentaryzacjaService.GetDetailsDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(inwentaryzacja);
+            return View(model);
         }
 
-        // GET: Inwentaryzacja/Create
         public IActionResult Create()
         {
-            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn, "IdMagazynu", "Nazwa");
-            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik, "IdUzytkownika", "Email");
-            return View();
+            var model = new Inwentaryzacja
+            {
+                Status = "Draft",
+                StartUtc = DateTime.UtcNow
+            };
+
+            UzupelnijDaneFormularza(model);
+            ViewData["StatusOptions"] = BuildStatusSelectList(DozwoloneStatusyCreate, model.Status);
+            return View(model);
         }
 
-        // POST: Inwentaryzacja/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Numer,IdMagazynu,Status,StartUtc,KoniecUtc,IdUtworzyl,Notatka,RowVersion")] Inwentaryzacja inwentaryzacja)
+        public async Task<IActionResult> Create([Bind("Id,Numer,IdMagazynu,StartUtc,IdUtworzyl,Notatka")] Inwentaryzacja inwentaryzacja)
         {
+            inwentaryzacja.Status = "Draft";
+            inwentaryzacja.KoniecUtc = null;
+            inwentaryzacja.Numer = inwentaryzacja.Numer?.Trim() ?? string.Empty;
+
+            if (await CzyNumerInwentaryzacjiJuzIstniejeAsync(inwentaryzacja.Numer))
+            {
+                ModelState.AddModelError(nameof(Inwentaryzacja.Numer), $"Inwentaryzacja o numerze '{inwentaryzacja.Numer}' już istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(inwentaryzacja);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(inwentaryzacja);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(nameof(Inwentaryzacja.Numer), $"Inwentaryzacja o numerze '{inwentaryzacja.Numer}' już istnieje.");
+                }
             }
-            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn, "IdMagazynu", "Nazwa", inwentaryzacja.IdMagazynu);
-            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik, "IdUzytkownika", "Email", inwentaryzacja.IdUtworzyl);
+
+            UzupelnijDaneFormularza(inwentaryzacja);
+            ViewData["StatusOptions"] = BuildStatusSelectList(DozwoloneStatusyCreate, inwentaryzacja.Status);
             return View(inwentaryzacja);
         }
 
-        // GET: Inwentaryzacja/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -76,33 +94,73 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var inwentaryzacja = await _context.Inwentaryzacja.FindAsync(id);
+            var inwentaryzacja = await _context.Inwentaryzacja
+                .Include(i => i.Utworzyl)
+                .FirstOrDefaultAsync(i => i.Id == id);
             if (inwentaryzacja == null)
             {
                 return NotFound();
             }
-            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn, "IdMagazynu", "Nazwa", inwentaryzacja.IdMagazynu);
-            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik, "IdUzytkownika", "Email", inwentaryzacja.IdUtworzyl);
+
+            if (!string.Equals(inwentaryzacja.Status, "Draft", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["InwentaryzacjaEditBlocked"] = "Edycja jest dostepna tylko dla inwentaryzacji w statusie Draft.";
+                return RedirectToAction(nameof(Details), new { id = inwentaryzacja.Id });
+            }
+
+            UzupelnijDaneFormularza(inwentaryzacja);
+            ViewData["StatusOptions"] = BuildStatusSelectList(DozwoloneStatusyEdit, inwentaryzacja.Status);
+            ViewData["AutorDokumentuEmail"] = inwentaryzacja.Utworzyl?.Email ?? "-";
             return View(inwentaryzacja);
         }
 
-        // POST: Inwentaryzacja/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Numer,IdMagazynu,Status,StartUtc,KoniecUtc,IdUtworzyl,Notatka,RowVersion")] Inwentaryzacja inwentaryzacja)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Numer,IdMagazynu,Status,StartUtc,IdUtworzyl,Notatka,RowVersion")] Inwentaryzacja inwentaryzacja)
         {
             if (id != inwentaryzacja.Id)
             {
                 return NotFound();
             }
 
+            inwentaryzacja.Numer = inwentaryzacja.Numer?.Trim() ?? string.Empty;
+
+            if (!DozwoloneStatusyEdit.Contains(inwentaryzacja.Status))
+            {
+                ModelState.AddModelError(nameof(Inwentaryzacja.Status), "W edycji dozwolone są tylko statusy Draft lub Cancelled. Użyj akcji Zamknij dla zamknięcia inwentaryzacji.");
+            }
+
+            if (await CzyNumerInwentaryzacjiJuzIstniejeAsync(inwentaryzacja.Numer, inwentaryzacja.Id))
+            {
+                ModelState.AddModelError(nameof(Inwentaryzacja.Numer), $"Inwentaryzacja o numerze '{inwentaryzacja.Numer}' już istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(inwentaryzacja);
+                    var existing = await _context.Inwentaryzacja.FirstOrDefaultAsync(x => x.Id == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    if (!string.Equals(existing.Status, "Draft", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ModelState.AddModelError(string.Empty, "Edytować można tylko inwentaryzacje w statusie Draft.");
+                        return await ReturnEditViewWithLookupsAsync(inwentaryzacja);
+                    }
+
+                    existing.Numer = inwentaryzacja.Numer;
+                    existing.IdMagazynu = inwentaryzacja.IdMagazynu;
+                    existing.Status = inwentaryzacja.Status;
+                    existing.StartUtc = inwentaryzacja.StartUtc;
+                    existing.Notatka = inwentaryzacja.Notatka;
+                    existing.KoniecUtc = string.Equals(inwentaryzacja.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)
+                        ? (existing.KoniecUtc ?? DateTime.UtcNow)
+                        : null;
+
+                    _context.Entry(existing).Property(x => x.RowVersion).OriginalValue = inwentaryzacja.RowVersion;
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -111,19 +169,38 @@ namespace IntranetWeb.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(nameof(Inwentaryzacja.Numer), $"Inwentaryzacja o numerze '{inwentaryzacja.Numer}' już istnieje.");
+                    return await ReturnEditViewWithLookupsAsync(inwentaryzacja);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn, "IdMagazynu", "Nazwa", inwentaryzacja.IdMagazynu);
-            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik, "IdUzytkownika", "Email", inwentaryzacja.IdUtworzyl);
-            return View(inwentaryzacja);
+
+            return await ReturnEditViewWithLookupsAsync(inwentaryzacja);
         }
 
-        // GET: Inwentaryzacja/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseDocument(int id)
+        {
+            var result = await _inwentaryzacjaService.CloseAsync(id);
+            if (result.Success)
+            {
+                TempData["InwentaryzacjaCloseSuccess"] = "Inwentaryzacja zostala zamknieta i przeliczona.";
+            }
+            else
+            {
+                TempData["InwentaryzacjaCloseError"] = result.ErrorMessage ?? "Nie udalo sie zamknac inwentaryzacji.";
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -131,36 +208,90 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var inwentaryzacja = await _context.Inwentaryzacja
-                .Include(i => i.Magazyn)
-                .Include(i => i.Utworzyl)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (inwentaryzacja == null)
+            var model = await _inwentaryzacjaService.GetDeleteDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(inwentaryzacja);
+            return View(model);
         }
 
-        // POST: Inwentaryzacja/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var deleteData = await _inwentaryzacjaService.GetDeleteDataAsync(id);
+            if (deleteData == null)
+            {
+                return NotFound();
+            }
+
+            if (!deleteData.CzyMoznaUsunac)
+            {
+                ModelState.AddModelError(string.Empty, $"Nie można usunąć inwentaryzacji, ponieważ ma powiązane pozycje ({deleteData.LiczbaPozycji}).");
+                return View("Delete", deleteData);
+            }
+
             var inwentaryzacja = await _context.Inwentaryzacja.FindAsync(id);
             if (inwentaryzacja != null)
             {
                 _context.Inwentaryzacja.Remove(inwentaryzacja);
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Nie udało się usunąć inwentaryzacji, ponieważ ma powiązane rekordy (np. pozycje inwentaryzacji).");
+                var refreshed = await _inwentaryzacjaService.GetDeleteDataAsync(id);
+                if (refreshed == null)
+                {
+                    return NotFound();
+                }
+                return View("Delete", refreshed);
+            }
         }
 
-        private bool InwentaryzacjaExists(int id)
+        private bool InwentaryzacjaExists(int id) => _context.Inwentaryzacja.Any(e => e.Id == id);
+
+        private Task<bool> CzyNumerInwentaryzacjiJuzIstniejeAsync(string numer, int? zWykluczeniemId = null)
         {
-            return _context.Inwentaryzacja.Any(e => e.Id == id);
+            if (string.IsNullOrWhiteSpace(numer))
+            {
+                return Task.FromResult(false);
+            }
+
+            return _context.Inwentaryzacja.AsNoTracking().AnyAsync(d =>
+                d.Numer == numer &&
+                (!zWykluczeniemId.HasValue || d.Id != zWykluczeniemId.Value));
+        }
+
+        private void UzupelnijDaneFormularza(Inwentaryzacja model)
+        {
+            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn.AsNoTracking().OrderBy(x => x.Nazwa), "IdMagazynu", "Nazwa", model.IdMagazynu);
+            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik.AsNoTracking().OrderBy(x => x.Email), "IdUzytkownika", "Email", model.IdUtworzyl);
+        }
+
+        private async Task<IActionResult> ReturnEditViewWithLookupsAsync(Inwentaryzacja inwentaryzacja)
+        {
+            UzupelnijDaneFormularza(inwentaryzacja);
+            ViewData["StatusOptions"] = BuildStatusSelectList(DozwoloneStatusyEdit, inwentaryzacja.Status);
+            ViewData["AutorDokumentuEmail"] = await _context.Uzytkownik
+                .Where(u => u.IdUzytkownika == inwentaryzacja.IdUtworzyl)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync() ?? "-";
+            return View(inwentaryzacja);
+        }
+
+        private static IReadOnlyList<SelectListItem> BuildStatusSelectList(IEnumerable<string> allowedStatuses, string? selected)
+        {
+            return allowedStatuses
+                .Select(x => new SelectListItem(x, x, string.Equals(x, selected, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
         }
     }
 }

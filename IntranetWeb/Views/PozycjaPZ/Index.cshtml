@@ -1,9 +1,9 @@
-@model IEnumerable<Data.Data.Magazyn.PozycjaPZ>
+@model Interfaces.Magazyn.Dtos.PozycjaPZIndexDto
 
 @{
     ViewData["Title"] = "Pozycje PZ";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
     var totalQuantity = items.Sum(x => x.Ilosc);
     var distinctDocs = items.Select(x => x.IdDokumentu).Distinct().Count();
 }
@@ -14,13 +14,13 @@
             <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-list-ol"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Pozycje PZ</h1>
-                <p class="news-admin-header__subheading mb-0">Lista pozycji dokumentow przyjecia z ilosciami, cenami i lokalizacja.</p>
+                <p class="news-admin-header__subheading mb-0">Lista pozycji dokumentow przyjęcia z ilościami, cenami i lokalizacja.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Lacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Dokumenty</span><strong class="news-admin-stat__value">@distinctDocs</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Ilość</span><strong class="news-admin-stat__value">@totalQuantity.ToString("0.###")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Ilosc</span><strong class="news-admin-stat__value">@totalQuantity.ToString("0.###")</strong></div>
         </div>
     </section>
 
@@ -30,7 +30,7 @@
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
                 <input id="pzItemSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
-                       placeholder="Szukaj pozycji..." />
+                       placeholder="Szukaj po numerze PZ, produkcie, lokacji lub magazynie..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -38,7 +38,7 @@
                 <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
             }
         </form>
-        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj pozycję</a>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj pozycje</a>
     </section>
 
     @if (!items.Any())
@@ -57,7 +57,7 @@
                 }
             </p>
             <div class="d-flex justify-content-center gap-2 flex-wrap">
-                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj pozycję</a>
+                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj pozycje</a>
                 @if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
                     <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
@@ -85,23 +85,40 @@
                     <tbody>
                     @foreach (var item in items.OrderBy(x => x.Dokument != null ? x.Dokument.Numer : string.Empty).ThenBy(x => x.Lp))
                     {
+                        var jm = item.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
                         var value = item.Ilosc * (item.CenaJednostkowa ?? 0m);
+                        var isDraft = string.Equals(item.Dokument?.Status, "Draft", StringComparison.OrdinalIgnoreCase);
+                        var statusClass = isDraft ? "entity-badge--warning" :
+                            string.Equals(item.Dokument?.Status, "Posted", StringComparison.OrdinalIgnoreCase) ? "entity-badge--success" : "entity-badge--muted";
                         <tr>
-                            <td><div class="entity-cell-title">@(item.Dokument?.Numer ?? "-")</div></td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Dokument?.Numer ?? "-")</div>
+                                <div class="entity-cell-subtitle"><span class="entity-badge @statusClass">@(item.Dokument?.Status ?? "-")</span></div>
+                            </td>
                             <td class="text-end">@item.Lp</td>
                             <td>
                                 <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
                                 <div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? "Brak nazwy")</div>
                             </td>
-                            <td>@(item.Lokacja?.Kod ?? "-")</td>
-                            <td class="text-end">@item.Ilosc.ToString("0.###")</td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Lokacja?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle">@(item.Lokacja?.Magazyn?.Nazwa ?? "-")</div>
+                            </td>
+                            <td class="text-end">@item.Ilosc.ToString("0.###") @jm</td>
                             <td class="text-end">@(item.CenaJednostkowa?.ToString("0.00") ?? "-")</td>
                             <td class="text-end">@value.ToString("0.00")</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla pozycji PZ @item.Id">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                    @if (isDraft)
+                                    {
+                                        <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id" title="Edytuj pozycję PZ"><i class="bi bi-pencil"></i></a>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary" disabled title="Edycja tylko dla dokumentu Draft"><i class="bi bi-pencil"></i></button>
+                                    }
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły pozycji PZ"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usuń pozycję PZ"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

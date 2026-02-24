@@ -1,7 +1,12 @@
 @model Data.Data.Magazyn.RuchMagazynowy
+@using Data.Data.Magazyn
 
 @{
-    ViewData["Title"] = "Usun ruch magazynowy";
+    ViewData["Title"] = "Usuń ruch magazynowy";
+    var productCode = Model.Produkt?.Kod ?? "-";
+    var productName = string.IsNullOrWhiteSpace(Model.Produkt?.Nazwa) ? null : Model.Produkt!.Nazwa;
+    var uomCode = Model.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
+    var iloscLabel = $"{Model.Ilosc.ToString("0.###")} {uomCode}";
 }
 
 <div class="news-admin-page">
@@ -9,8 +14,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Usun ruch magazynowy</h1>
-                <p class="news-admin-header__subheading mb-0">Potwierdz usuniecie wpisu historii ruchu.</p>
+                <h1 class="news-admin-header__heading mb-1">Usuń ruch magazynowy</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie wpisu historii ruchu.</p>
             </div>
         </div>
     </section>
@@ -19,27 +24,55 @@
         <div class="news-delete-warning" role="alert">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
-                <strong>Usuniecie ruchu</strong>
-                <div>Usuniecie wpisu historii moze utrudnic audyt operacji magazynowych.</div>
+                <strong>Usunięcie ruchu</strong>
+                <div>Usunięcie wpisu historii może utrudnić audyt i cofnie wpływ tego ruchu na stany magazynowe.</div>
             </div>
         </div>
 
         <div class="news-details-grid">
             <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.IdRuchu</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Typ</div><div class="news-details-item__value">@Model.Typ</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Lokacja z</div><div class="news-details-item__value">@(Model.LokacjaZ?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Lokacja do</div><div class="news-details-item__value">@(Model.LokacjaDo?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Ilosc</div><div class="news-details-item__value">@Model.Ilosc</div></div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Typ</div>
+                <div class="news-details-item__value">
+                    @await Html.PartialAsync("_MovementTypeBadge", Model.Typ)
+                </div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Produkt</div>
+                <div class="news-details-item__value">
+                    <div>@productCode</div>
+                    @if (!string.IsNullOrWhiteSpace(productName))
+                    {
+                        <div class="small text-muted mt-1">@productName</div>
+                    }
+                </div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Lokacja z</div>
+                <div class="news-details-item__value">
+                    <div>@(Model.LokacjaZ?.Kod ?? "-")</div>
+                    <div class="small text-muted mt-1">@(Model.LokacjaZ?.Magazyn?.Nazwa ?? "-")</div>
+                </div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Lokacja do</div>
+                <div class="news-details-item__value">
+                    <div>@(Model.LokacjaDo?.Kod ?? "-")</div>
+                    <div class="small text-muted mt-1">@(Model.LokacjaDo?.Magazyn?.Nazwa ?? "-")</div>
+                </div>
+            </div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilosc</div><div class="news-details-item__value">@iloscLabel</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Jednostka miary</div><div class="news-details-item__value">@uomCode</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Użytkownik</div><div class="news-details-item__value">@(Model.Uzytkownik?.Email ?? "-")</div></div>
             <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Referencja</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(Model.Referencja) ? "-" : Model.Referencja)</div></div>
             <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Notatka</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Notatka) ? "Brak notatki" : Model.Notatka)</div></div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
             <input type="hidden" asp-for="IdRuchu" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun ruch</button>
-            <a asp-action="Details" asp-route-id="@Model.IdRuchu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń ruch</button>
+            <a asp-action="Details" asp-route-id="@Model.IdRuchu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

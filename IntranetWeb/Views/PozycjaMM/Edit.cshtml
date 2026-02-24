@@ -10,7 +10,7 @@
             <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Edytuj pozycje MM</h1>
-                <p class="news-admin-header__subheading mb-0">Aktualizuj ilosc i lokalizacje przesuniecia.</p>
+                <p class="news-admin-header__subheading mb-0">Aktualizuj ilosc i powiazania pozycji dokumentu MM (tylko Draft).</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -28,38 +28,46 @@
         <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="Id" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+
             <div class="news-form-grid">
                 <div class="news-form-field">
-                    <label asp-for="IdDokumentu" class="form-label news-form-label"></label>
+                    <label asp-for="IdDokumentu" class="form-label news-form-label">Dokument MM</label>
                     <select asp-for="IdDokumentu" class="form-select news-form-control" asp-items="ViewBag.IdDokumentu"></select>
                     <span asp-validation-for="IdDokumentu" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="Lp" class="form-label news-form-label"></label>
+                    <label asp-for="Lp" class="form-label news-form-label">Lp</label>
                     <input asp-for="Lp" class="form-control news-form-control" />
                     <span asp-validation-for="Lp" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
+                    <label asp-for="IdProduktu" class="form-label news-form-label">Produkt</label>
                     <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu"></select>
                     <span asp-validation-for="IdProduktu" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdLokacjiZ" class="form-label news-form-label"></label>
+                    <label asp-for="IdLokacjiZ" class="form-label news-form-label">Z lokacji</label>
                     <select asp-for="IdLokacjiZ" class="form-select news-form-control" asp-items="ViewBag.IdLokacjiZ"></select>
                     <span asp-validation-for="IdLokacjiZ" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdLokacjiDo" class="form-label news-form-label"></label>
+                    <label asp-for="IdLokacjiDo" class="form-label news-form-label">Do lokacji</label>
                     <select asp-for="IdLokacjiDo" class="form-select news-form-control" asp-items="ViewBag.IdLokacjiDo"></select>
                     <span asp-validation-for="IdLokacjiDo" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="Ilosc" class="form-label news-form-label"></label>
-                    <input asp-for="Ilosc" class="form-control news-form-control" />
+                    <label asp-for="Ilosc" class="form-label news-form-label">Ilosc</label>
+                    <input asp-for="Ilosc" class="form-control news-form-control" step="0.001" />
+                    <div class="form-text">Jednostka: <span id="mmItemUomHint">j.m.</span></div>
                     <span asp-validation-for="Ilosc" class="text-danger small"></span>
                 </div>
             </div>
+
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
                 <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
@@ -71,4 +79,17 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        (() => {
+            const productSelect = document.getElementById('IdProduktu');
+            const uomHint = document.getElementById('mmItemUomHint');
+            const productUomMap = @Html.Raw((string?)ViewData["ProductUomMapJson"] ?? "{}");
+            const applyUom = () => {
+                const pid = Number.parseInt(productSelect?.value || '', 10);
+                if (uomHint) uomHint.textContent = productUomMap[pid] || 'j.m.';
+            };
+            productSelect?.addEventListener('change', applyUom);
+            applyUom();
+        })();
+    </script>
 }

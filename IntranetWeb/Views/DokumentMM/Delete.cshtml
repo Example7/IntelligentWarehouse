@@ -1,7 +1,11 @@
-@model Data.Data.Magazyn.DokumentMM
+@model Interfaces.Magazyn.Dtos.DokumentMMDeleteDto
 
 @{
     ViewData["Title"] = "Usun MM";
+    var d = Model.Dokument;
+    var isPosted = string.Equals(d.Status, "Posted", StringComparison.OrdinalIgnoreCase);
+    var isDraft = string.Equals(d.Status, "Draft", StringComparison.OrdinalIgnoreCase);
+    var statusClass = isPosted ? "entity-badge--success" : isDraft ? "entity-badge--warning" : "entity-badge--muted";
 }
 
 <div class="news-admin-page">
@@ -20,26 +24,32 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
                 <strong>Usuniecie dokumentu MM</strong>
-                <div>Dokument moze byc powiazany z pozycjami przesuniecia i ruchem magazynowym.</div>
+                <div>Operacja moze byc zablokowana, jesli dokument ma powiazane pozycje MM.</div>
             </div>
         </div>
 
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger mt-3" role="alert"><div asp-validation-summary="All" class="mb-0"></div></div>
+        }
+
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Numer</div><div class="news-details-item__value entity-mono">@Model.Numer</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(Model.Magazyn?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@Model.Status</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Data przesuniecia</div><div class="news-details-item__value">@Model.DataUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzyl</div><div class="news-details-item__value">@(Model.Utworzyl?.Email ?? "-")</div></div>
-            <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">Notatka</div>
-                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Notatka) ? "Brak notatki" : Model.Notatka)</div>
-            </div>
+            <div class="news-details-item"><div class="news-details-item__label">Numer</div><div class="news-details-item__value entity-mono">@d.Numer</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value"><span class="entity-badge @statusClass">@d.Status</span></div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(d.Magazyn?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzony przez</div><div class="news-details-item__value">@(d.Utworzyl?.Email ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Data przesuniecia</div><div class="news-details-item__value">@d.DataUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zaksiegowano</div><div class="news-details-item__value">@(d.ZaksiegowanoUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Pozycje MM</div><div class="news-details-item__value">@Model.LiczbaPozycji</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Notatka</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(d.Notatka) ? "Brak notatki" : d.Notatka)</div></div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="Id" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun dokument MM</button>
-            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <input type="hidden" asp-for="Dokument.Id" name="Id" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary" @(Model.CzyMoznaUsunac ? null : "disabled")>
+                <i class="bi bi-trash3-fill"></i> Usun dokument MM
+            </button>
+            <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

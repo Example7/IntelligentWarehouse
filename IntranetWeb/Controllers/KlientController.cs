@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
@@ -9,16 +10,18 @@ namespace IntranetWeb.Controllers
 {
     public class KlientController : BaseSearchController<Klient>
     {
+        private readonly IKlientService _klientService;
 
-        public KlientController(DataContext context) : base(context) { }
+        public KlientController(DataContext context, IKlientService klientService) : base(context)
+        {
+            _klientService = klientService;
+        }
 
         // GET: Klient
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.Klient.AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Nazwa, x => x.Email, x => x.Telefon, x => x.Adres);
-
-            return View(await query.ToListAsync());
+            var model = await _klientService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
         // GET: Klient/Details/5
@@ -29,14 +32,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var klient = await _context.Klient
-                .FirstOrDefaultAsync(m => m.IdKlienta == id);
-            if (klient == null)
+            var model = await _klientService.GetDetailsDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(klient);
+            return View(model);
         }
 
         // GET: Klient/Create
@@ -50,10 +52,11 @@ namespace IntranetWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdKlienta,Nazwa,Email,Telefon,Adres,CzyAktywny,UtworzonoUtc,RowVersion")] Klient klient)
+        public async Task<IActionResult> Create([Bind("IdKlienta,Nazwa,Email,Telefon,Adres,CzyAktywny")] Klient klient)
         {
             if (ModelState.IsValid)
             {
+                klient.UtworzonoUtc = DateTime.UtcNow;
                 _context.Add(klient);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -82,7 +85,7 @@ namespace IntranetWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IdKlienta,Nazwa,Email,Telefon,Adres,CzyAktywny,UtworzonoUtc,RowVersion")] Klient klient)
+        public async Task<IActionResult> Edit(int id, [Bind("IdKlienta,Nazwa,Email,Telefon,Adres,CzyAktywny,RowVersion")] Klient klient)
         {
             if (id != klient.IdKlienta)
             {
@@ -93,7 +96,19 @@ namespace IntranetWeb.Controllers
             {
                 try
                 {
-                    _context.Update(klient);
+                    var existing = await _context.Klient.FirstOrDefaultAsync(x => x.IdKlienta == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existing.Nazwa = klient.Nazwa;
+                    existing.Email = klient.Email;
+                    existing.Telefon = klient.Telefon;
+                    existing.Adres = klient.Adres;
+                    existing.CzyAktywny = klient.CzyAktywny;
+
+                    _context.Entry(existing).Property(x => x.RowVersion).OriginalValue = klient.RowVersion;
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -120,14 +135,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var klient = await _context.Klient
-                .FirstOrDefaultAsync(m => m.IdKlienta == id);
-            if (klient == null)
+            var model = await _klientService.GetDeleteDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(klient);
+            return View(model);
         }
 
         // POST: Klient/Delete/5
@@ -135,14 +149,39 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var deleteData = await _klientService.GetDeleteDataAsync(id);
+            if (deleteData == null)
+            {
+                return NotFound();
+            }
+
+            if (!deleteData.CzyMoznaUsunac)
+            {
+                ModelState.AddModelError(string.Empty, $"Nie mozna usunac klienta, poniewaz ma powiazane dokumenty WZ: {deleteData.LiczbaDokumentowWz}.");
+                return View("Delete", deleteData);
+            }
+
             var klient = await _context.Klient.FindAsync(id);
             if (klient != null)
             {
                 _context.Klient.Remove(klient);
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Nie udalo sie usunac klienta, poniewaz ma powiazane dokumenty WZ.");
+                deleteData = await _klientService.GetDeleteDataAsync(id);
+                if (deleteData == null)
+                {
+                    return NotFound();
+                }
+                return View("Delete", deleteData);
+            }
         }
 
         private bool KlientExists(int id)

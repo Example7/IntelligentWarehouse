@@ -157,6 +157,20 @@ namespace Services.Magazyn
                 .Take(10)
                 .ToListAsync();
 
+            var ostatniePozycjeRezerwacjiBezLokacji = await _context.PozycjaRezerwacji
+                .AsNoTracking()
+                .Include(p => p.Rezerwacja)
+                .Include(p => p.Produkt)
+                    .ThenInclude(pr => pr.DomyslnaJednostka)
+                .Where(p =>
+                    p.IdLokacji == null &&
+                    p.Rezerwacja.IdMagazynu == idMagazynu &&
+                    p.Rezerwacja.Status == "Active")
+                .OrderByDescending(p => p.Rezerwacja.UtworzonoUtc)
+                .ThenByDescending(p => p.Id)
+                .Take(10)
+                .ToListAsync();
+
             var ostatnieInwentaryzacjeMagazynu = await _context.Inwentaryzacja
                 .AsNoTracking()
                 .Where(i => i.IdMagazynu == idMagazynu)
@@ -184,6 +198,7 @@ namespace Services.Magazyn
                 OstatnieDokumentyWz = ostatnieDokumentyWz,
                 OstatnieDokumentyMm = ostatnieDokumentyMm,
                 OstatnieRezerwacjeMagazynu = ostatnieRezerwacjeMagazynu,
+                OstatniePozycjeRezerwacjiBezLokacji = ostatniePozycjeRezerwacjiBezLokacji,
                 OstatnieInwentaryzacjeMagazynu = ostatnieInwentaryzacjeMagazynu,
                 LiczbaLokacji = liczbaLokacji,
                 LiczbaDokumentowPz = liczbaDokumentowPz,

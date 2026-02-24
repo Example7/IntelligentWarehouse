@@ -1,5 +1,6 @@
 using Data.Data;
 using Microsoft.EntityFrameworkCore;
+using IntranetWeb.HostedServices;
 using Services.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddControllersWithViews();
 builder.Services.AddDashboardAppServices();
 builder.Services.AddWarehouseAppServices();
+builder.Services.AddHostedService<ExpiredReservationsReleaseHostedService>();
 
 var app = builder.Build();
 

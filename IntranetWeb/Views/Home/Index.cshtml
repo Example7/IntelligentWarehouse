@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Dashboard";
+    var freshMovementThresholdUtc = DateTime.UtcNow.AddMinutes(-15);
 }
 
 <div class="news-admin-page dashboard-page">
@@ -58,7 +59,7 @@
                                 <th>Produkt</th>
                                 <th>Z</th>
                                 <th>Do</th>
-                                <th class="text-end">Ilosc</th>
+                                <th class="text-end">Ilość</th>
                                 <th>Referencja</th>
                                 <th>Utworzono</th>
                             </tr>
@@ -68,14 +69,20 @@
                         {
                             @foreach (var item in Model.RecentMovements)
                             {
-                                <tr>
-                                    <td><span class="entity-badge entity-badge--muted">@item.Type</span></td>
-                                    <td><span class="dashboard-cell-truncate" title="@item.ProductCode">@item.ProductCode</span></td>
-                                    <td>@(item.FromLocationCode ?? "-")</td>
-                                    <td>@(item.ToLocationCode ?? "-")</td>
-                                    <td class="text-end">@item.Quantity</td>
+                                var isFreshMovement = item.CreatedAtUtc >= freshMovementThresholdUtc;
+                                <tr class="@(isFreshMovement ? "dashboard-row-fresh" : null)"
+                                    data-href="@Url.Action("Details", "RuchMagazynowy", new { id = item.Id })"
+                                    title="Przejdź do szczegółów ruchu">
+                                    <td><partial name="_MovementTypeBadge" model="item.Type" /></td>
+                                    <td>
+                                        <div class="entity-cell-title dashboard-cell-truncate" title="@item.ProductCode">@item.ProductCode</div>
+                                        <div class="entity-cell-subtitle dashboard-cell-truncate" title="@item.ProductName">@item.ProductName</div>
+                                    </td>
+                                    <td title="@(item.FromWarehouseName ?? "-")">@(item.FromLocationCode ?? "-")</td>
+                                    <td title="@(item.ToWarehouseName ?? "-")">@(item.ToLocationCode ?? "-")</td>
+                                    <td class="text-end">@($"{item.Quantity.ToString("0.###")} {item.UomCode}")</td>
                                     <td><span class="dashboard-cell-truncate" title="@item.Reference">@(string.IsNullOrWhiteSpace(item.Reference) ? "-" : item.Reference)</span></td>
-                                    <td>@item.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td><span class="@(isFreshMovement ? "dashboard-fresh-time" : null)">@item.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span></td>
                                 </tr>
                             }
                         }
@@ -270,3 +277,18 @@
         </aside>
     </section>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            document.querySelectorAll(".dashboard-table tbody tr[data-href]").forEach(function (row) {
+                row.style.cursor = "pointer";
+                row.addEventListener("click", function (e) {
+                    if (e.target.closest("a, button")) return;
+                    var href = row.getAttribute("data-href");
+                    if (href) window.location.href = href;
+                });
+            });
+        })();
+    </script>
+}

@@ -13,6 +13,7 @@ namespace Data.Data.Magazyn
 
         [Required]
         [Column("ProductId")]
+        [Display(Name = "Produkt")]
         public int IdProduktu { get; set; }
 
         [ValidateNever]
@@ -21,13 +22,16 @@ namespace Data.Data.Magazyn
 
         [Required, MaxLength(120)]
         [Column("CodeValue")]
+        [Display(Name = "Wartość kodu")]
         public string Wartosc { get; set; } = null!; // EAN/QR/itp.
 
         [Required, MaxLength(20)]
         [Column("CodeType")]
+        [Display(Name = "Typ kodu")]
         public string Typ { get; set; } = "EAN";
 
         [Column("IsPrimary")]
+        [Display(Name = "Kod główny")]
         public bool CzyGlowny { get; set; }
     }
 }

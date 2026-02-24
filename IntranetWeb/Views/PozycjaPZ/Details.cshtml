@@ -1,8 +1,13 @@
-@model Data.Data.Magazyn.PozycjaPZ
+@model Interfaces.Magazyn.Dtos.PozycjaPZDetailsDto
 
 @{
-    ViewData["Title"] = "Szczegoly pozycji PZ";
-    var value = Model.Ilosc * (Model.CenaJednostkowa ?? 0m);
+    ViewData["Title"] = "Szczegóły pozycji PZ";
+    var p = Model.Pozycja;
+    var jm = p.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
+    var canEdit = Model.CzyDokumentDraft;
+    var docStatus = p.Dokument?.Status ?? "-";
+    var docStatusClass = string.Equals(docStatus, "Draft", StringComparison.OrdinalIgnoreCase) ? "entity-badge--warning" :
+        string.Equals(docStatus, "Posted", StringComparison.OrdinalIgnoreCase) ? "entity-badge--success" : "entity-badge--muted";
 }
 
 <div class="news-admin-page">
@@ -10,35 +15,88 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-list-check"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Szczegoly pozycji PZ</h1>
-                <p class="news-admin-header__subheading mb-0">Podglad pozycji dokumentu przyjecia z wartoscia i lokalizacja.</p>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły pozycji PZ</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd pozycji dokumentu przyjęcia z wartością i lokalizacją.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Lp</span><strong class="news-admin-stat__value">@Model.Lp</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Lp</span><strong class="news-admin-stat__value">@p.Lp</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status PZ</span><strong class="news-admin-stat__value">@docStatus</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@p.Id</strong></div>
         </div>
     </section>
 
+    @if (TempData["PozycjaPZEditBlocked"] is string blockedMessage && !string.IsNullOrWhiteSpace(blockedMessage))
+    {
+        <div class="alert alert-warning mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle me-1"></i>@blockedMessage
+        </div>
+    }
+
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">Dokument @(Model.Dokument?.Numer ?? "-") / pozycja @Model.Lp</h2>
+            <h2 class="news-details-panel__title">Dokument @(p.Dokument?.Numer ?? "-") / pozycja @p.Lp</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                @if (canEdit)
+                {
+                    <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-outline-secondary" disabled title="Edycja tylko dla dokumentu Draft"><i class="bi bi-pencil-square me-1"></i> Edytuj</button>
+                }
+                <a asp-action="Delete" asp-route-id="@p.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Dokument PZ</div><div class="news-details-item__value entity-mono">@(Model.Dokument?.Numer ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Lp</div><div class="news-details-item__value">@Model.Lp</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Nazwa produktu</div><div class="news-details-item__value">@(Model.Produkt?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Lokacja</div><div class="news-details-item__value">@(Model.Lokacja?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Ilosc</div><div class="news-details-item__value">@Model.Ilosc.ToString("0.###")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Cena jednostkowa</div><div class="news-details-item__value">@(Model.CenaJednostkowa?.ToString("0.00") ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Wartosc pozycji</div><div class="news-details-item__value">@value.ToString("0.00")</div></div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Dokument PZ</div>
+                <div class="news-details-item__value entity-mono">@(p.Dokument?.Numer ?? "-")</div>
+                @if (p.Dokument != null)
+                {
+                    <div class="mt-2">
+                        <a class="btn btn-sm btn-outline-info" asp-controller="DokumentPZ" asp-action="Details" asp-route-id="@p.Dokument.Id">
+                            <i class="bi bi-file-earmark-text me-1"></i>Szczegóły PZ
+                        </a>
+                    </div>
+                }
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Status dokumentu PZ</div>
+                <div class="news-details-item__value"><span class="entity-badge @docStatusClass">@docStatus</span></div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Produkt</div>
+                <div class="news-details-item__value">@(p.Produkt?.Kod ?? "-")</div>
+                <div class="news-details-item__value news-details-item__value--content">@(p.Produkt?.Nazwa ?? "-")</div>
+                @if (p.Produkt != null)
+                {
+                    <div class="mt-2">
+                        <a class="btn btn-sm btn-outline-info" asp-controller="Produkt" asp-action="Details" asp-route-id="@p.Produkt.IdProduktu">
+                            <i class="bi bi-box-seam me-1"></i>Szczegóły produktu
+                        </a>
+                    </div>
+                }
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Lokacja</div>
+                <div class="news-details-item__value">@(p.Lokacja?.Kod ?? "-")</div>
+                <div class="news-details-item__value news-details-item__value--content">@(p.Lokacja?.Magazyn?.Nazwa ?? "-")</div>
+                @if (p.Lokacja != null)
+                {
+                    <div class="mt-2">
+                        <a class="btn btn-sm btn-outline-info" asp-controller="Lokacja" asp-action="Details" asp-route-id="@p.Lokacja.IdLokacji">
+                            <i class="bi bi-geo-alt me-1"></i>Szczegóły lokacji
+                        </a>
+                    </div>
+                }
+            </div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilość</div><div class="news-details-item__value">@p.Ilosc.ToString("0.###") @jm</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Cena jednostkowa</div><div class="news-details-item__value">@(p.CenaJednostkowa?.ToString("0.00") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Wartość pozycji</div><div class="news-details-item__value">@Model.Wartosc.ToString("0.00")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Jednostka miary</div><div class="news-details-item__value">@jm</div></div>
         </div>
     </section>
 </div>

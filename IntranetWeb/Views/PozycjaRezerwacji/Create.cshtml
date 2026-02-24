@@ -1,16 +1,21 @@
 @model Data.Data.Magazyn.PozycjaRezerwacji
 
 @{
-    ViewData["Title"] = "Dodaj pozycje rezerwacji";
+    ViewData["Title"] = "Dodaj pozycję rezerwacji";
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
+            <span class="news-admin-header__icon">
+                <i class="bi bi-plus-square"></i>
+            </span>
+
             <div>
                 <h1 class="news-admin-header__heading mb-1">Dodaj pozycję rezerwacji</h1>
-                <p class="news-admin-header__subheading mb-0">Dodaj wiersz rezerwacji z produktem, lokalizacją i ilością.</p>
+                <p class="news-admin-header__subheading mb-0">
+                    Dodaj wiersz rezerwacji z produktem, opcjonalną lokacją i ilością.
+                </p>
             </div>
         </div>
     </section>
@@ -18,46 +23,120 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane pozycji</h2>
-            <p class="text-muted mb-0">Wybierz rezerwację, produkt, opcjonalna lokalizacje i podaj ilość.</p>
+            <p class="text-muted mb-0">
+                Wybierz rezerwację, produkt i podaj ilość. Lokacja jest opcjonalna.
+            </p>
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger news-form-validation"
+                 role="alert">
+            </div>
+
             <div class="news-form-grid">
                 <div class="news-form-field">
-                    <label asp-for="IdRezerwacji" class="form-label news-form-label"></label>
-                    <select asp-for="IdRezerwacji" class="form-select news-form-control" asp-items="ViewBag.IdRezerwacji"></select>
+                    <label asp-for="IdRezerwacji" class="form-label news-form-label">Rezerwacja</label>
+                    <select asp-for="IdRezerwacji"
+                            class="form-select news-form-control"
+                            asp-items="ViewBag.IdRezerwacji">
+                    </select>
                     <span asp-validation-for="IdRezerwacji" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="Lp" class="form-label news-form-label"></label>
-                    <input asp-for="Lp" class="form-control news-form-control" />
+                    <label asp-for="Lp" class="form-label news-form-label">Lp</label>
+                    <input asp-for="Lp" class="form-control news-form-control" min="1" />
+                    <div class="form-text">
+                        Domyślnie ustawiany jest kolejny numer pozycji dla wybranej rezerwacji.
+                    </div>
                     <span asp-validation-for="Lp" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
-                    <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu"></select>
+                    <label asp-for="IdProduktu" class="form-label news-form-label">Produkt</label>
+                    <select asp-for="IdProduktu"
+                            class="form-select news-form-control"
+                            asp-items="ViewBag.IdProduktu">
+                    </select>
                     <span asp-validation-for="IdProduktu" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="IdLokacji" class="form-label news-form-label"></label>
-                    <select asp-for="IdLokacji" class="form-select news-form-control" asp-items="ViewBag.IdLokacji"></select>
+                    <label asp-for="IdLokacji" class="form-label news-form-label">Lokacja (opcjonalnie)</label>
+                    <select asp-for="IdLokacji"
+                            class="form-select news-form-control"
+                            asp-items="ViewBag.IdLokacji">
+                        <option value="">(brak)</option>
+                    </select>
                     <span asp-validation-for="IdLokacji" class="text-danger small"></span>
                 </div>
+
                 <div class="news-form-field">
-                    <label asp-for="Ilosc" class="form-label news-form-label"></label>
-                    <input asp-for="Ilosc" class="form-control news-form-control" />
+                    <label asp-for="Ilosc" class="form-label news-form-label">Ilość</label>
+                    <input asp-for="Ilosc"
+                           class="form-control news-form-control"
+                           step="0.001"
+                           value="@(Model.Ilosc == 0 ? "" : Model.Ilosc.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))"
+                           placeholder="np. 10" />
+                    <div class="form-text">
+                        Jednostka: <span id="rezItemUomHint">j.m.</span>
+                    </div>
                     <span asp-validation-for="Ilosc" class="text-danger small"></span>
                 </div>
             </div>
+
             <div class="news-form-actions">
-                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz pozycję</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
+                <button type="submit" class="btn btn-primary news-form-actions__primary">
+                    <i class="bi bi-check2-circle"></i> Zapisz pozycję
+                </button>
+
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Wróć do listy
+                </a>
             </div>
         </form>
     </section>
 </div>
 
 @section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        (() => {
+            const docSelect = document.getElementById('IdRezerwacji');
+            const lpInput = document.getElementById('Lp');
+            const productSelect = document.getElementById('IdProduktu');
+            const uomHint = document.getElementById('rezItemUomHint');
+
+            const nextLpByDocument = @Html.Raw((string?)ViewData["NextLpByDocumentJson"] ?? "{}");
+            const productUomMap = @Html.Raw((string?)ViewData["ProductUomMapJson"] ?? "{}");
+
+            const applyNextLp = () => {
+                const docId = Number.parseInt(docSelect?.value || '', 10);
+                const nextLp = nextLpByDocument[docId];
+                if (typeof nextLp === 'number' && nextLp > 0 && lpInput) {
+                    lpInput.value = String(nextLp);
+                }
+            };
+
+            const applyUom = () => {
+                const pid = Number.parseInt(productSelect?.value || '', 10);
+                if (uomHint) {
+                    uomHint.textContent = productUomMap[pid] || 'j.m.';
+                }
+            };
+
+            docSelect?.addEventListener('change', applyNextLp);
+            productSelect?.addEventListener('change', applyUom);
+
+            if (!lpInput?.value || lpInput.value === '0' || lpInput.value === '1') {
+                applyNextLp();
+            }
+
+            applyUom();
+        })();
+    </script>
 }

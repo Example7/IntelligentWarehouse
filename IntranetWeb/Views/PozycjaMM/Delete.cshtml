@@ -1,7 +1,11 @@
-@model Data.Data.Magazyn.PozycjaMM
+@model Interfaces.Magazyn.Dtos.PozycjaMMDeleteDto
 
 @{
     ViewData["Title"] = "Usun pozycje MM";
+    var p = Model.Pozycja;
+    var jm = p.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
+    var docStatus = p.Dokument?.Status ?? "-";
+    var docStatusClass = string.Equals(docStatus, "Draft", StringComparison.OrdinalIgnoreCase) ? "entity-badge--warning" : string.Equals(docStatus, "Posted", StringComparison.OrdinalIgnoreCase) ? "entity-badge--success" : "entity-badge--muted";
 }
 
 <div class="news-admin-page">
@@ -20,23 +24,29 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
                 <strong>Usuniecie pozycji MM</strong>
-                <div>Usuniecie pozycji zmieni ilosc dokumentu przesuniecia.</div>
+                <div>@(Model.CzyDokumentDraft ? "Usuniecie pozycji zmieni ilosc dokumentu przesuniecia." : (Model.PowodBlokady ?? "Operacja moze byc zablokowana."))</div>
             </div>
         </div>
 
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger mt-3"><div asp-validation-summary="All" class="mb-0"></div></div>
+        }
+
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Dokument</div><div class="news-details-item__value entity-mono">@(Model.Dokument?.Numer ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Lp</div><div class="news-details-item__value">@Model.Lp</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Lokacja z</div><div class="news-details-item__value">@(Model.LokacjaZ?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Lokacja do</div><div class="news-details-item__value">@(Model.LokacjaDo?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Ilosc</div><div class="news-details-item__value">@Model.Ilosc.ToString("0.###")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokument MM</div><div class="news-details-item__value entity-mono">@(p.Dokument?.Numer ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status dokumentu MM</div><div class="news-details-item__value"><span class="entity-badge @docStatusClass">@docStatus</span></div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Lp</div><div class="news-details-item__value">@p.Lp</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(p.Produkt?.Kod ?? "-") - @(p.Produkt?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Z lokacji</div><div class="news-details-item__value">@(p.LokacjaZ?.Kod ?? "-") / @(p.LokacjaZ?.Magazyn?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Do lokacji</div><div class="news-details-item__value">@(p.LokacjaDo?.Kod ?? "-") / @(p.LokacjaDo?.Magazyn?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilosc</div><div class="news-details-item__value">@p.Ilosc.ToString("0.###") @jm</div></div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="Id" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun pozycje</button>
-            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <input type="hidden" name="id" value="@p.Id" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary" @(Model.CzyMoznaUsunac ? null : "disabled")><i class="bi bi-trash3-fill"></i> Usun pozycje MM</button>
+            <a asp-action="Details" asp-route-id="@p.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

@@ -1,9 +1,12 @@
-@model IEnumerable<Data.Data.Magazyn.StanMagazynowy>
+﻿@model Interfaces.Magazyn.Dtos.StanMagazynowyIndexDto
 
 @{
     ViewData["Title"] = "Stany magazynowe";
-    var items = Model.ToList();
-    var totalQty = items.Sum(x => x.Ilosc);
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var totalsByUom = Model.SumaWgJednostki;
+    var totalByUomLabel = Model.SumaWgJednostkiLabel;
+    var reservedMap = Model.AktywneRezerwacjePoKluczu;
 }
 
 <div class="news-admin-page">
@@ -12,19 +15,51 @@
             <span class="news-admin-header__icon"><i class="bi bi-stack"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Stany magazynowe</h1>
-                <p class="news-admin-header__subheading mb-0">Aktualne ilości produktów w lokalizacjach magazynowych.</p>
+                <p class="news-admin-header__subheading mb-0">Aktualne ilości produktow w lokalizacjach magazynowych.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
             <div class="news-admin-stat"><span class="news-admin-stat__label">Pozycji</span><strong class="news-admin-stat__value">@items.Count</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Suma ilości</span><strong class="news-admin-stat__value">@totalQty</strong></div>
+            <div class="news-admin-stat" title="Suma ilości grupowana po jednostce miary"><span class="news-admin-stat__label">Suma wg JM</span><strong class="news-admin-stat__value">@totalsByUom.Count</strong></div>
         </div>
     </section>
 
     <section class="news-admin-toolbar">
-        <div></div>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie stanow magazynowych">
+            <label for="stockSearchTerm" class="visually-hidden">Szukaj stanow magazynowych</label>
+            <div class="news-admin-search__input-wrap">
+                <i class="bi bi-search news-admin-search__icon"></i>
+                <input id="stockSearchTerm"
+                       class="form-control news-admin-search__input"
+                       name="searchTerm"
+                       value="@searchTerm"
+                       placeholder="Szukaj po SKU, nazwie produktu, magazynie lub lokacji..." />
+            </div>
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" aria-label="Wyczyść wyszukiwanie">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            }
+        </form>
         <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj stan</a>
     </section>
+
+    @if (items.Any())
+    {
+        <section class="entity-table-panel mb-3">
+            <div class="d-flex flex-wrap align-items-center gap-2 px-3 py-2">
+                <span class="small text-muted">Suma wg JM</span>
+                @foreach (var total in totalsByUom)
+                {
+                    <span class="entity-badge entity-badge--muted" title="@($"{total.Ilosc.ToString("0.###")} {total.Jednostka}")">
+                        @total.Ilosc.ToString("0.###") @total.Jednostka
+                    </span>
+                }
+            </div>
+        </section>
+    }
 
     @if (!items.Any())
     {
@@ -43,31 +78,43 @@
                     <thead>
                         <tr>
                             <th>Produkt</th>
+                            <th>Magazyn</th>
                             <th>Lokacja</th>
                             <th class="text-end">Ilosc</th>
-                            <th>RowVersion</th>
+                            <th class="text-end">Zarezerwowane</th>
+                            <th class="text-end">Dostępne</th>
+                            <th>JM</th>
                             <th class="text-end">Akcje</th>
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in items.OrderBy(x => x.Produkt?.Kod).ThenBy(x => x.Lokacja?.Kod))
+                    @foreach (var item in items.OrderBy(x => x.Produkt?.Kod).ThenBy(x => x.Lokacja?.Magazyn?.Nazwa).ThenBy(x => x.Lokacja?.Kod))
                     {
+                        var jm = item.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
+                        var stockKey = Interfaces.Magazyn.Dtos.StanMagazynowyIndexDto.BuildKey(item.IdProduktu, item.IdLokacji);
+                        var reserved = reservedMap.TryGetValue(stockKey, out var rezQty) ? rezQty : 0m;
+                        var available = item.Ilosc - reserved;
                         <tr>
                             <td>
                                 <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
-                                <div class="entity-cell-subtitle">ID produktu: @item.IdProduktu</div>
+                                <div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? $"ID produktu: {item.IdProduktu}")</div>
+                            </td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Lokacja?.Magazyn?.Nazwa ?? "-")</div>
                             </td>
                             <td>
                                 <div class="entity-cell-title">@(item.Lokacja?.Kod ?? "-")</div>
                                 <div class="entity-cell-subtitle">ID lokacji: @item.IdLokacji</div>
                             </td>
-                            <td class="text-end">@item.Ilosc</td>
-                            <td><span class="entity-mono">@(item.RowVersion is { Length: > 0 } ? Convert.ToBase64String(item.RowVersion) : "-")</span></td>
+                            <td class="text-end">@item.Ilosc.ToString("0.###")</td>
+                            <td class="text-end">@reserved.ToString("0.###")</td>
+                            <td class="text-end">@available.ToString("0.###")</td>
+                            <td>@jm</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla stanu @item.IdStanu">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdStanu"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdStanu"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdStanu"><i class="bi bi-trash"></i></a>
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdStanu" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdStanu" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdStanu" title="Usuń"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>
@@ -78,3 +125,4 @@
         </section>
     }
 </div>
+

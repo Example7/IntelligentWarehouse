@@ -1,28 +1,30 @@
+using Data.Data;
+using Data.Data.Magazyn;
+using Interfaces.Magazyn;
+using IntranetWeb.Controllers.Abstrakcja;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Data.Data;
-using Data.Data.Magazyn;
-
-using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
     public class DokumentPZController : BaseSearchController<DokumentPZ>
     {
+        private readonly IDokumentPZService _dokumentPzService;
+        private static readonly string[] DozwoloneStatusyCreate = ["Draft"];
+        private static readonly string[] DozwoloneStatusyEdit = ["Draft", "Cancelled"];
 
-        public DokumentPZController(DataContext context) : base(context) { }
-
-        // GET: DokumentPZ
-        public async Task<IActionResult> Index(string? searchTerm)
+        public DokumentPZController(DataContext context, IDokumentPZService dokumentPzService) : base(context)
         {
-            var query = _context.DokumentPZ.Include(d => d.Dostawca).Include(d => d.Magazyn).Include(d => d.Utworzyl).AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Numer, x => x.Status, x => x.Notatka);
-
-            return View(await query.ToListAsync());
+            _dokumentPzService = dokumentPzService;
         }
 
-        // GET: DokumentPZ/Details/5
+        public async Task<IActionResult> Index(string? searchTerm)
+        {
+            var model = await _dokumentPzService.GetIndexDataAsync(searchTerm);
+            return View(model);
+        }
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -30,48 +32,65 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var dokumentPZ = await _context.DokumentPZ
-                .Include(d => d.Dostawca)
-                .Include(d => d.Magazyn)
-                .Include(d => d.Utworzyl)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (dokumentPZ == null)
+            var model = await _dokumentPzService.GetDetailsDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(dokumentPZ);
+            return View(model);
         }
 
-        // GET: DokumentPZ/Create
         public IActionResult Create()
         {
-            ViewData["IdDostawcy"] = new SelectList(_context.Dostawca, "IdDostawcy", "Nazwa");
-            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn, "IdMagazynu", "Nazwa");
-            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik, "IdUzytkownika", "Email");
-            return View();
+            var model = new DokumentPZ
+            {
+                Status = "Draft",
+                DataPrzyjeciaUtc = DateTime.UtcNow
+            };
+
+            UzupelnijDaneFormularza(model);
+            ViewData["StatusOptions"] = BuildStatusSelectList(DozwoloneStatusyCreate, model.Status);
+            return View(model);
         }
 
-        // POST: DokumentPZ/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Numer,IdMagazynu,IdDostawcy,Status,DataPrzyjeciaUtc,IdUtworzyl,ZaksiegowanoUtc,Notatka,RowVersion")] DokumentPZ dokumentPZ)
+        public async Task<IActionResult> Create([Bind("Id,Numer,IdMagazynu,IdDostawcy,DataPrzyjeciaUtc,IdUtworzyl,Notatka")] DokumentPZ dokumentPZ)
         {
+            dokumentPZ.Status = "Draft";
+            dokumentPZ.Numer = dokumentPZ.Numer?.Trim() ?? string.Empty;
+
+            if (await CzyNumerDokumentuPzJuzIstniejeAsync(dokumentPZ.Numer))
+            {
+                ModelState.AddModelError(nameof(DokumentPZ.Numer), $"Dokument PZ o numerze '{dokumentPZ.Numer}' już istnieje.");
+            }
+
+            if (await CzyNumerDokumentuPzJuzIstniejeAsync(dokumentPZ.Numer, dokumentPZ.Id))
+            {
+                ModelState.AddModelError(nameof(DokumentPZ.Numer), $"Dokument PZ o numerze '{dokumentPZ.Numer}' juz istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(dokumentPZ);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    dokumentPZ.ZaksiegowanoUtc = null;
+                    _context.Add(dokumentPZ);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(nameof(DokumentPZ.Numer), $"Dokument PZ o numerze '{dokumentPZ.Numer}' już istnieje.");
+                }
             }
-            ViewData["IdDostawcy"] = new SelectList(_context.Dostawca, "IdDostawcy", "Nazwa", dokumentPZ.IdDostawcy);
-            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn, "IdMagazynu", "Nazwa", dokumentPZ.IdMagazynu);
-            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik, "IdUzytkownika", "Email", dokumentPZ.IdUtworzyl);
+
+            UzupelnijDaneFormularza(dokumentPZ);
+            ViewData["StatusOptions"] = BuildStatusSelectList(DozwoloneStatusyCreate, dokumentPZ.Status);
             return View(dokumentPZ);
         }
 
-        // GET: DokumentPZ/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -79,34 +98,66 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var dokumentPZ = await _context.DokumentPZ.FindAsync(id);
+            var dokumentPZ = await _context.DokumentPZ
+                .Include(d => d.Utworzyl)
+                .FirstOrDefaultAsync(d => d.Id == id);
             if (dokumentPZ == null)
             {
                 return NotFound();
             }
-            ViewData["IdDostawcy"] = new SelectList(_context.Dostawca, "IdDostawcy", "Nazwa", dokumentPZ.IdDostawcy);
-            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn, "IdMagazynu", "Nazwa", dokumentPZ.IdMagazynu);
-            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik, "IdUzytkownika", "Email", dokumentPZ.IdUtworzyl);
+
+            if (!string.Equals(dokumentPZ.Status, "Draft", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["DokumentPZEditBlocked"] = "Edycja jest dostępna tylko dla dokumentow PZ w statusie Draft.";
+                return RedirectToAction(nameof(Details), new { id = dokumentPZ.Id });
+            }
+
+            UzupelnijDaneFormularza(dokumentPZ);
+            ViewData["StatusOptions"] = BuildStatusSelectList(DozwoloneStatusyEdit, dokumentPZ.Status);
+            ViewData["AutorDokumentuEmail"] = dokumentPZ.Utworzyl?.Email ?? "-";
             return View(dokumentPZ);
         }
 
-        // POST: DokumentPZ/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Numer,IdMagazynu,IdDostawcy,Status,DataPrzyjeciaUtc,IdUtworzyl,ZaksiegowanoUtc,Notatka,RowVersion")] DokumentPZ dokumentPZ)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Numer,IdMagazynu,IdDostawcy,Status,DataPrzyjeciaUtc,IdUtworzyl,Notatka,RowVersion")] DokumentPZ dokumentPZ)
         {
             if (id != dokumentPZ.Id)
             {
                 return NotFound();
             }
 
+            dokumentPZ.Numer = dokumentPZ.Numer?.Trim() ?? string.Empty;
+
+            if (!DozwoloneStatusyEdit.Contains(dokumentPZ.Status))
+            {
+                ModelState.AddModelError(nameof(DokumentPZ.Status), "W edycji dozwolone są tylko statusy Draft lub Cancelled. Użyj akcji Zaksięguj dla statusu Posted.");
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(dokumentPZ);
+                    var existing = await _context.DokumentPZ.FirstOrDefaultAsync(x => x.Id == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    if (!string.Equals(existing.Status, "Draft", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ModelState.AddModelError(string.Empty, "Edytować można tylko dokumenty PZ w statusie Draft.");
+                        return await ReturnEditViewWithLookupsAsync(dokumentPZ);
+                    }
+
+                    existing.Numer = dokumentPZ.Numer;
+                    existing.IdMagazynu = dokumentPZ.IdMagazynu;
+                    existing.IdDostawcy = dokumentPZ.IdDostawcy;
+                    existing.Status = dokumentPZ.Status;
+                    existing.DataPrzyjeciaUtc = dokumentPZ.DataPrzyjeciaUtc;
+                    existing.Notatka = dokumentPZ.Notatka;
+
+                    _context.Entry(existing).Property(x => x.RowVersion).OriginalValue = dokumentPZ.RowVersion;
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -115,20 +166,38 @@ namespace IntranetWeb.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(nameof(DokumentPZ.Numer), $"Dokument PZ o numerze '{dokumentPZ.Numer}' już istnieje.");
+                    return await ReturnEditViewWithLookupsAsync(dokumentPZ);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdDostawcy"] = new SelectList(_context.Dostawca, "IdDostawcy", "Nazwa", dokumentPZ.IdDostawcy);
-            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn, "IdMagazynu", "Nazwa", dokumentPZ.IdMagazynu);
-            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik, "IdUzytkownika", "Email", dokumentPZ.IdUtworzyl);
-            return View(dokumentPZ);
+
+            return await ReturnEditViewWithLookupsAsync(dokumentPZ);
         }
 
-        // GET: DokumentPZ/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PostDocument(int id)
+        {
+            var result = await _dokumentPzService.PostAsync(id);
+            if (result.Success)
+            {
+                TempData["DokumentPZPostSuccess"] = "Dokument PZ został zaksięgowany.";
+            }
+            else
+            {
+                TempData["DokumentPZPostError"] = result.ErrorMessage ?? "Nie udało się zaksięgować dokumentu PZ.";
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -136,37 +205,94 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var dokumentPZ = await _context.DokumentPZ
-                .Include(d => d.Dostawca)
-                .Include(d => d.Magazyn)
-                .Include(d => d.Utworzyl)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (dokumentPZ == null)
+            var model = await _dokumentPzService.GetDeleteDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(dokumentPZ);
+            return View(model);
         }
 
-        // POST: DokumentPZ/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var deleteData = await _dokumentPzService.GetDeleteDataAsync(id);
+            if (deleteData == null)
+            {
+                return NotFound();
+            }
+
+            if (!deleteData.CzyMoznaUsunac)
+            {
+                ModelState.AddModelError(string.Empty, $"Nie można usunąć dokumentu PZ, ponieważ ma powiązane pozycje ({deleteData.LiczbaPozycji}).");
+                return View("Delete", deleteData);
+            }
+
             var dokumentPZ = await _context.DokumentPZ.FindAsync(id);
             if (dokumentPZ != null)
             {
                 _context.DokumentPZ.Remove(dokumentPZ);
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Nie udało się usunąć dokumentu PZ, ponieważ ma powiązane rekordy (np. pozycje PZ).");
+                deleteData = await _dokumentPzService.GetDeleteDataAsync(id);
+                if (deleteData == null)
+                {
+                    return NotFound();
+                }
+                return View("Delete", deleteData);
+            }
         }
 
         private bool DokumentPZExists(int id)
         {
             return _context.DokumentPZ.Any(e => e.Id == id);
+        }
+
+        private Task<bool> CzyNumerDokumentuPzJuzIstniejeAsync(string numer, int? zWykluczeniemId = null)
+        {
+            if (string.IsNullOrWhiteSpace(numer))
+            {
+                return Task.FromResult(false);
+            }
+
+            return _context.DokumentPZ.AsNoTracking().AnyAsync(d =>
+                d.Numer == numer &&
+                (!zWykluczeniemId.HasValue || d.Id != zWykluczeniemId.Value));
+        }
+
+        private void UzupelnijDaneFormularza(DokumentPZ dokumentPZ)
+        {
+            ViewData["IdDostawcy"] = new SelectList(_context.Dostawca.AsNoTracking().OrderBy(x => x.Nazwa), "IdDostawcy", "Nazwa", dokumentPZ.IdDostawcy);
+            ViewData["IdMagazynu"] = new SelectList(_context.Magazyn.AsNoTracking().OrderBy(x => x.Nazwa), "IdMagazynu", "Nazwa", dokumentPZ.IdMagazynu);
+            ViewData["IdUtworzyl"] = new SelectList(_context.Uzytkownik.AsNoTracking().OrderBy(x => x.Email), "IdUzytkownika", "Email", dokumentPZ.IdUtworzyl);
+        }
+
+        private async Task<IActionResult> ReturnEditViewWithLookupsAsync(DokumentPZ dokumentPZ)
+        {
+            UzupelnijDaneFormularza(dokumentPZ);
+            ViewData["StatusOptions"] = BuildStatusSelectList(DozwoloneStatusyEdit, dokumentPZ.Status);
+            ViewData["AutorDokumentuEmail"] = await _context.Uzytkownik
+                .Where(u => u.IdUzytkownika == dokumentPZ.IdUtworzyl)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync() ?? "-";
+            return View(dokumentPZ);
+        }
+
+        private static IReadOnlyList<SelectListItem> BuildStatusSelectList(IEnumerable<string> allowedStatuses, string? selected)
+        {
+            return allowedStatuses
+                .Select(x => new SelectListItem(x, x, string.Equals(x, selected, StringComparison.OrdinalIgnoreCase)))
+                .ToList();
         }
     }
 }

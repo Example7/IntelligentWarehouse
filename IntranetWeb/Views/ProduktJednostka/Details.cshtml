@@ -1,40 +1,65 @@
-@model Data.Data.Magazyn.ProduktJednostka
+﻿@model Interfaces.Magazyn.Dtos.ProduktJednostkaDetailsDto
 
 @{
-    ViewData["Title"] = "Szczegoly jednostki produktu";
+    ViewData["Title"] = "Szczegóły jednostki produktu";
+    var item = Model.ProduktJednostka;
+    var domyslnaJm = item.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon"><i class="bi bi-rulers"></i></span>
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-rulers"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szczegóły jednostki produktu</h1>
                 <p class="news-admin-header__subheading mb-0">Podgląd powiązania produktu z jednostką i przelicznikiem.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Przelicznik</span><strong class="news-admin-stat__value">@Model.PrzelicznikDoDomyslnej.ToString("0.######")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@item.Id</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Przelicznik</span><strong class="news-admin-stat__value">@item.PrzelicznikDoDomyslnej.ToString("0.######")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">JM produktu</span><strong class="news-admin-stat__value">@Model.LiczbaJednostekProduktu</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@(Model.Produkt?.Nazwa ?? "Produkt") / @(Model.Jednostka?.Kod ?? "JM")</h2>
+            <h2 class="news-details-panel__title">@(item.Produkt?.Kod ?? "Produkt") / @(item.Jednostka?.Kod ?? "JM")</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-controller="Produkt" asp-action="Details" asp-route-id="@item.IdProduktu" class="btn btn-outline-info"><i class="bi bi-box-seam me-1"></i> Produkt</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kod produktu</div><div class="news-details-item__value entity-mono">@(Model.Produkt?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Jednostka</div><div class="news-details-item__value">@(Model.Jednostka?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kod JM</div><div class="news-details-item__value">@(Model.Jednostka?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Przelicznik do domyślnej</div><div class="news-details-item__value">@Model.PrzelicznikDoDomyslnej.ToString("0.######")</div></div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Produkt</div>
+                <div class="news-details-item__value">
+                    @(item.Produkt?.Kod ?? "-")
+                    <div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? "-")</div>
+                </div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Domyślna jednostka produktu</div>
+                <div class="news-details-item__value">@domyslnaJm</div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Jednostka</div>
+                <div class="news-details-item__value">
+                    @(item.Jednostka?.Kod ?? "-")
+                    <div class="entity-cell-subtitle">@(item.Jednostka?.Nazwa ?? "-")</div>
+                </div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Przelicznik do domyślnej</div>
+                <div class="news-details-item__value entity-mono">@item.PrzelicznikDoDomyslnej.ToString("0.######")</div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Liczba jednostek dla produktu</div>
+                <div class="news-details-item__value">@Model.LiczbaJednostekProduktu</div>
+            </div>
         </div>
     </section>
 </div>

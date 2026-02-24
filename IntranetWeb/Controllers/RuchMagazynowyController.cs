@@ -1,5 +1,6 @@
-using Data.Data;
+﻿using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,16 +11,18 @@ namespace IntranetWeb.Controllers
 {
     public class RuchMagazynowyController : BaseSearchController<RuchMagazynowy>
     {
+        private readonly IRuchMagazynowyService _ruchMagazynowyService;
 
-        public RuchMagazynowyController(DataContext context) : base(context) { }
+        public RuchMagazynowyController(DataContext context, IRuchMagazynowyService ruchMagazynowyService) : base(context)
+        {
+            _ruchMagazynowyService = ruchMagazynowyService;
+        }
 
         // GET: RuchMagazynowy
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.RuchMagazynowy.Include(r => r.LokacjaDo).Include(r => r.LokacjaZ).Include(r => r.Produkt).Include(r => r.Uzytkownik).AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Referencja, x => x.Notatka);
-
-            return View(await query.ToListAsync());
+            var model = await _ruchMagazynowyService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
         // GET: RuchMagazynowy/Details/5
@@ -41,36 +44,53 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
+            // Defensive explicit loads for nested refs used in the view.
+            // In some environments nested navs may still arrive null despite Include/ThenInclude.
+            if (ruchMagazynowy.Produkt != null)
+            {
+                await _context.Entry(ruchMagazynowy.Produkt).Reference(p => p.DomyslnaJednostka).LoadAsync();
+            }
+
+            if (ruchMagazynowy.LokacjaZ != null)
+            {
+                await _context.Entry(ruchMagazynowy.LokacjaZ).Reference(l => l.Magazyn).LoadAsync();
+            }
+
+            if (ruchMagazynowy.LokacjaDo != null)
+            {
+                await _context.Entry(ruchMagazynowy.LokacjaDo).Reference(l => l.Magazyn).LoadAsync();
+            }
+
             return View(ruchMagazynowy);
         }
 
         // GET: RuchMagazynowy/Create
         public IActionResult Create()
         {
-            ViewData["IdLokacjiDo"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod");
-            ViewData["IdLokacjiZ"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod");
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod");
-            ViewData["IdUzytkownika"] = new SelectList(_context.Set<Uzytkownik>(), "IdUzytkownika", "Email");
+            UzupelnijDaneFormularza();
             return View();
         }
 
         // POST: RuchMagazynowy/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdRuchu,Typ,IdProduktu,IdLokacjiZ,IdLokacjiDo,Ilosc,Referencja,Notatka,UtworzonoUtc,IdUzytkownika")] RuchMagazynowy ruchMagazynowy)
+        public async Task<IActionResult> Create([Bind("IdRuchu,Typ,IdProduktu,IdLokacjiZ,IdLokacjiDo,Ilosc,Referencja,Notatka,IdUzytkownika")] RuchMagazynowy ruchMagazynowy)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(ruchMagazynowy);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var result = await _ruchMagazynowyService.CreateAndApplyAsync(ruchMagazynowy);
+                if (result.Success)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(error.Key, error.Message);
+                }
             }
-            ViewData["IdLokacjiDo"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", ruchMagazynowy.IdLokacjiDo);
-            ViewData["IdLokacjiZ"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", ruchMagazynowy.IdLokacjiZ);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", ruchMagazynowy.IdProduktu);
-            ViewData["IdUzytkownika"] = new SelectList(_context.Set<Uzytkownik>(), "IdUzytkownika", "Email", ruchMagazynowy.IdUzytkownika);
+
+            UzupelnijDaneFormularza(ruchMagazynowy.IdProduktu, ruchMagazynowy.IdLokacjiZ, ruchMagazynowy.IdLokacjiDo, ruchMagazynowy.IdUzytkownika);
             return View(ruchMagazynowy);
         }
 
@@ -87,19 +107,15 @@ namespace IntranetWeb.Controllers
             {
                 return NotFound();
             }
-            ViewData["IdLokacjiDo"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", ruchMagazynowy.IdLokacjiDo);
-            ViewData["IdLokacjiZ"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", ruchMagazynowy.IdLokacjiZ);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", ruchMagazynowy.IdProduktu);
-            ViewData["IdUzytkownika"] = new SelectList(_context.Set<Uzytkownik>(), "IdUzytkownika", "Email", ruchMagazynowy.IdUzytkownika);
+
+            UzupelnijDaneFormularza(ruchMagazynowy.IdProduktu, ruchMagazynowy.IdLokacjiZ, ruchMagazynowy.IdLokacjiDo, ruchMagazynowy.IdUzytkownika);
             return View(ruchMagazynowy);
         }
 
         // POST: RuchMagazynowy/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IdRuchu,Typ,IdProduktu,IdLokacjiZ,IdLokacjiDo,Ilosc,Referencja,Notatka,UtworzonoUtc,IdUzytkownika")] RuchMagazynowy ruchMagazynowy)
+        public async Task<IActionResult> Edit(int id, [Bind("IdRuchu,Typ,IdProduktu,IdLokacjiZ,IdLokacjiDo,Ilosc,Referencja,Notatka,IdUzytkownika")] RuchMagazynowy ruchMagazynowy)
         {
             if (id != ruchMagazynowy.IdRuchu)
             {
@@ -108,28 +124,19 @@ namespace IntranetWeb.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                var result = await _ruchMagazynowyService.UpdateAndReapplyAsync(id, ruchMagazynowy);
+                if (result.Success)
                 {
-                    _context.Update(ruchMagazynowy);
-                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+
+                foreach (var error in result.Errors)
                 {
-                    if (!RuchMagazynowyExists(ruchMagazynowy.IdRuchu))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    ModelState.AddModelError(error.Key, error.Message);
                 }
-                return RedirectToAction(nameof(Index));
             }
-            ViewData["IdLokacjiDo"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", ruchMagazynowy.IdLokacjiDo);
-            ViewData["IdLokacjiZ"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", ruchMagazynowy.IdLokacjiZ);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", ruchMagazynowy.IdProduktu);
-            ViewData["IdUzytkownika"] = new SelectList(_context.Set<Uzytkownik>(), "IdUzytkownika", "Email", ruchMagazynowy.IdUzytkownika);
+
+            UzupelnijDaneFormularza(ruchMagazynowy.IdProduktu, ruchMagazynowy.IdLokacjiZ, ruchMagazynowy.IdLokacjiDo, ruchMagazynowy.IdUzytkownika);
             return View(ruchMagazynowy);
         }
 
@@ -152,6 +159,21 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
+            if (ruchMagazynowy.Produkt != null)
+            {
+                await _context.Entry(ruchMagazynowy.Produkt).Reference(p => p.DomyslnaJednostka).LoadAsync();
+            }
+
+            if (ruchMagazynowy.LokacjaZ != null)
+            {
+                await _context.Entry(ruchMagazynowy.LokacjaZ).Reference(l => l.Magazyn).LoadAsync();
+            }
+
+            if (ruchMagazynowy.LokacjaDo != null)
+            {
+                await _context.Entry(ruchMagazynowy.LokacjaDo).Reference(l => l.Magazyn).LoadAsync();
+            }
+
             return View(ruchMagazynowy);
         }
 
@@ -160,19 +182,69 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var ruchMagazynowy = await _context.RuchMagazynowy.FindAsync(id);
-            if (ruchMagazynowy != null)
+            var result = await _ruchMagazynowyService.DeleteAndRevertAsync(id);
+            if (result.Success)
             {
-                _context.RuchMagazynowy.Remove(ruchMagazynowy);
+                return RedirectToAction(nameof(Index));
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var ruchMagazynowy = await _context.RuchMagazynowy
+                .Include(r => r.LokacjaDo)
+                    .ThenInclude(l => l!.Magazyn)
+                .Include(r => r.LokacjaZ)
+                    .ThenInclude(l => l!.Magazyn)
+                .Include(r => r.Produkt)
+                    .ThenInclude(p => p.DomyslnaJednostka)
+                .Include(r => r.Uzytkownik)
+                .FirstOrDefaultAsync(m => m.IdRuchu == id);
+            if (ruchMagazynowy == null)
+            {
+                return NotFound();
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(error.Key, error.Message);
+            }
+
+            return View("Delete", ruchMagazynowy);
         }
 
         private bool RuchMagazynowyExists(int id)
         {
             return _context.RuchMagazynowy.Any(e => e.IdRuchu == id);
+        }
+
+        private void UzupelnijDaneFormularza(int? selectedProduktId = null, int? selectedLokacjaZId = null, int? selectedLokacjaDoId = null, int? selectedUzytkownikId = null)
+        {
+            var produkty = _context.Produkt
+                .AsNoTracking()
+                .Include(p => p.DomyslnaJednostka)
+                .OrderBy(p => p.Kod)
+                .ThenBy(p => p.Nazwa)
+                .Select(p => new
+                {
+                    p.IdProduktu,
+                    Text = p.Kod + " - " + p.Nazwa + " (" + (p.DomyslnaJednostka != null ? p.DomyslnaJednostka.Kod : "j.m.") + ")"
+                })
+                .ToList();
+
+            var lokacje = _context.Lokacja
+                .AsNoTracking()
+                .Include(l => l.Magazyn)
+                .OrderBy(l => l.Magazyn.Nazwa)
+                .ThenBy(l => l.Kod)
+                .Select(l => new
+                {
+                    l.IdLokacji,
+                    Text = (l.Magazyn != null ? l.Magazyn.Nazwa : "-") + " / " + l.Kod
+                })
+                .ToList();
+
+            ViewData["IdProduktu"] = new SelectList(produkty, "IdProduktu", "Text", selectedProduktId);
+            ViewData["IdLokacjiZ"] = new SelectList(lokacje, "IdLokacji", "Text", selectedLokacjaZId);
+            ViewData["IdLokacjiDo"] = new SelectList(lokacje, "IdLokacji", "Text", selectedLokacjaDoId);
+            ViewData["IdUzytkownika"] = new SelectList(_context.Set<Uzytkownik>().AsNoTracking().OrderBy(u => u.Email), "IdUzytkownika", "Email", selectedUzytkownikId);
         }
     }
 }

@@ -1,9 +1,9 @@
-@model IEnumerable<Data.Data.Magazyn.RuchMagazynowy>
+@model Interfaces.Magazyn.Dtos.RuchMagazynowyIndexDto
 
 @{
     ViewData["Title"] = "Ruchy magazynowe";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
 }
 
 <div class="news-admin-page">
@@ -58,35 +58,40 @@
                             <th>Produkt</th>
                             <th>Z</th>
                             <th>Do</th>
-                            <th class="text-end">Ilosc</th>
+                            <th class="text-end">Ilość</th>
                             <th>Referencja</th>
                             <th>Notatka</th>
                             <th>Utworzono</th>
-                            <th>Uzytkownik</th>
+                            <th>Użytkownik</th>
                             <th class="text-end">Akcje</th>
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in items.OrderByDescending(x => x.UtworzonoUtc))
+                    @foreach (var item in items)
                     {
                         <tr>
-                            <td><span class="entity-badge entity-badge--muted">@item.Typ</span></td>
+                            <td><partial name="_MovementTypeBadge" model="item.Typ" /></td>
                             <td>
                                 <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
-                                <div class="entity-cell-subtitle">ID ruchu: @item.IdRuchu</div>
+                                <div class="entity-cell-subtitle">@(string.IsNullOrWhiteSpace(item.Produkt?.Nazwa) ? $"ID ruchu: {item.IdRuchu}" : item.Produkt!.Nazwa)</div>
                             </td>
-                            <td>@(item.LokacjaZ?.Kod ?? "-")</td>
-                            <td>@(item.LokacjaDo?.Kod ?? "-")</td>
-                            <td class="text-end">@item.Ilosc</td>
+                            <td title="@(item.LokacjaZ?.Magazyn?.Nazwa ?? "-")">@(item.LokacjaZ?.Kod ?? "-")</td>
+                            <td title="@(item.LokacjaDo?.Magazyn?.Nazwa ?? "-")">@(item.LokacjaDo?.Kod ?? "-")</td>
+                            <td class="text-end">
+                                @{
+                                    var jm = item.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
+                                }
+                                @($"{item.Ilosc.ToString("0.###")} {jm}")
+                            </td>
                             <td><span class="entity-cell-subtitle" title="@item.Referencja">@(string.IsNullOrWhiteSpace(item.Referencja) ? "-" : item.Referencja)</span></td>
                             <td><span class="entity-cell-subtitle text-truncate" title="@item.Notatka">@(string.IsNullOrWhiteSpace(item.Notatka) ? "-" : item.Notatka)</span></td>
                             <td>@item.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                             <td>@(item.Uzytkownik?.Email ?? "-")</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla ruchu @item.IdRuchu">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdRuchu"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdRuchu"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdRuchu"><i class="bi bi-trash"></i></a>
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdRuchu" title="Edytuj ruch" aria-label="Edytuj ruch"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdRuchu" title="Szczegóły ruchu" aria-label="Szczegóły ruchu"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdRuchu" title="Usuń ruch" aria-label="Usuń ruch"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

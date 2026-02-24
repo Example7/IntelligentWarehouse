@@ -21,6 +21,7 @@ namespace Data.Data.Magazyn
 
         [Required]
         [Column("LineNo")]
+        [Display(Name = "Lp.")]
         public int Lp { get; set; }
 
         [Required]

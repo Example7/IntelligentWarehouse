@@ -1,7 +1,16 @@
-@model Data.Data.Magazyn.Lokacja
+﻿@model Data.Data.Magazyn.Lokacja
 
 @{
-    ViewData["Title"] = "Usuń lokację";
+    ViewData["Title"] = "Usuń lokacje";
+    var liczbaStanow = (int?)ViewBag.LiczbaStanow ?? 0;
+    var liczbaPozycjiPz = (int?)ViewBag.LiczbaPozycjiPz ?? 0;
+    var liczbaPozycjiWz = (int?)ViewBag.LiczbaPozycjiWz ?? 0;
+    var liczbaPozycjiMm = (int?)ViewBag.LiczbaPozycjiMm ?? 0;
+    var liczbaRezerwacji = (int?)ViewBag.LiczbaRezerwacji ?? 0;
+    var liczbaPozycjiInwentaryzacji = (int?)ViewBag.LiczbaPozycjiInwentaryzacji ?? 0;
+    var liczbaRuchow = (int?)ViewBag.LiczbaRuchow ?? 0;
+    var czyMoznaUsunac = (bool?)ViewBag.CzyMoznaUsunac ?? true;
+    var deleteErrorMessage = ViewBag.DeleteErrorMessage as string;
 }
 
 <div class="news-admin-page">
@@ -9,7 +18,7 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Usuń lokację</h1>
+                <h1 class="news-admin-header__heading mb-1">Usuń lokacje</h1>
                 <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie lokalizacji magazynowej.</p>
             </div>
         </div>
@@ -20,24 +29,43 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
                 <strong>Usunięcie lokalizacji</strong>
-                <div>Operacja może być zablokowana, jeśli lokacja posiada stany magazynowe lub jest używana w ruchach.</div>
+                <div>Operacja może być zablokowana, jeśli lokacja posiada stany magazynowe lub jest używana w ruchach i dokumentach.</div>
             </div>
         </div>
 
-        <div class="news-details-grid">
+        @if (!string.IsNullOrWhiteSpace(deleteErrorMessage))
+        {
+            <div class="alert alert-danger mt-3 mb-0" role="alert">@deleteErrorMessage</div>
+        }
+
+        <div class="news-details-grid mt-3">
             <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.IdLokacji</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(Model.Magazyn?.Nazwa ?? "-")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value entity-mono">@Model.Kod</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywna ? "Aktywna" : "Nieaktywna")</div></div>
+
+            <div class="news-details-item"><div class="news-details-item__label">Stany magazynowe</div><div class="news-details-item__value">@liczbaStanow</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Pozycje PZ / WZ / MM</div><div class="news-details-item__value">@liczbaPozycjiPz / @liczbaPozycjiWz / @liczbaPozycjiMm</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Rezerwacje</div><div class="news-details-item__value">@liczbaRezerwacji</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Pozycje inwentaryzacji</div><div class="news-details-item__value">@liczbaPozycjiInwentaryzacji</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ruchy magazynowe</div><div class="news-details-item__value">@liczbaRuchow</div></div>
+
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Opis</div>
                 <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Opis) ? "Brak opisu" : Model.Opis)</div>
             </div>
         </div>
 
+        @if (!czyMoznaUsunac)
+        {
+            <div class="alert alert-warning mt-3 mb-0" role="alert">
+                Nie można usunąć tej lokacji, bo ma powiązane rekordy. Najpierw usuń lub przenieś stany/ruchy/rezerwacje.
+            </div>
+        }
+
         <form asp-action="Delete" method="post" class="news-form-actions">
             <input type="hidden" asp-for="IdLokacji" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń lokację</button>
+            <button type="submit" class="btn btn-danger news-form-actions__primary" disabled="@(!czyMoznaUsunac)"><i class="bi bi-trash3-fill"></i> Usuń lokacje</button>
             <a asp-action="Details" asp-route-id="@Model.IdLokacji" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>

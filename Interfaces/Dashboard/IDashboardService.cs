@@ -34,8 +34,12 @@ namespace Interfaces.Dashboard
         public int Id { get; set; }
         public TypRuchuMagazynowego Type { get; set; }
         public string ProductCode { get; set; } = string.Empty;
+        public string ProductName { get; set; } = string.Empty;
+        public string UomCode { get; set; } = "j.m.";
         public string? FromLocationCode { get; set; }
+        public string? FromWarehouseName { get; set; }
         public string? ToLocationCode { get; set; }
+        public string? ToWarehouseName { get; set; }
         public decimal Quantity { get; set; }
         public string? Reference { get; set; }
         public DateTime CreatedAtUtc { get; set; }

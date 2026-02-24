@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.Klient
+@model Interfaces.Magazyn.Dtos.KlientDeleteDto
 
 @{
-    ViewData["Title"] = "Usun klienta";
+    ViewData["Title"] = "Usuń klienta";
+    var klient = Model.Klient;
 }
 
 <div class="news-admin-page">
@@ -9,8 +10,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Usun klienta</h1>
-                <p class="news-admin-header__subheading mb-0">Potwierdz usuniecie klienta z bazy kontrahentow.</p>
+                <h1 class="news-admin-header__heading mb-1">Usuń klienta</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie klienta z bazy kontrahentów.</p>
             </div>
         </div>
     </section>
@@ -19,22 +20,34 @@
         <div class="news-delete-warning" role="alert">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
-                <strong>Usuniecie klienta</strong>
-                <div>Operacja moze byc zablokowana, jesli klient ma powiazane dokumenty WZ.</div>
+                <strong>Usunięcie klienta</strong>
+                <div>Operacja jest blokowana, jeśli klient ma powiązane dokumenty WZ.</div>
             </div>
         </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="All" class="alert alert-danger news-form-validation mt-3" role="alert"></div>
+        }
+
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.IdKlienta</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@(Model.Email ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Telefon</div><div class="news-details-item__value">@(Model.Telefon ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
-            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Adres</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Adres) ? "Brak adresu" : Model.Adres)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@klient.IdKlienta</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(klient.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@klient.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty WZ</div><div class="news-details-item__value">@Model.LiczbaDokumentowWz</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(klient.Email) ? "-" : klient.Email)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Telefon</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(klient.Telefon) ? "-" : klient.Telefon)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@klient.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Konto użytkownika</div><div class="news-details-item__value">@(klient.Uzytkownik?.Email ?? "-")</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Adres</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(klient.Adres) ? "Brak adresu" : klient.Adres)</div></div>
         </div>
+
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="IdKlienta" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun klienta</button>
-            <a asp-action="Details" asp-route-id="@Model.IdKlienta" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <input type="hidden" name="id" value="@klient.IdKlienta" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary" disabled="@(!Model.CzyMoznaUsunac)">
+                <i class="bi bi-trash3-fill"></i> Usuń klienta
+            </button>
+            <a asp-action="Details" asp-route-id="@klient.IdKlienta" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

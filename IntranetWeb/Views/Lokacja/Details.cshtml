@@ -75,6 +75,8 @@
                                 <th>Nazwa</th>
                                 <th>Kategoria</th>
                                 <th class="text-end">Ilość</th>
+                                <th class="text-end">Zarezerwowane</th>
+                                <th class="text-end">Dostępne</th>
                                 <th>JM</th>
                                 <th>Status</th>
                                 <th class="text-end">Akcje</th>
@@ -85,6 +87,8 @@
                             {
                                 var produkt = stan.Produkt;
                                 var jm = produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
+                                var reserved = (produkt != null && Model.AktywneRezerwacjePoProdukcie.TryGetValue(produkt.IdProduktu, out var rezQty)) ? rezQty : 0m;
+                                var available = stan.Ilosc - reserved;
                                 <tr>
                                     <td><div class="entity-cell-title entity-mono">@(produkt?.Kod ?? "-")</div></td>
                                     <td>
@@ -93,6 +97,8 @@
                                     </td>
                                     <td>@(produkt?.Kategoria?.Nazwa ?? "-")</td>
                                     <td class="text-end">@Fmt(stan.Ilosc)</td>
+                                    <td class="text-end">@Fmt(reserved)</td>
+                                    <td class="text-end">@Fmt(available)</td>
                                     <td>@jm</td>
                                     <td>
                                         <span class="entity-badge @((produkt?.CzyAktywny ?? false) ? "entity-badge--success" : "entity-badge--muted")">

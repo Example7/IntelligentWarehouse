@@ -1,7 +1,9 @@
-@model Data.Data.Magazyn.Klient
+@model Interfaces.Magazyn.Dtos.KlientDetailsDto
 
 @{
-    ViewData["Title"] = "Szczegoly klienta";
+    ViewData["Title"] = "Szczegóły klienta";
+    var klient = Model.Klient;
+    var ostatnieWz = Model.OstatnieDokumentyWz;
 }
 
 <div class="news-admin-page">
@@ -9,34 +11,125 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-people"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Szczegoly klienta</h1>
-                <p class="news-admin-header__subheading mb-0">Podglad danych kontaktowych klienta.</p>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły klienta</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd danych kontaktowych i ostatnich dokumentów WZ klienta.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdKlienta</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Dokumenty WZ</span><strong class="news-admin-stat__value">@Model.LiczbaDokumentowWz</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Posted</span><strong class="news-admin-stat__value">@Model.LiczbaDokumentowWzPosted</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Draft</span><strong class="news-admin-stat__value">@Model.LiczbaDokumentowWzDraft</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@klient.IdKlienta</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(klient.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <h2 class="news-details-panel__title">@klient.Nazwa</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdKlienta" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdKlienta" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Edit" asp-route-id="@klient.IdKlienta" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@klient.IdKlienta" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@(Model.Email ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Telefon</div><div class="news-details-item__value">@(Model.Telefon ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
-            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Adres</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Adres) ? "Brak adresu" : Model.Adres)</div></div>
-            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">RowVersion</div><div class="news-details-item__value entity-mono">@(Model.RowVersion is { Length: > 0 } ? Convert.ToBase64String(Model.RowVersion) : "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@klient.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(klient.Email) ? "-" : klient.Email)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Telefon</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(klient.Telefon) ? "-" : klient.Telefon)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(klient.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@klient.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty WZ</div><div class="news-details-item__value">@Model.LiczbaDokumentowWz</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">WZ posted / draft</div><div class="news-details-item__value">@Model.LiczbaDokumentowWzPosted / @Model.LiczbaDokumentowWzDraft</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Konto użytkownika</div><div class="news-details-item__value">@(klient.Uzytkownik?.Email ?? "-")</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Adres</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(klient.Adres) ? "Brak adresu" : klient.Adres)</div></div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Ostatnie dokumenty WZ <span class="category-products-count">(@ostatnieWz.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">Najnowsze wydania zarejestrowane dla tego klienta.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                <a asp-controller="DokumentWZ" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-journal-arrow-up me-1"></i> Lista WZ
+                </a>
+            </div>
+        </div>
+
+        <div class="category-products-panel__body">
+            @if (!ostatnieWz.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-inbox"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak dokumentów WZ</div>
+                        <div class="category-products-empty__text">Ten klient nie ma jeszcze żadnych wydań.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell">
+                    <div class="entity-table-wrap">
+                        <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Numer</th>
+                                    <th>Magazyn</th>
+                                    <th>Status</th>
+                                    <th>Data wydania</th>
+                                    <th>Utworzył</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var wz in ostatnieWz)
+                                {
+                                    var statusClass = wz.Status == "Posted" ? "entity-badge--success"
+                                        : wz.Status == "Draft" ? "entity-badge--warning"
+                                        : "entity-badge--muted";
+                                    <tr>
+                                        <td>
+                                            <div class="entity-cell-title entity-mono">@wz.Numer</div>
+                                            @if (!string.IsNullOrWhiteSpace(wz.Notatka))
+                                            {
+                                                <div class="entity-cell-subtitle">@wz.Notatka</div>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="entity-cell-title">@(wz.Magazyn?.Nazwa ?? "-")</div>
+                                            <div class="entity-cell-subtitle">ID magazynu: @wz.IdMagazynu</div>
+                                        </td>
+                                        <td>
+                                            <span class="entity-badge @statusClass">@wz.Status</span>
+                                        </td>
+                                        <td>
+                                            <div class="entity-cell-title">@wz.DataWydaniaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                            @if (wz.ZaksiegowanoUtc.HasValue)
+                                            {
+                                                <div class="entity-cell-subtitle">Ksieg.: @wz.ZaksiegowanoUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="entity-cell-title">@(wz.Utworzyl?.Email ?? "-")</div>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla dokumentu @wz.Numer">
+                                                <a class="btn btn-outline-info" asp-controller="DokumentWZ" asp-action="Details" asp-route-id="@wz.Id" title="Szczegóły dokumentu WZ"><i class="bi bi-eye"></i></a>
+                                                <a class="btn btn-outline-warning" asp-controller="DokumentWZ" asp-action="Edit" asp-route-id="@wz.Id" title="Edytuj dokument WZ"><i class="bi bi-pencil"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
         </div>
     </section>
 </div>

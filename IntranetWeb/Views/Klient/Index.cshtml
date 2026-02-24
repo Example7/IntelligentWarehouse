@@ -1,10 +1,10 @@
-@model IEnumerable<Data.Data.Magazyn.Klient>
+@model Interfaces.Magazyn.Dtos.KlientIndexDto
 
 @{
     ViewData["Title"] = "Klienci";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
-    var activeCount = items.Count(x => x.CzyAktywny);
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var activeCount = items.Count(x => x.Klient.CzyAktywny);
 }
 
 <div class="news-admin-page">
@@ -13,11 +13,11 @@
             <span class="news-admin-header__icon"><i class="bi bi-people"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Klienci</h1>
-                <p class="news-admin-header__subheading mb-0">Baza klientów i dane kontaktowe do obsługiwania wydań.</p>
+                <p class="news-admin-header__subheading mb-0">Baza klientów i dane kontaktowe do obsługi wydań.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Łacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Aktywni</span><strong class="news-admin-stat__value">@activeCount</strong></div>
         </div>
     </section>
@@ -43,22 +43,23 @@
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-people"></i></div>
-            <h2 class="h4 mb-2">Brak klientow</h2>
-            <p class="text-muted mb-3">Dodaj pierwszego klienta, aby rejestrowac dokumenty WZ.</p>
+            <h2 class="h4 mb-2">Brak klientów</h2>
+            <p class="text-muted mb-3">Dodaj pierwszego klienta, aby rejestrować dokumenty WZ.</p>
             <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj klienta</a>
         </section>
     }
     else
     {
         <div class="news-admin-grid">
-            @foreach (var item in items.OrderBy(x => x.Nazwa))
+            @foreach (var item in items.OrderBy(x => x.Klient.Nazwa))
             {
+                var k = item.Klient;
                 <article class="news-card">
                     <div class="news-card__accent"></div>
                     <div class="news-card__body">
                         <div class="news-card__meta-top">
-                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @item.IdKlienta</span>
-                            @if (item.CzyAktywny)
+                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @k.IdKlienta</span>
+                            @if (k.CzyAktywny)
                             {
                                 <span class="entity-badge">Aktywny</span>
                             }
@@ -68,23 +69,27 @@
                             }
                         </div>
 
-                        <h2 class="news-card__title" title="@item.Nazwa">@item.Nazwa</h2>
-                        <p class="news-card__content" title="@item.Adres">@(string.IsNullOrWhiteSpace(item.Adres) ? "Brak adresu." : item.Adres)</p>
+                        <h2 class="news-card__title" title="@k.Nazwa">@k.Nazwa</h2>
+                        <p class="news-card__content" title="@k.Adres">@(string.IsNullOrWhiteSpace(k.Adres) ? "Brak adresu." : k.Adres)</p>
 
                         <div class="entity-inline-meta">
                             <span class="entity-inline-meta__label">Email:</span>
-                            <span class="entity-inline-meta__value">@(item.Email ?? "-")</span>
+                            <span class="entity-inline-meta__value">@(k.Email ?? "-")</span>
                         </div>
                         <div class="entity-inline-meta">
                             <span class="entity-inline-meta__label">Telefon:</span>
-                            <span class="entity-inline-meta__value">@(item.Telefon ?? "-")</span>
+                            <span class="entity-inline-meta__value">@(k.Telefon ?? "-")</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">WZ:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaDokumentowWz</span>
                         </div>
 
                         <div class="news-card__footer">
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla klienta @item.Nazwa">
-                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdKlienta"><i class="bi bi-pencil"></i></a>
-                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdKlienta"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdKlienta"><i class="bi bi-trash"></i></a>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla klienta @k.Nazwa">
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@k.IdKlienta" title="Edytuj klienta"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@k.IdKlienta" title="Szczegóły klienta"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@k.IdKlienta" title="Usuń klienta"><i class="bi bi-trash"></i></a>
                             </div>
                         </div>
                     </div>

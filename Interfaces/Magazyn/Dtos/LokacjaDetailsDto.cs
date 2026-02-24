@@ -10,6 +10,7 @@ namespace Interfaces.Magazyn.Dtos
         public decimal AktualnyStan { get; set; }
         public int LiczbaProduktow { get; set; }
         public int LiczbaRezerwacji { get; set; }
+        public IDictionary<int, decimal> AktywneRezerwacjePoProdukcie { get; set; } = new Dictionary<int, decimal>();
 
         public IList<StanMagazynowy> StanyLokacji { get; set; } = new List<StanMagazynowy>();
         public IList<PozycjaRezerwacji> OstatniePozycjeRezerwacji { get; set; } = new List<PozycjaRezerwacji>();

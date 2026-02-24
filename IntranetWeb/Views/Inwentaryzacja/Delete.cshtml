@@ -1,7 +1,13 @@
-@model Data.Data.Magazyn.Inwentaryzacja
+@model Interfaces.Magazyn.Dtos.InwentaryzacjaDeleteDto
 
 @{
-    ViewData["Title"] = "Usun inwentaryzacje";
+    ViewData["Title"] = "Usuń inwentaryzację";
+    var d = Model.Dokument;
+    var statusClass = string.Equals(d.Status, "Closed", StringComparison.OrdinalIgnoreCase)
+        ? "entity-badge--success"
+        : string.Equals(d.Status, "Draft", StringComparison.OrdinalIgnoreCase)
+            ? "entity-badge--warning"
+            : "entity-badge--muted";
 }
 
 <div class="news-admin-page">
@@ -10,7 +16,7 @@
             <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Usuń inwentaryzację</h1>
-                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie dokumentu inwentaryzacyjnego.</p>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie dokumentu inwentaryzacji.</p>
             </div>
         </div>
     </section>
@@ -20,27 +26,32 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
                 <strong>Usunięcie inwentaryzacji</strong>
-                <div>Dokument może być powiązany z pozycjami spisu i korektami stanów.</div>
+                <div>Operacja moze byc zablokowana, jesli dokument ma powiazane pozycje inwentaryzacji.</div>
             </div>
         </div>
 
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger mt-3" role="alert"><div asp-validation-summary="All" class="mb-0"></div></div>
+        }
+
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Numer</div><div class="news-details-item__value entity-mono">@Model.Numer</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(Model.Magazyn?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@Model.Status</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Start</div><div class="news-details-item__value">@Model.StartUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Koniec</div><div class="news-details-item__value">@(Model.KoniecUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzył</div><div class="news-details-item__value">@(Model.Utworzyl?.Email ?? "-")</div></div>
-            <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">Notatka</div>
-                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Notatka) ? "Brak notatki" : Model.Notatka)</div>
-            </div>
+            <div class="news-details-item"><div class="news-details-item__label">Numer</div><div class="news-details-item__value entity-mono">@d.Numer</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value"><span class="entity-badge @statusClass">@d.Status</span></div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(d.Magazyn?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzył</div><div class="news-details-item__value">@(d.Utworzyl?.Email ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Data rozpoczęcia</div><div class="news-details-item__value">@d.StartUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zakończono</div><div class="news-details-item__value">@(d.KoniecUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Pozycje inwentaryzacji</div><div class="news-details-item__value">@Model.LiczbaPozycji</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Notatka</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(d.Notatka) ? "Brak notatki" : d.Notatka)</div></div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="Id" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń inwentaryzację</button>
-            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <input type="hidden" asp-for="Dokument.Id" name="Id" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary" @(Model.CzyMoznaUsunac ? null : "disabled")>
+                <i class="bi bi-trash3-fill"></i> Usuń inwentaryzację
+            </button>
+            <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

@@ -1,15 +1,17 @@
-@model Data.Data.Magazyn.Partia
+﻿@model Interfaces.Magazyn.Dtos.PartiaDeleteDto
 
 @{
-    ViewData["Title"] = "Usuń partie";
+    ViewData["Title"] = "Usuń partię";
+    var partia = Model.Partia;
+    var pozostale = Math.Max(Model.LiczbaPartiiProduktu - 1, 0);
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header news-admin-header--danger">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <span class="news-admin-header__icon news-admin-header__icon--danger" aria-hidden="true"><i class="bi bi-trash3"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Usuń partie</h1>
+                <h1 class="news-admin-header__heading mb-1">Usuń partię</h1>
                 <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie partii produktu.</p>
             </div>
         </div>
@@ -20,23 +22,24 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
                 <strong>Usunięcie partii</strong>
-                <div>Partia może być powiązana ze stanem magazynowym i dokumentami ruchu.</div>
+                <div>Partia może być używana w procesach magazynowych. Pozostałe partie tego produktu: @pozostale.</div>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Numer partii</div><div class="news-details-item__value entity-mono">@Model.NumerPartii</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kod produktu</div><div class="news-details-item__value entity-mono">@(Model.Produkt?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Dostawca</div><div class="news-details-item__value">@(Model.Dostawca?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Data produkcji</div><div class="news-details-item__value">@(Model.DataProdukcji?.ToString("yyyy-MM-dd") ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Data ważności</div><div class="news-details-item__value">@(Model.DataWaznosci?.ToString("yyyy-MM-dd") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Numer partii</div><div class="news-details-item__value entity-mono">@partia.NumerPartii</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(partia.Produkt?.Kod ?? "-")<div class="entity-cell-subtitle">@(partia.Produkt?.Nazwa ?? "-")</div></div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dostawca</div><div class="news-details-item__value">@(partia.Dostawca?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Data produkcji</div><div class="news-details-item__value">@(partia.DataProdukcji?.ToString("yyyy-MM-dd") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Data ważności</div><div class="news-details-item__value">@(partia.DataWaznosci?.ToString("yyyy-MM-dd") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Partie dla produktu</div><div class="news-details-item__value">@Model.LiczbaPartiiProduktu</div></div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="IdPartii" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń partie</button>
-            <a asp-action="Details" asp-route-id="@Model.IdPartii" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <input type="hidden" name="id" value="@partia.IdPartii" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń partię</button>
+            <a asp-action="Details" asp-route-id="@partia.IdPartii" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <a asp-controller="Produkt" asp-action="Details" asp-route-id="@partia.IdProduktu" class="btn btn-outline-secondary"><i class="bi bi-box-seam"></i> Produkt</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

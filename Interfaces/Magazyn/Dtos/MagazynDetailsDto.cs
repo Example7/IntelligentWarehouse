@@ -23,6 +23,7 @@ namespace Interfaces.Magazyn.Dtos
         public IList<DokumentWZ> OstatnieDokumentyWz { get; set; } = new List<DokumentWZ>();
         public IList<DokumentMM> OstatnieDokumentyMm { get; set; } = new List<DokumentMM>();
         public IList<Rezerwacja> OstatnieRezerwacjeMagazynu { get; set; } = new List<Rezerwacja>();
+        public IList<PozycjaRezerwacji> OstatniePozycjeRezerwacjiBezLokacji { get; set; } = new List<PozycjaRezerwacji>();
         public IList<Inwentaryzacja> OstatnieInwentaryzacjeMagazynu { get; set; } = new List<Inwentaryzacja>();
     }
 }

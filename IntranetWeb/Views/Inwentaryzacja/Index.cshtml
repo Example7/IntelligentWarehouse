@@ -1,68 +1,48 @@
-@model IEnumerable<Data.Data.Magazyn.Inwentaryzacja>
-
+@model Interfaces.Magazyn.Dtos.InwentaryzacjaIndexDto
 @{
     ViewData["Title"] = "Inwentaryzacje";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
-    var closedCount = items.Count(x => x.KoniecUtc.HasValue);
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
     var draftCount = items.Count(x => string.Equals(x.Status, "Draft", StringComparison.OrdinalIgnoreCase));
+    var closedCount = items.Count(x => string.Equals(x.Status, "Closed", StringComparison.OrdinalIgnoreCase));
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-clipboard-data"></i></span>
+            <span class="news-admin-header__icon"><i class="bi bi-clipboard-check"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Inwentaryzacje</h1>
-                <p class="news-admin-header__subheading mb-0">Rejestr dokumentów inwentaryzacyjnych z filtrowaniem i szybkim CRUD.</p>
+                <p class="news-admin-header__subheading mb-0">Rejestr dokumentów inwentaryzacji z filtrowaniem i szybkim CRUD.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
             <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Otwarte/Draft</span><strong class="news-admin-stat__value">@draftCount</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Zamknięte</span><strong class="news-admin-stat__value">@closedCount</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Draft</span><strong class="news-admin-stat__value">@draftCount</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Closed</span><strong class="news-admin-stat__value">@closedCount</strong></div>
         </div>
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie inwentaryzacji">
-            <label for="countSearchTerm" class="visually-hidden">Szukaj inwentaryzacji</label>
+        <form method="get" class="news-admin-search" role="search">
             <div class="news-admin-search__input-wrap">
-                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
-                <input id="countSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
-                       placeholder="Szukaj po numerze, statusie lub notatce..." />
+                <i class="bi bi-search news-admin-search__icon"></i>
+                <input class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm" placeholder="Szukaj po numerze, statusie, magazynie lub notatce..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczysc filtr"><i class="bi bi-x-lg"></i></a>
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")"><i class="bi bi-x-lg"></i></a>
             }
         </form>
-        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj inwentaryzację</a>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj inwentaryzacje</a>
     </section>
 
     @if (!items.Any())
     {
         <section class="news-admin-empty">
-            <div class="news-admin-empty__icon"><i class="bi bi-clipboard-x"></i></div>
+            <div class="news-admin-empty__icon"><i class="bi bi-inbox"></i></div>
             <h2 class="h4 mb-2">Brak inwentaryzacji</h2>
-            <p class="text-muted mb-3">
-                @if (string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    <span>Nie dodano jeszcze zadnych dokumentow inwentaryzacyjnych.</span>
-                }
-                else
-                {
-                    <span>Brak wynikow dla frazy: <strong>@searchTerm</strong>.</span>
-                }
-            </p>
-            <div class="d-flex justify-content-center gap-2 flex-wrap">
-                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj inwentaryzację</a>
-                @if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczysc filtr</a>
-                }
-            </div>
         </section>
     }
     else
@@ -75,8 +55,8 @@
                             <th>Numer</th>
                             <th>Magazyn</th>
                             <th>Status</th>
-                            <th>Start</th>
-                            <th>Koniec</th>
+                            <th>Data rozpoczęcia</th>
+                            <th>Zakończono</th>
                             <th>Utworzył</th>
                             <th>Notatka</th>
                             <th class="text-end">Akcje</th>
@@ -85,11 +65,12 @@
                     <tbody>
                     @foreach (var item in items.OrderByDescending(x => x.StartUtc).ThenByDescending(x => x.Id))
                     {
-                        var statusClass = item.KoniecUtc.HasValue
+                        var statusClass = string.Equals(item.Status, "Closed", StringComparison.OrdinalIgnoreCase)
                             ? "entity-badge--success"
                             : string.Equals(item.Status, "Draft", StringComparison.OrdinalIgnoreCase)
                                 ? "entity-badge--warning"
                                 : "entity-badge--muted";
+                        var canEdit = string.Equals(item.Status, "Draft", StringComparison.OrdinalIgnoreCase);
                         <tr>
                             <td><div class="entity-cell-title">@item.Numer</div></td>
                             <td>@(item.Magazyn?.Nazwa ?? "-")</td>
@@ -97,16 +78,19 @@
                             <td>@item.StartUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                             <td>@(item.KoniecUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
                             <td>@(item.Utworzyl?.Email ?? "-")</td>
-                            <td>
-                                <div class="entity-cell-subtitle text-truncate" title="@item.Notatka">
-                                    @(string.IsNullOrWhiteSpace(item.Notatka) ? "-" : item.Notatka)
-                                </div>
-                            </td>
+                            <td><div class="entity-cell-subtitle text-truncate" title="@item.Notatka">@(string.IsNullOrWhiteSpace(item.Notatka) ? "-" : item.Notatka)</div></td>
                             <td class="text-end">
-                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla inwentaryzacji @item.Numer">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                <div class="btn-group btn-group-sm">
+                                    @if (canEdit)
+                                    {
+                                        <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary" disabled title="Edycja tylko dla Draft"><i class="bi bi-pencil"></i></button>
+                                    }
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usuń"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

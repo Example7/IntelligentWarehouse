@@ -1,7 +1,10 @@
-@model Data.Data.Magazyn.Dostawca
+@model Interfaces.Magazyn.Dtos.DostawcaDetailsDto
 
 @{
-    ViewData["Title"] = "Szczegoly dostawcy";
+    ViewData["Title"] = "Szczegóły dostawcy";
+    var dostawca = Model.Dostawca;
+    var ostatniePz = Model.OstatnieDokumentyPz;
+    var ostatniePartie = Model.OstatniePartie;
 }
 
 <div class="news-admin-page">
@@ -9,35 +12,199 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-truck"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Szczegoly dostawcy</h1>
-                <p class="news-admin-header__subheading mb-0">Podglad danych kontaktowych i identyfikacyjnych dostawcy.</p>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły dostawcy</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd danych kontaktowych, dokumentow PZ i partii dostawcy.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdDostawcy</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Dokumenty PZ</span><strong class="news-admin-stat__value">@Model.LiczbaDokumentowPz</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Posted</span><strong class="news-admin-stat__value">@Model.LiczbaDokumentowPzPosted</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Draft</span><strong class="news-admin-stat__value">@Model.LiczbaDokumentowPzDraft</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Partie</span><strong class="news-admin-stat__value">@Model.LiczbaPartii</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@dostawca.IdDostawcy</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(dostawca.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <h2 class="news-details-panel__title">@dostawca.Nazwa</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdDostawcy" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdDostawcy" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Edit" asp-route-id="@dostawca.IdDostawcy" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@dostawca.IdDostawcy" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">NIP</div><div class="news-details-item__value entity-mono">@(string.IsNullOrWhiteSpace(Model.NIP) ? "-" : Model.NIP)</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@(Model.Email ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Telefon</div><div class="news-details-item__value">@(Model.Telefon ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
-            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Adres</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Adres) ? "Brak adresu" : Model.Adres)</div></div>
-            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">RowVersion</div><div class="news-details-item__value entity-mono">@(Model.RowVersion is { Length: > 0 } ? Convert.ToBase64String(Model.RowVersion) : "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@dostawca.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">NIP</div><div class="news-details-item__value entity-mono">@(string.IsNullOrWhiteSpace(dostawca.NIP) ? "-" : dostawca.NIP)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(dostawca.Email) ? "-" : dostawca.Email)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Telefon</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(dostawca.Telefon) ? "-" : dostawca.Telefon)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@dostawca.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(dostawca.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty PZ</div><div class="news-details-item__value">@Model.LiczbaDokumentowPz</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">PZ posted / draft</div><div class="news-details-item__value">@Model.LiczbaDokumentowPzPosted / @Model.LiczbaDokumentowPzDraft</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Partie</div><div class="news-details-item__value">@Model.LiczbaPartii</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Adres</div><div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(dostawca.Adres) ? "Brak adresu" : dostawca.Adres)</div></div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Ostatnie dokumenty PZ <span class="category-products-count">(@ostatniePz.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">Najnowsze przyjęcia zarejestrowane dla tego dostawcy.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                <a asp-controller="DokumentPZ" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-journal-text me-1"></i> Lista PZ
+                </a>
+            </div>
+        </div>
+
+        <div class="category-products-panel__body">
+            @if (!ostatniePz.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-inbox"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak dokumentów PZ</div>
+                        <div class="category-products-empty__text">Ten dostawca nie ma jeszcze żadnych przyjęć.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell">
+                    <div class="entity-table-wrap">
+                        <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Numer</th>
+                                    <th>Magazyn</th>
+                                    <th>Status</th>
+                                    <th>Data przyjęcia</th>
+                                    <th>Utworzył</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var pz in ostatniePz)
+                                {
+                                    var statusClass = pz.Status == "Posted" ? "entity-badge--success"
+                                        : pz.Status == "Draft" ? "entity-badge--warning"
+                                        : "entity-badge--muted";
+                                    <tr>
+                                        <td>
+                                            <div class="entity-cell-title entity-mono">@pz.Numer</div>
+                                            @if (!string.IsNullOrWhiteSpace(pz.Notatka))
+                                            {
+                                                <div class="entity-cell-subtitle">@pz.Notatka</div>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="entity-cell-title">@(pz.Magazyn?.Nazwa ?? "-")</div>
+                                            <div class="entity-cell-subtitle">ID magazynu: @pz.IdMagazynu</div>
+                                        </td>
+                                        <td>
+                                            <span class="entity-badge @statusClass">@pz.Status</span>
+                                        </td>
+                                        <td>
+                                            <div class="entity-cell-title">@pz.DataPrzyjeciaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                            @if (pz.ZaksiegowanoUtc.HasValue)
+                                            {
+                                                <div class="entity-cell-subtitle">Ksieg.: @pz.ZaksiegowanoUtc.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="entity-cell-title">@(pz.Utworzyl?.Email ?? "-")</div>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla dokumentu @pz.Numer">
+                                                <a class="btn btn-outline-info" asp-controller="DokumentPZ" asp-action="Details" asp-route-id="@pz.Id" title="Szczegóły dokumentu PZ"><i class="bi bi-eye"></i></a>
+                                                <a class="btn btn-outline-warning" asp-controller="DokumentPZ" asp-action="Edit" asp-route-id="@pz.Id" title="Edytuj dokument PZ"><i class="bi bi-pencil"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <div>
+                <h2 class="news-details-panel__title">Ostatnie partie <span class="category-products-count">(@ostatniePartie.Count)</span></h2>
+                <p class="category-products-panel__subtitle mb-0">Partie powiązane z tym dostawcą.</p>
+            </div>
+            <div class="news-details-panel__actions">
+                <a asp-controller="Partia" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-boxes me-1"></i> Lista partii
+                </a>
+            </div>
+        </div>
+
+        <div class="category-products-panel__body">
+            @if (!ostatniePartie.Any())
+            {
+                <div class="category-products-empty" role="status" aria-live="polite">
+                    <div class="category-products-empty__icon" aria-hidden="true"><i class="bi bi-inbox"></i></div>
+                    <div>
+                        <div class="category-products-empty__title">Brak partii</div>
+                        <div class="category-products-empty__text">Ten dostawca nie ma jeszcze żadnych powiązanych partii.</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="category-products-table-shell">
+                    <div class="entity-table-wrap">
+                        <table class="table table-hover align-middle mb-0 entity-table category-products-table">
+                            <thead>
+                                <tr>
+                                    <th>Numer partii</th>
+                                    <th>Produkt</th>
+                                    <th>Data produkcji</th>
+                                    <th>Data ważności</th>
+                                    <th class="text-end">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var partia in ostatniePartie)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="entity-cell-title entity-mono">@partia.NumerPartii</div>
+                                            <div class="entity-cell-subtitle">ID partii: @partia.IdPartii</div>
+                                        </td>
+                                        <td>
+                                            <div class="entity-cell-title">@(partia.Produkt?.Kod ?? "-")</div>
+                                            <div class="entity-cell-subtitle">@(partia.Produkt?.Nazwa ?? "-")</div>
+                                        </td>
+                                        <td><div class="entity-cell-title">@(partia.DataProdukcji?.ToString("yyyy-MM-dd") ?? "-")</div></td>
+                                        <td><div class="entity-cell-title">@(partia.DataWaznosci?.ToString("yyyy-MM-dd") ?? "-")</div></td>
+                                        <td class="text-end">
+                                            <div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla partii @partia.NumerPartii">
+                                                <a class="btn btn-outline-info" asp-controller="Partia" asp-action="Details" asp-route-id="@partia.IdPartii" title="Szczegóły partii"><i class="bi bi-eye"></i></a>
+                                                <a class="btn btn-outline-warning" asp-controller="Partia" asp-action="Edit" asp-route-id="@partia.IdPartii" title="Edytuj partię"><i class="bi bi-pencil"></i></a>
+                                                @if (partia.Produkt != null)
+                                                {
+                                                    <a class="btn btn-outline-secondary" asp-controller="Produkt" asp-action="Details" asp-route-id="@partia.Produkt.IdProduktu" title="Szczegóły produktu"><i class="bi bi-box"></i></a>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
         </div>
     </section>
 </div>

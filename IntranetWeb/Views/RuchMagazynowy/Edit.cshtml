@@ -1,4 +1,5 @@
-@model Data.Data.Magazyn.RuchMagazynowy
+﻿@model Data.Data.Magazyn.RuchMagazynowy
+@using Data.Data.Magazyn
 
 @{
     ViewData["Title"] = "Edytuj ruch magazynowy";
@@ -30,7 +31,12 @@
             <div class="news-form-grid">
                 <div class="news-form-field">
                     <label asp-for="Typ" class="form-label news-form-label"></label>
-                    <select asp-for="Typ" class="form-select news-form-control"></select>
+                    <select asp-for="Typ" class="form-select news-form-control" asp-items="Html.GetEnumSelectList<TypRuchuMagazynowego>()">
+                        <option value="">(wybierz typ ruchu)</option>
+                    </select>
+                    <div class="small text-muted mt-1" id="movementTypeHint">
+                        Wybierz typ ruchu, aby zobaczyc ktore pola lokacji sa wymagane.
+                    </div>
                     <span asp-validation-for="Typ" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
@@ -45,6 +51,7 @@
                     <select asp-for="IdLokacjiZ" class="form-select news-form-control" asp-items="ViewBag.IdLokacjiZ">
                         <option value="">(brak)</option>
                     </select>
+                    <div class="small text-muted mt-1" id="movementFromHint"></div>
                     <span asp-validation-for="IdLokacjiZ" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
@@ -52,17 +59,13 @@
                     <select asp-for="IdLokacjiDo" class="form-select news-form-control" asp-items="ViewBag.IdLokacjiDo">
                         <option value="">(brak)</option>
                     </select>
+                    <div class="small text-muted mt-1" id="movementToHint"></div>
                     <span asp-validation-for="IdLokacjiDo" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
                     <label asp-for="Ilosc" class="form-label news-form-label"></label>
                     <input asp-for="Ilosc" class="form-control news-form-control" />
                     <span asp-validation-for="Ilosc" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <label asp-for="UtworzonoUtc" class="form-label news-form-label"></label>
-                    <input asp-for="UtworzonoUtc" class="form-control news-form-control" />
-                    <span asp-validation-for="UtworzonoUtc" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field news-form-field--full">
                     <label asp-for="Referencja" class="form-label news-form-label"></label>
@@ -84,7 +87,7 @@
             </div>
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
-                <a asp-action="Details" asp-route-id="@Model.IdRuchu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+                <a asp-action="Details" asp-route-id="@Model.IdRuchu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>
@@ -93,4 +96,5 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @{ await Html.RenderPartialAsync("_RuchMagazynowyFormBehaviorScripts"); }
 }

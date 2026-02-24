@@ -21,10 +21,27 @@ namespace Services.DependencyInjection
         public static IServiceCollection AddWarehouseAppServices(this IServiceCollection services)
         {
             services.AddScoped<IProduktService, ProduktService>();
+            services.AddScoped<IKodProduktuService, KodProduktuService>();
+            services.AddScoped<IProduktJednostkaService, ProduktJednostkaService>();
+            services.AddScoped<IPartiaService, PartiaService>();
+            services.AddScoped<IDokumentPZService, DokumentPZService>();
+            services.AddScoped<IPozycjaPZService, PozycjaPZService>();
+            services.AddScoped<IDokumentWZService, DokumentWZService>();
+            services.AddScoped<IPozycjaWZService, PozycjaWZService>();
+            services.AddScoped<IDokumentMMService, DokumentMMService>();
+            services.AddScoped<IPozycjaMMService, PozycjaMMService>();
+            services.AddScoped<IInwentaryzacjaService, InwentaryzacjaService>();
+            services.AddScoped<IPozycjaInwentaryzacjiService, PozycjaInwentaryzacjiService>();
+            services.AddScoped<IRezerwacjaService, RezerwacjaService>();
+            services.AddScoped<IPozycjaRezerwacjiService, PozycjaRezerwacjiService>();
+            services.AddScoped<IDostawcaService, DostawcaService>();
+            services.AddScoped<IKlientService, KlientService>();
             services.AddScoped<IKategoriaService, KategoriaService>();
             services.AddScoped<IJednostkaMiaryService, JednostkaMiaryService>();
             services.AddScoped<ILokacjaService, LokacjaService>();
             services.AddScoped<IMagazynService, MagazynService>();
+            services.AddScoped<IStanMagazynowyService, StanMagazynowyService>();
+            services.AddScoped<IRuchMagazynowyService, RuchMagazynowyService>();
 
             return services;
         }

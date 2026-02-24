@@ -56,11 +56,23 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdLokacji,IdMagazynu,Kod,Opis,CzyAktywna")] Lokacja lokacja)
         {
+            if (await CzyKodLokacjiIstniejeAsync(lokacja.IdMagazynu, lokacja.Kod))
+            {
+                ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(lokacja);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
+                }
             }
             ViewData["IdMagazynu"] = new SelectList(_context.Set<Magazyn>(), "IdMagazynu", "Nazwa", lokacja.IdMagazynu);
             return View(lokacja);
@@ -95,6 +107,11 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
+            if (await CzyKodLokacjiIstniejeAsync(lokacja.IdMagazynu, lokacja.Kod, lokacja.IdLokacji))
+            {
+                ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -110,10 +127,18 @@ namespace IntranetWeb.Controllers
                     }
                     else
                     {
-                        throw;
+                        ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
+                }
+
+                if (ModelState.IsValid)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
             }
             ViewData["IdMagazynu"] = new SelectList(_context.Set<Magazyn>(), "IdMagazynu", "Nazwa", lokacja.IdMagazynu);
             return View(lokacja);
@@ -135,6 +160,7 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
+            await UzupelnijDaneUsuwaniaAsync(lokacja.IdLokacji);
             return View(lokacja);
         }
 
@@ -143,19 +169,113 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var lokacja = await _context.Lokacja.FindAsync(id);
-            if (lokacja != null)
+            var lokacja = await _context.Lokacja
+                .Include(l => l.Magazyn)
+                .FirstOrDefaultAsync(l => l.IdLokacji == id);
+            if (lokacja == null)
             {
-                _context.Lokacja.Remove(lokacja);
+                return RedirectToAction(nameof(Index));
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            var blockers = await PobierzBlokeryUsuwaniaAsync(id);
+            if (blockers.MaPowiazania)
+            {
+                await UzupelnijDaneUsuwaniaAsync(id, blockers, "Nie mozna usunac lokacji, poniewaz ma powiazane rekordy.");
+                return View("Delete", lokacja);
+            }
+
+            try
+            {
+                _context.Lokacja.Remove(lokacja);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                blockers = await PobierzBlokeryUsuwaniaAsync(id);
+                await UzupelnijDaneUsuwaniaAsync(id, blockers, "Nie mozna usunac lokacji. Najpierw usun lub przenies powiazane rekordy.");
+                return View("Delete", lokacja);
+            }
         }
 
         private bool LokacjaExists(int id)
         {
             return _context.Lokacja.Any(e => e.IdLokacji == id);
+        }
+
+        private async Task<bool> CzyKodLokacjiIstniejeAsync(int idMagazynu, string? kod, int? excludeIdLokacji = null)
+        {
+            if (idMagazynu <= 0 || string.IsNullOrWhiteSpace(kod))
+            {
+                return false;
+            }
+
+            var normalizedKod = kod.Trim();
+            return await _context.Lokacja.AnyAsync(l =>
+                l.IdMagazynu == idMagazynu &&
+                l.Kod == normalizedKod &&
+                (!excludeIdLokacji.HasValue || l.IdLokacji != excludeIdLokacji.Value));
+        }
+
+        private async Task UzupelnijDaneUsuwaniaAsync(int idLokacji, LokacjaDeleteBlockers? blockers = null, string? errorMessage = null)
+        {
+            blockers ??= await PobierzBlokeryUsuwaniaAsync(idLokacji);
+
+            ViewBag.LiczbaStanow = blockers.StanyMagazynowe;
+            ViewBag.LiczbaPozycjiPz = blockers.PozycjePz;
+            ViewBag.LiczbaPozycjiWz = blockers.PozycjeWz;
+            ViewBag.LiczbaPozycjiMm = blockers.PozycjeMm;
+            ViewBag.LiczbaRezerwacji = blockers.PozycjeRezerwacji;
+            ViewBag.LiczbaPozycjiInwentaryzacji = blockers.PozycjeInwentaryzacji;
+            ViewBag.LiczbaRuchow = blockers.RuchyMagazynowe;
+            ViewBag.CzyMoznaUsunac = !blockers.MaPowiazania;
+
+            if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                ViewBag.DeleteErrorMessage = errorMessage;
+            }
+        }
+
+        private async Task<LokacjaDeleteBlockers> PobierzBlokeryUsuwaniaAsync(int idLokacji)
+        {
+            var stanyMagazynowe = await _context.StanMagazynowy.CountAsync(s => s.IdLokacji == idLokacji);
+            var pozycjePz = await _context.PozycjaPZ.CountAsync(p => p.IdLokacji == idLokacji);
+            var pozycjeWz = await _context.PozycjaWZ.CountAsync(p => p.IdLokacji == idLokacji);
+            var pozycjeMm = await _context.PozycjaMM.CountAsync(p => p.IdLokacjiZ == idLokacji || p.IdLokacjiDo == idLokacji);
+            var pozycjeRezerwacji = await _context.PozycjaRezerwacji.CountAsync(p => p.IdLokacji == idLokacji);
+            var pozycjeInwentaryzacji = await _context.PozycjaInwentaryzacji.CountAsync(p => p.IdLokacji == idLokacji);
+            var ruchyMagazynowe = await _context.RuchMagazynowy.CountAsync(r => r.IdLokacjiZ == idLokacji || r.IdLokacjiDo == idLokacji);
+
+            return new LokacjaDeleteBlockers
+            {
+                StanyMagazynowe = stanyMagazynowe,
+                PozycjePz = pozycjePz,
+                PozycjeWz = pozycjeWz,
+                PozycjeMm = pozycjeMm,
+                PozycjeRezerwacji = pozycjeRezerwacji,
+                PozycjeInwentaryzacji = pozycjeInwentaryzacji,
+                RuchyMagazynowe = ruchyMagazynowe
+            };
+        }
+
+        private sealed class LokacjaDeleteBlockers
+        {
+            public int StanyMagazynowe { get; set; }
+            public int PozycjePz { get; set; }
+            public int PozycjeWz { get; set; }
+            public int PozycjeMm { get; set; }
+            public int PozycjeRezerwacji { get; set; }
+            public int PozycjeInwentaryzacji { get; set; }
+            public int RuchyMagazynowe { get; set; }
+
+            public bool MaPowiazania =>
+                StanyMagazynowe > 0 ||
+                PozycjePz > 0 ||
+                PozycjeWz > 0 ||
+                PozycjeMm > 0 ||
+                PozycjeRezerwacji > 0 ||
+                PozycjeInwentaryzacji > 0 ||
+                RuchyMagazynowe > 0;
         }
     }
 }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
+using Interfaces.Magazyn.Dtos;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
@@ -10,16 +12,18 @@ namespace IntranetWeb.Controllers
 {
     public class PartiaController : BaseSearchController<Partia>
     {
+        private readonly IPartiaService _partiaService;
 
-        public PartiaController(DataContext context) : base(context) { }
+        public PartiaController(DataContext context, IPartiaService partiaService) : base(context)
+        {
+            _partiaService = partiaService;
+        }
 
         // GET: Partia
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.Partia.Include(p => p.Dostawca).Include(p => p.Produkt).AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.NumerPartii);
-
-            return View(await query.ToListAsync());
+            var model = await _partiaService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
         // GET: Partia/Details/5
@@ -30,23 +34,19 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var partia = await _context.Partia
-                .Include(p => p.Dostawca)
-                .Include(p => p.Produkt)
-                .FirstOrDefaultAsync(m => m.IdPartii == id);
-            if (partia == null)
+            var model = await _partiaService.GetDetailsDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(partia);
+            return View(model);
         }
 
         // GET: Partia/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["IdDostawcy"] = new SelectList(_context.Dostawca, "IdDostawcy", "Nazwa");
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod");
+            await PopulateSelectsAsync(null, null);
             return View();
         }
 
@@ -57,14 +57,30 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdPartii,IdProduktu,NumerPartii,DataProdukcji,DataWaznosci,IdDostawcy")] Partia partia)
         {
+            await PopulateSelectsAsync(partia.IdProduktu, partia.IdDostawcy);
+            Normalize(partia);
+            await ValidatePartiaAsync(partia);
+
             if (ModelState.IsValid)
             {
-                _context.Add(partia);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(partia);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException)
+                {
+                    if (await ExistsDuplicateBatchAsync(partia.IdProduktu, partia.NumerPartii, null))
+                    {
+                        ModelState.AddModelError(nameof(Partia.NumerPartii), $"Partia '{partia.NumerPartii}' dla wybranego produktu już istnieje.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Nie udało się zapisać partii.");
+                    }
+                }
             }
-            ViewData["IdDostawcy"] = new SelectList(_context.Dostawca, "IdDostawcy", "Nazwa", partia.IdDostawcy);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", partia.IdProduktu);
             return View(partia);
         }
 
@@ -81,8 +97,7 @@ namespace IntranetWeb.Controllers
             {
                 return NotFound();
             }
-            ViewData["IdDostawcy"] = new SelectList(_context.Dostawca, "IdDostawcy", "Nazwa", partia.IdDostawcy);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", partia.IdProduktu);
+            await PopulateSelectsAsync(partia.IdProduktu, partia.IdDostawcy);
             return View(partia);
         }
 
@@ -93,16 +108,30 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("IdPartii,IdProduktu,NumerPartii,DataProdukcji,DataWaznosci,IdDostawcy")] Partia partia)
         {
+            await PopulateSelectsAsync(partia.IdProduktu, partia.IdDostawcy);
             if (id != partia.IdPartii)
             {
                 return NotFound();
             }
 
+            Normalize(partia);
+            await ValidatePartiaAsync(partia, partia.IdPartii);
+
             if (ModelState.IsValid)
             {
+                var existing = await _context.Partia.FirstOrDefaultAsync(x => x.IdPartii == id);
+                if (existing == null)
+                {
+                    return NotFound();
+                }
+
                 try
                 {
-                    _context.Update(partia);
+                    existing.IdProduktu = partia.IdProduktu;
+                    existing.NumerPartii = partia.NumerPartii;
+                    existing.DataProdukcji = partia.DataProdukcji;
+                    existing.DataWaznosci = partia.DataWaznosci;
+                    existing.IdDostawcy = partia.IdDostawcy;
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -116,10 +145,22 @@ namespace IntranetWeb.Controllers
                         throw;
                     }
                 }
+                catch (DbUpdateException)
+                {
+                    if (await ExistsDuplicateBatchAsync(partia.IdProduktu, partia.NumerPartii, partia.IdPartii))
+                    {
+                        ModelState.AddModelError(nameof(Partia.NumerPartii), $"Partia '{partia.NumerPartii}' dla wybranego produktu już istnieje.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Nie udało się zapisać zmian partii.");
+                    }
+
+                    return View(partia);
+                }
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdDostawcy"] = new SelectList(_context.Dostawca, "IdDostawcy", "Nazwa", partia.IdDostawcy);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", partia.IdProduktu);
             return View(partia);
         }
 
@@ -131,16 +172,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var partia = await _context.Partia
-                .Include(p => p.Dostawca)
-                .Include(p => p.Produkt)
-                .FirstOrDefaultAsync(m => m.IdPartii == id);
-            if (partia == null)
+            var model = await _partiaService.GetDeleteDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(partia);
+            return View(model);
         }
 
         // POST: Partia/Delete/5
@@ -161,6 +199,80 @@ namespace IntranetWeb.Controllers
         private bool PartiaExists(int id)
         {
             return _context.Partia.Any(e => e.IdPartii == id);
+        }
+
+        private static void Normalize(Partia partia)
+        {
+            partia.NumerPartii = (partia.NumerPartii ?? string.Empty).Trim();
+        }
+
+        private async Task ValidatePartiaAsync(Partia partia, int? excludeId = null)
+        {
+            if (partia.DataProdukcji.HasValue && partia.DataWaznosci.HasValue &&
+                partia.DataProdukcji.Value.Date > partia.DataWaznosci.Value.Date)
+            {
+                ModelState.AddModelError(nameof(Partia.DataWaznosci), "Data ważności nie może być wcześniejsza niż data produkcji.");
+            }
+
+            if (partia.IdProduktu > 0 && !string.IsNullOrWhiteSpace(partia.NumerPartii) &&
+                await ExistsDuplicateBatchAsync(partia.IdProduktu, partia.NumerPartii, excludeId))
+            {
+                ModelState.AddModelError(nameof(Partia.NumerPartii), $"Partia '{partia.NumerPartii}' dla wybranego produktu już istnieje.");
+            }
+        }
+
+        private Task<bool> ExistsDuplicateBatchAsync(int idProduktu, string numerPartii, int? excludeId)
+        {
+            var query = _context.Partia.AsNoTracking()
+                .Where(x => x.IdProduktu == idProduktu && x.NumerPartii == numerPartii);
+
+            if (excludeId.HasValue)
+            {
+                query = query.Where(x => x.IdPartii != excludeId.Value);
+            }
+
+            return query.AnyAsync();
+        }
+
+        private async Task PopulateSelectsAsync(int? selectedProduktId, int? selectedDostawcaId)
+        {
+            var produkty = await _context.Produkt
+                .AsNoTracking()
+                .Include(p => p.DomyslnaJednostka)
+                .OrderBy(p => p.Kod)
+                .ThenBy(p => p.Nazwa)
+                .Select(p => new
+                {
+                    p.IdProduktu,
+                    Label = p.Kod + " - " + p.Nazwa + " (" + (p.DomyslnaJednostka != null ? p.DomyslnaJednostka.Kod : "j.m.") + ")"
+                })
+                .ToListAsync();
+
+            var dostawcy = await _context.Dostawca
+                .AsNoTracking()
+                .OrderBy(d => d.Nazwa)
+                .Select(d => new { d.IdDostawcy, d.Nazwa })
+                .ToListAsync();
+
+            ViewData["IdProduktu"] = new SelectList(produkty, "IdProduktu", "Label", selectedProduktId);
+
+            var dostawcyItems = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "", Text = "(brak)" }
+            };
+            dostawcyItems.AddRange(dostawcy.Select(d => new SelectListItem
+            {
+                Value = d.IdDostawcy.ToString(),
+                Text = d.Nazwa,
+                Selected = selectedDostawcaId.HasValue && d.IdDostawcy == selectedDostawcaId.Value
+            }));
+
+            if (!selectedDostawcaId.HasValue)
+            {
+                dostawcyItems[0].Selected = true;
+            }
+
+            ViewData["IdDostawcy"] = dostawcyItems;
         }
     }
 }

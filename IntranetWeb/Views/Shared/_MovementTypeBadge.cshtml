@@ -1,0 +1,15 @@
+@model Data.Data.Magazyn.TypRuchuMagazynowego
+
+@{
+    var badgeClass = Model switch
+    {
+        Data.Data.Magazyn.TypRuchuMagazynowego.Przyjęcie => "entity-badge--success",
+        Data.Data.Magazyn.TypRuchuMagazynowego.Wydanie => "entity-badge--danger",
+        Data.Data.Magazyn.TypRuchuMagazynowego.Przesunięcie => "entity-badge--info",
+        Data.Data.Magazyn.TypRuchuMagazynowego.Korekta => "entity-badge--warning",
+        Data.Data.Magazyn.TypRuchuMagazynowego.Inwentaryzacja => "entity-badge--accent",
+        _ => "entity-badge--muted"
+    };
+}
+
+<span class="entity-badge @badgeClass">@Model</span>

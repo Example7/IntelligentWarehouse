@@ -1,42 +1,51 @@
-@model Data.Data.Magazyn.Partia
+﻿@model Interfaces.Magazyn.Dtos.PartiaDetailsDto
 
 @{
     ViewData["Title"] = "Szczegóły partii";
-    var isExpired = Model.DataWaznosci.HasValue && Model.DataWaznosci.Value.Date < DateTime.Today;
+    var partia = Model.Partia;
+    var isExpired = partia.DataWaznosci.HasValue && partia.DataWaznosci.Value.Date < DateTime.Today;
+    var expiresSoon = partia.DataWaznosci.HasValue && !isExpired && partia.DataWaznosci.Value.Date <= DateTime.Today.AddDays(30);
+    var statusText = !partia.DataWaznosci.HasValue ? "Brak terminu" : isExpired ? "Przeterminowana" : expiresSoon ? "Krótki termin" : "OK";
+    var statusClass = !partia.DataWaznosci.HasValue ? "entity-badge--muted" : isExpired ? "entity-badge--danger" : expiresSoon ? "entity-badge--warning" : "entity-badge--success";
+    var jm = partia.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.";
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon"><i class="bi bi-collection"></i></span>
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-collection"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szczegóły partii</h1>
                 <p class="news-admin-header__subheading mb-0">Podgląd numeru partii, produktu, dostawcy i dat.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdPartii</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Status terminu</span><strong class="news-admin-stat__value">@(isExpired ? "Przeterminowana" : "OK")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@partia.IdPartii</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status terminu</span><strong class="news-admin-stat__value">@statusText</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Partie produktu</span><strong class="news-admin-stat__value">@Model.LiczbaPartiiProduktu</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title entity-mono">@Model.NumerPartii</h2>
+            <h2 class="news-details-panel__title entity-mono">@partia.NumerPartii</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdPartii" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdPartii" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Edit" asp-route-id="@partia.IdPartii" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@partia.IdPartii" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-controller="Produkt" asp-action="Details" asp-route-id="@partia.IdProduktu" class="btn btn-outline-info"><i class="bi bi-box-seam me-1"></i> Produkt</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Numer partii</div><div class="news-details-item__value entity-mono">@Model.NumerPartii</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kod produktu</div><div class="news-details-item__value entity-mono">@(Model.Produkt?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Dostawca</div><div class="news-details-item__value">@(Model.Dostawca?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Data produkcji</div><div class="news-details-item__value">@(Model.DataProdukcji?.ToString("yyyy-MM-dd") ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Data ważności</div><div class="news-details-item__value">@(Model.DataWaznosci?.ToString("yyyy-MM-dd") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Numer partii</div><div class="news-details-item__value entity-mono">@partia.NumerPartii</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status terminu</div><div class="news-details-item__value"><span class="entity-badge @statusClass">@statusText</span></div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(partia.Produkt?.Kod ?? "-")<div class="entity-cell-subtitle">@(partia.Produkt?.Nazwa ?? "-")</div></div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Domyślna jednostka miary</div><div class="news-details-item__value">@jm</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dostawca</div><div class="news-details-item__value">@(partia.Dostawca?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Partie dla produktu</div><div class="news-details-item__value">@Model.LiczbaPartiiProduktu</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Data produkcji</div><div class="news-details-item__value">@(partia.DataProdukcji?.ToString("yyyy-MM-dd") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Data ważności</div><div class="news-details-item__value">@(partia.DataWaznosci?.ToString("yyyy-MM-dd") ?? "-")</div></div>
         </div>
     </section>
 </div>

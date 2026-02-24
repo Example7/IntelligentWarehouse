@@ -1,29 +1,74 @@
+using Data.Data;
+using Data.Data.Magazyn;
+using Interfaces.Magazyn;
+using IntranetWeb.Controllers.Abstrakcja;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Data.Data;
-using Data.Data.Magazyn;
-
-using IntranetWeb.Controllers.Abstrakcja;
+using System.Text.Json;
 
 namespace IntranetWeb.Controllers
 {
     public class PozycjaPZController : BaseSearchController<PozycjaPZ>
     {
+        private readonly IPozycjaPZService _pozycjaPzService;
 
-        public PozycjaPZController(DataContext context) : base(context) { }
-
-        // GET: PozycjaPZ
-        public async Task<IActionResult> Index(string? searchTerm)
+        public PozycjaPZController(DataContext context, IPozycjaPZService pozycjaPzService) : base(context)
         {
-            var query = _context.PozycjaPZ.Include(p => p.Dokument).Include(p => p.Lokacja).Include(p => p.Produkt).AsNoTracking();
-            query = ApplySearchAny(query, searchTerm);
-
-            return View(await query.ToListAsync());
+            _pozycjaPzService = pozycjaPzService;
         }
 
-        // GET: PozycjaPZ/Details/5
+        public async Task<IActionResult> Index(string? searchTerm)
+        {
+            var model = await _pozycjaPzService.GetIndexDataAsync(searchTerm);
+            return View(model);
+        }
+
         public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var model = await _pozycjaPzService.GetDetailsDataAsync(id.Value);
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            return View(model);
+        }
+
+        public IActionResult Create()
+        {
+            var model = new PozycjaPZ
+            {
+                Lp = 1
+            };
+            UstawDomyslneLpDlaCreate(model);
+            UzupelnijDaneFormularza(model, onlyDraftDocuments: true);
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Id,IdDokumentu,Lp,IdProduktu,IdLokacji,Ilosc,CenaJednostkowa")] PozycjaPZ pozycjaPZ)
+        {
+            await WalidujPozycjePzAsync(pozycjaPZ, isEdit: false);
+
+            if (ModelState.IsValid)
+            {
+                _context.Add(pozycjaPZ);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            UzupelnijDaneFormularza(pozycjaPZ, onlyDraftDocuments: true);
+            return View(pozycjaPZ);
+        }
+
+        public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
             {
@@ -32,67 +77,22 @@ namespace IntranetWeb.Controllers
 
             var pozycjaPZ = await _context.PozycjaPZ
                 .Include(p => p.Dokument)
-                .Include(p => p.Lokacja)
-                .Include(p => p.Produkt)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id);
             if (pozycjaPZ == null)
             {
                 return NotFound();
             }
 
+            if (!string.Equals(pozycjaPZ.Dokument?.Status, "Draft", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["PozycjaPZEditBlocked"] = "Edycja pozycji PZ jest dostępna tylko dla dokumentow PZ w statusie Draft.";
+                return RedirectToAction(nameof(Details), new { id = pozycjaPZ.Id });
+            }
+
+            UzupelnijDaneFormularza(pozycjaPZ, onlyDraftDocuments: true);
             return View(pozycjaPZ);
         }
 
-        // GET: PozycjaPZ/Create
-        public IActionResult Create()
-        {
-            ViewData["IdDokumentu"] = new SelectList(_context.DokumentPZ, "Id", "Numer");
-            ViewData["IdLokacji"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod");
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod");
-            return View();
-        }
-
-        // POST: PozycjaPZ/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,IdDokumentu,Lp,IdProduktu,IdLokacji,Ilosc,CenaJednostkowa")] PozycjaPZ pozycjaPZ)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(pozycjaPZ);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["IdDokumentu"] = new SelectList(_context.DokumentPZ, "Id", "Numer", pozycjaPZ.IdDokumentu);
-            ViewData["IdLokacji"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", pozycjaPZ.IdLokacji);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", pozycjaPZ.IdProduktu);
-            return View(pozycjaPZ);
-        }
-
-        // GET: PozycjaPZ/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var pozycjaPZ = await _context.PozycjaPZ.FindAsync(id);
-            if (pozycjaPZ == null)
-            {
-                return NotFound();
-            }
-            ViewData["IdDokumentu"] = new SelectList(_context.DokumentPZ, "Id", "Numer", pozycjaPZ.IdDokumentu);
-            ViewData["IdLokacji"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", pozycjaPZ.IdLokacji);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", pozycjaPZ.IdProduktu);
-            return View(pozycjaPZ);
-        }
-
-        // POST: PozycjaPZ/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,IdDokumentu,Lp,IdProduktu,IdLokacji,Ilosc,CenaJednostkowa")] PozycjaPZ pozycjaPZ)
@@ -102,11 +102,34 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
+            await WalidujPozycjePzAsync(pozycjaPZ, isEdit: true);
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(pozycjaPZ);
+                    var existing = await _context.PozycjaPZ
+                        .Include(p => p.Dokument)
+                        .FirstOrDefaultAsync(p => p.Id == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    if (!string.Equals(existing.Dokument?.Status, "Draft", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ModelState.AddModelError(string.Empty, "Edytować można tylko pozycje dokumentu PZ w statusie Draft.");
+                        UzupelnijDaneFormularza(pozycjaPZ, onlyDraftDocuments: true);
+                        return View(pozycjaPZ);
+                    }
+
+                    existing.IdDokumentu = pozycjaPZ.IdDokumentu;
+                    existing.Lp = pozycjaPZ.Lp;
+                    existing.IdProduktu = pozycjaPZ.IdProduktu;
+                    existing.IdLokacji = pozycjaPZ.IdLokacji;
+                    existing.Ilosc = pozycjaPZ.Ilosc;
+                    existing.CenaJednostkowa = pozycjaPZ.CenaJednostkowa;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -115,20 +138,17 @@ namespace IntranetWeb.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    throw;
                 }
+
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdDokumentu"] = new SelectList(_context.DokumentPZ, "Id", "Numer", pozycjaPZ.IdDokumentu);
-            ViewData["IdLokacji"] = new SelectList(_context.Lokacja, "IdLokacji", "Kod", pozycjaPZ.IdLokacji);
-            ViewData["IdProduktu"] = new SelectList(_context.Produkt, "IdProduktu", "Kod", pozycjaPZ.IdProduktu);
+
+            UzupelnijDaneFormularza(pozycjaPZ, onlyDraftDocuments: true);
             return View(pozycjaPZ);
         }
 
-        // GET: PozycjaPZ/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -136,24 +156,31 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var pozycjaPZ = await _context.PozycjaPZ
-                .Include(p => p.Dokument)
-                .Include(p => p.Lokacja)
-                .Include(p => p.Produkt)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (pozycjaPZ == null)
+            var model = await _pozycjaPzService.GetDeleteDataAsync(id.Value);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(pozycjaPZ);
+            return View(model);
         }
 
-        // POST: PozycjaPZ/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var deleteData = await _pozycjaPzService.GetDeleteDataAsync(id);
+            if (deleteData == null)
+            {
+                return NotFound();
+            }
+
+            if (!deleteData.CzyMoznaUsunac)
+            {
+                ModelState.AddModelError(string.Empty, deleteData.PowodBlokady ?? "Nie można usunąć pozycji PZ.");
+                return View("Delete", deleteData);
+            }
+
             var pozycjaPZ = await _context.PozycjaPZ.FindAsync(id);
             if (pozycjaPZ != null)
             {
@@ -167,6 +194,155 @@ namespace IntranetWeb.Controllers
         private bool PozycjaPZExists(int id)
         {
             return _context.PozycjaPZ.Any(e => e.Id == id);
+        }
+
+        private void UzupelnijDaneFormularza(PozycjaPZ model, bool onlyDraftDocuments)
+        {
+            var dokumentyQuery = _context.DokumentPZ
+                .AsNoTracking()
+                .Include(d => d.Magazyn)
+                .AsQueryable();
+
+            if (onlyDraftDocuments)
+            {
+                dokumentyQuery = dokumentyQuery.Where(d => d.Status == "Draft");
+            }
+
+            ViewData["IdDokumentu"] = new SelectList(
+                dokumentyQuery
+                    .OrderByDescending(d => d.DataPrzyjeciaUtc)
+                    .ThenByDescending(d => d.Id)
+                    .Select(d => new
+                    {
+                        d.Id,
+                        Label = $"{d.Numer} | {d.Status} | {(d.Magazyn != null ? d.Magazyn.Nazwa : "-")}"
+                    })
+                    .ToList(),
+                "Id",
+                "Label",
+                model.IdDokumentu);
+            UstawMapeLpDlaDokumentow();
+
+            ViewData["IdLokacji"] = new SelectList(
+                _context.Lokacja
+                    .AsNoTracking()
+                    .Include(l => l.Magazyn)
+                    .OrderBy(l => l.Magazyn.Nazwa)
+                    .ThenBy(l => l.Kod)
+                    .Select(l => new
+                    {
+                        l.IdLokacji,
+                        Label = $"{(l.Magazyn != null ? l.Magazyn.Nazwa : "-")} / {l.Kod}"
+                    })
+                    .ToList(),
+                "IdLokacji",
+                "Label",
+                model.IdLokacji);
+
+            ViewData["IdProduktu"] = new SelectList(
+                _context.Produkt
+                    .AsNoTracking()
+                    .Include(p => p.DomyslnaJednostka)
+                    .OrderBy(p => p.Kod)
+                    .ThenBy(p => p.Nazwa)
+                    .Select(p => new
+                    {
+                        p.IdProduktu,
+                        Label = $"{p.Kod} - {p.Nazwa} ({(p.DomyslnaJednostka != null ? p.DomyslnaJednostka.Kod : "j.m.")})"
+                    })
+                    .ToList(),
+                "IdProduktu",
+                "Label",
+                model.IdProduktu);
+        }
+
+        private async Task WalidujPozycjePzAsync(PozycjaPZ pozycjaPZ, bool isEdit)
+        {
+            if (pozycjaPZ.Ilosc <= 0)
+            {
+                ModelState.AddModelError(nameof(PozycjaPZ.Ilosc), "Ilość musi być większa od zera.");
+            }
+
+            var dokument = await _context.DokumentPZ
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.Id == pozycjaPZ.IdDokumentu);
+            if (dokument == null)
+            {
+                ModelState.AddModelError(nameof(PozycjaPZ.IdDokumentu), "Wybrany dokument PZ nie istnieje.");
+                return;
+            }
+
+            if (!string.Equals(dokument.Status, "Draft", StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError(nameof(PozycjaPZ.IdDokumentu), "Pozycje można dodawać/edytować tylko dla dokumentów PZ w statusie Draft.");
+            }
+
+            var lokacja = await _context.Lokacja
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l => l.IdLokacji == pozycjaPZ.IdLokacji);
+            if (lokacja == null)
+            {
+                ModelState.AddModelError(nameof(PozycjaPZ.IdLokacji), "Wybrana lokacja nie istnieje.");
+            }
+            else if (lokacja.IdMagazynu != dokument.IdMagazynu)
+            {
+                ModelState.AddModelError(nameof(PozycjaPZ.IdLokacji), "Lokacja musi należeć do magazynu wybranego dokumentu PZ.");
+            }
+
+            var duplicateLpExists = await _context.PozycjaPZ
+                .AsNoTracking()
+                .AnyAsync(p => p.IdDokumentu == pozycjaPZ.IdDokumentu &&
+                               p.Lp == pozycjaPZ.Lp &&
+                               (!isEdit || p.Id != pozycjaPZ.Id));
+            if (duplicateLpExists)
+            {
+                ModelState.AddModelError(nameof(PozycjaPZ.Lp), "Pozycja o takim numerze Lp już istnieje w tym dokumencie PZ.");
+            }
+        }
+
+        private void UstawDomyslneLpDlaCreate(PozycjaPZ model)
+        {
+            if (model.IdDokumentu == 0)
+            {
+                var firstDraftDocumentId = _context.DokumentPZ
+                    .AsNoTracking()
+                    .Where(d => d.Status == "Draft")
+                    .OrderByDescending(d => d.DataPrzyjeciaUtc)
+                    .ThenByDescending(d => d.Id)
+                    .Select(d => (int?)d.Id)
+                    .FirstOrDefault();
+
+                if (firstDraftDocumentId.HasValue)
+                {
+                    model.IdDokumentu = firstDraftDocumentId.Value;
+                }
+            }
+
+            if (model.IdDokumentu != 0 && model.Lp <= 1)
+            {
+                var nextLp = _context.PozycjaPZ
+                    .AsNoTracking()
+                    .Where(p => p.IdDokumentu == model.IdDokumentu)
+                    .Select(p => (int?)p.Lp)
+                    .Max();
+
+                model.Lp = (nextLp ?? 0) + 1;
+            }
+        }
+
+        private void UstawMapeLpDlaDokumentow()
+        {
+            var nextLpByDocument = _context.DokumentPZ
+                .AsNoTracking()
+                .Where(d => d.Status == "Draft")
+                .Select(d => new
+                {
+                    d.Id,
+                    NextLp = (_context.PozycjaPZ.Where(p => p.IdDokumentu == d.Id).Select(p => (int?)p.Lp).Max() ?? 0) + 1
+                })
+                .ToDictionary(x => x.Id, x => x.NextLp);
+
+            ViewData["NextLpByDocumentJson"] = JsonSerializer.Serialize(nextLpByDocument);
         }
     }
 }
