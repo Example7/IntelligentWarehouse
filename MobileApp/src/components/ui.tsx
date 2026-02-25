@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } from "react-native";
 
 export const colors = {
