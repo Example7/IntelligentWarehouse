@@ -1,6 +1,9 @@
 using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
+using IntranetWeb.Models.Uzytkownik;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +11,7 @@ using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class UzytkownikController : BaseSearchController<Uzytkownik>
     {
         private readonly IUzytkownikService _uzytkownikService;
@@ -38,6 +42,57 @@ namespace IntranetWeb.Controllers
             }
 
             return View(data);
+        }
+
+        // GET: Uzytkownik/UstawHaslo/5
+        public async Task<IActionResult> UstawHaslo(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var user = await _context.Uzytkownik.AsNoTracking().FirstOrDefaultAsync(x => x.IdUzytkownika == id.Value);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(new SetPasswordViewModel
+            {
+                UserId = user.IdUzytkownika,
+                UserLogin = user.Login,
+                UserEmail = user.Email
+            });
+        }
+
+        // POST: Uzytkownik/UstawHaslo/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UstawHaslo(int id, SetPasswordViewModel model)
+        {
+            if (id != model.UserId)
+            {
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _context.Uzytkownik.FirstOrDefaultAsync(x => x.IdUzytkownika == id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var hasher = new PasswordHasher<Uzytkownik>();
+            user.HashHasla = hasher.HashPassword(user, model.NewPassword);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Ustawiono nowe hasło dla uzytkownika '{user.Login}'.";
+            return RedirectToAction(nameof(Details), new { id = user.IdUzytkownika });
         }
 
         // GET: Uzytkownik/Create

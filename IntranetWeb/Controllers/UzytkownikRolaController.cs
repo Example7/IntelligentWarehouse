@@ -1,6 +1,7 @@
 using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class UzytkownikRolaController : BaseSearchController<UzytkownikRola>
     {
         private readonly IUzytkownikRolaService _uzytkownikRolaService;

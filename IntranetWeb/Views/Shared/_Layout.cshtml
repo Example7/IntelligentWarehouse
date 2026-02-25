@@ -49,9 +49,28 @@
                         <i class="bi bi-grid-1x2-fill"></i>
                         @currentSectionLabel
                     </span>
+                    @if (User?.Identity?.IsAuthenticated == true)
+                    {
+                        <span class="app-context-chip d-none d-lg-inline-flex" title="@User.FindFirst("display_name")?.Value">
+                            <i class="bi bi-person-circle"></i>
+                            @(User.Identity?.Name ?? "user")
+                        </span>
+                    }
                     <a class="btn app-icon-btn" asp-controller="Home" asp-action="Index" title="Dashboard" aria-label="Dashboard">
                         <i class="bi bi-house-door"></i>
                     </a>
+                    @if (User?.Identity?.IsAuthenticated == true)
+                    {
+                        <a class="btn app-icon-btn" asp-controller="Konto" asp-action="ZmienHaslo" title="Zmień hasło" aria-label="Zmień hasło">
+                            <i class="bi bi-key"></i>
+                        </a>
+                        <form asp-controller="Konto" asp-action="Wyloguj" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn app-icon-btn" title="Wyloguj" aria-label="Wyloguj">
+                                <i class="bi bi-box-arrow-right"></i>
+                            </button>
+                        </form>
+                    }
                 </div>
             </div>
         </nav>
@@ -281,6 +300,10 @@
     <div class="content-wrap app-content-wrap">
         <main class="container-fluid app-main px-3 px-lg-4 py-4">
             <div class="app-content-frame">
+                @if (TempData["SuccessMessage"] is string successMessage && !string.IsNullOrWhiteSpace(successMessage))
+                {
+                    <div class="alert alert-success" role="alert">@successMessage</div>
+                }
                 @RenderBody()
             </div>
         </main>

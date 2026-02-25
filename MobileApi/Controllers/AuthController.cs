@@ -1,6 +1,4 @@
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Security.Claims;
 using Data.Data;
 using Data.Data.Magazyn;
 using Microsoft.AspNetCore.Authorization;
@@ -35,14 +33,22 @@ public class AuthController : ControllerBase
         }
 
         var lookup = request.LoginOrEmail.Trim();
-
-        var user = await _context.Uzytkownik
+        var userQuery = _context.Uzytkownik
             .Include(u => u.RoleUzytkownika)
             .ThenInclude(ur => ur.Rola)
             .AsNoTracking()
-            .FirstOrDefaultAsync(u =>
-                u.CzyAktywny &&
-                (u.Login == lookup || u.Email == lookup));
+            .Where(u => u.CzyAktywny);
+
+        var user = await userQuery
+            .FirstOrDefaultAsync(u => u.Login == lookup || u.Email == lookup);
+
+        if (user is null)
+        {
+            var activeUsers = await userQuery.ToListAsync();
+            user = activeUsers.FirstOrDefault(u =>
+                string.Equals((u.Login ?? string.Empty).Trim(), lookup, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals((u.Email ?? string.Empty).Trim(), lookup, StringComparison.OrdinalIgnoreCase));
+        }
 
         if (user is null || !VerifyPassword(user, request.Password))
         {
@@ -91,22 +97,15 @@ public class AuthController : ControllerBase
 
     private static bool VerifyPassword(Uzytkownik user, string providedPassword)
     {
-        // Obsługa hashy Identity + fallback do plain text na czas migracji starego modelu.
-        // Docelowo usuń fallback plain text i trzymaj jeden algorytm hashowania.
         var identityHasher = new PasswordHasher<Uzytkownik>();
-        var result = identityHasher.VerifyHashedPassword(user, user.HashHasla, providedPassword);
-        if (result != PasswordVerificationResult.Failed)
+        try
         {
-            return true;
+            var result = identityHasher.VerifyHashedPassword(user, user.HashHasla, providedPassword);
+            return result != PasswordVerificationResult.Failed;
         }
-
-        return FixedTimeEquals(user.HashHasla, providedPassword);
-    }
-
-    private static bool FixedTimeEquals(string a, string b)
-    {
-        var left = Encoding.UTF8.GetBytes(a);
-        var right = Encoding.UTF8.GetBytes(b);
-        return CryptographicOperations.FixedTimeEquals(left, right);
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 }

@@ -1,0 +1,58 @@
+@model IntranetWeb.Models.Uzytkownik.SetPasswordViewModel
+
+@{
+    ViewData["Title"] = "Ustaw hasło użytkownika";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-key-fill"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Ustaw hasło użytkownika</h1>
+                <p class="news-admin-header__subheading mb-0">Reset/ustawienie nowego hasła przez administratora.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Login</span><strong class="news-admin-stat__value">@Model.UserLogin</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.UserId</strong></div>
+        </div>
+    </section>
+
+    <section class="news-editor-panel">
+        <div class="news-editor-panel__header">
+            <h2 class="h5 mb-1">Nowe hasło</h2>
+            <p class="text-muted mb-0">Hasło zostanie zapisane jako hash (Identity PasswordHasher). użytkownik: @Model.UserEmail</p>
+        </div>
+        <form asp-action="UstawHaslo" asp-route-id="@Model.UserId" method="post" class="news-editor-form" novalidate>
+            @Html.AntiForgeryToken()
+            <input asp-for="UserId" type="hidden" />
+            <input asp-for="UserLogin" type="hidden" />
+            <input asp-for="UserEmail" type="hidden" />
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            <div class="news-form-grid">
+                <div class="news-form-field">
+                    <label asp-for="NewPassword" class="form-label news-form-label"></label>
+                    <input asp-for="NewPassword" class="form-control news-form-control" autocomplete="new-password" />
+                    <span asp-validation-for="NewPassword" class="text-danger small"></span>
+                </div>
+                <div class="news-form-field">
+                    <label asp-for="ConfirmNewPassword" class="form-label news-form-label"></label>
+                    <input asp-for="ConfirmNewPassword" class="form-control news-form-control" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmNewPassword" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="news-form-actions">
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Ustaw hasło</button>
+                <a asp-action="Details" asp-route-id="@Model.UserId" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
