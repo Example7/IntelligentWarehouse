@@ -35,7 +35,16 @@
                 <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")"><i class="bi bi-x-lg"></i></a>
             }
         </form>
-        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj ruch</a>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary"
+               asp-controller="Raport"
+               asp-action="RuchyMagazynowe"
+               asp-route-searchTerm="@Model.SearchTerm"
+               title="Przejdź do raportu ruchów magazynowych">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Raport ruchów
+            </a>
+            <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj ruch</a>
+        </div>
     </section>
 
     @if (!items.Any())

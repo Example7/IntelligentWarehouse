@@ -1,0 +1,158 @@
+@model Interfaces.Magazyn.Dtos.RaportStanyMagazynoweDto
+
+@{
+    ViewData["Title"] = "Raport stanów magazynowych";
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var selectedWarehouseId = Model.IdMagazynu;
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-file-earmark-bar-graph"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Raport stanów magazynowych</h1>
+                <p class="news-admin-header__subheading mb-0">Raport stanów fizycznych z rezerwacjami lokacyjnymi i eksportem do Excel/PDF.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat">
+                <span class="news-admin-stat__label">Pozycji</span>
+                <strong class="news-admin-stat__value">@Model.Rows.Count</strong>
+            </div>
+            <div class="news-admin-stat" title="Liczba jednostek miary w podsumowaniu">
+                <span class="news-admin-stat__label">Suma wg JM</span>
+                <strong class="news-admin-stat__value">@Model.SumaWgJednostki.Count</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search w-100" role="search" aria-label="Filtry raportu stanów">
+            <div class="d-flex flex-wrap gap-2 w-100">
+                <div class="news-admin-search__input-wrap flex-grow-1" style="min-width: 280px;">
+                    <i class="bi bi-search news-admin-search__icon"></i>
+                    <input id="reportStockSearchTerm"
+                           class="form-control news-admin-search__input"
+                           name="searchTerm"
+                           value="@searchTerm"
+                           placeholder="Szukaj po SKU, nazwie produktu, magazynie lub lokacji..." />
+                </div>
+
+                <select class="form-select" name="idMagazynu" style="max-width: 280px;">
+                    <option value="">Wszystkie magazyny</option>
+                    @foreach (var option in Model.Magazyny)
+                    {
+                        <option value="@option.Value" selected="@(selectedWarehouseId == option.Value)">
+                            @option.Text
+                        </option>
+                    }
+                </select>
+
+                <button class="btn btn-primary news-admin-search__submit" type="submit">Filtruj</button>
+                @if (!string.IsNullOrWhiteSpace(searchTerm) || selectedWarehouseId.HasValue)
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("StanyMagazynowe")" title="Wyczyść filtry">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </div>
+        </form>
+    </section>
+
+    <section class="entity-table-panel mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 py-2">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="small text-muted">Suma wg JM</span>
+                @if (Model.SumaWgJednostki.Any())
+                {
+                    @foreach (var total in Model.SumaWgJednostki)
+                    {
+                        <span class="entity-badge entity-badge--muted" title="Ilość: @total.Ilosc.ToString("0.###"), Zarezerwowane (lok.): @total.ZarezerwowaneLokacyjnie.ToString("0.###"), Dostępne: @total.Dostepne.ToString("0.###")">
+                            @total.Ilosc.ToString("0.###") @total.Jednostka
+                        </span>
+                    }
+                }
+                else
+                {
+                    <span class="text-muted small">Brak danych.</span>
+                }
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-outline-success btn-sm"
+                   asp-action="EksportStanowExcel"
+                   asp-route-searchTerm="@Model.SearchTerm"
+                   asp-route-idMagazynu="@Model.IdMagazynu">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </a>
+                <a class="btn btn-outline-danger btn-sm"
+                   asp-action="EksportStanowPdf"
+                   asp-route-searchTerm="@Model.SearchTerm"
+                   asp-route-idMagazynu="@Model.IdMagazynu">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                </a>
+            </div>
+        </div>
+    </section>
+
+    @if (!Model.Rows.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
+            <h2 class="h4 mb-2">Brak danych do raportu</h2>
+            <p class="text-muted mb-0">Zmień filtry lub dodaj stany magazynowe.</p>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Produkt</th>
+                            <th>Magazyn</th>
+                            <th>Lokacja</th>
+                            <th class="text-end">Ilość</th>
+                            <th class="text-end">Zarezerwowane (lok.)</th>
+                            <th class="text-end">Dostępne</th>
+                            <th>JM</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td>
+                                <div class="entity-cell-title">@row.ProduktKod</div>
+                                <div class="entity-cell-subtitle">@row.ProduktNazwa</div>
+                            </td>
+                            <td>@row.MagazynNazwa</td>
+                            <td>@row.LokacjaKod</td>
+                            <td class="text-end">@row.Ilosc.ToString("0.###")</td>
+                            <td class="text-end">@row.ZarezerwowaneLokacyjnie.ToString("0.###")</td>
+                            <td class="text-end">@row.Dostepne.ToString("0.###")</td>
+                            <td>@row.Jednostka</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla pozycji raportu @row.IdStanu">
+                                    <a class="btn btn-outline-info" asp-controller="StanMagazynowy" asp-action="Details" asp-route-id="@row.IdStanu" title="Szczegóły stanu">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a class="btn btn-outline-primary" asp-controller="Produkt" asp-action="Details" asp-route-id="@row.IdProduktu" title="Szczegóły produktu">
+                                        <i class="bi bi-box-seam"></i>
+                                    </a>
+                                    <a class="btn btn-outline-secondary" asp-controller="Lokacja" asp-action="Details" asp-route-id="@row.IdLokacji" title="Szczegóły lokacji">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
+

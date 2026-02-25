@@ -1,0 +1,251 @@
+﻿@model Interfaces.Magazyn.Dtos.RaportRuchyMagazynoweDto
+@using Data.Data.Magazyn
+
+@{
+    ViewData["Title"] = "Raport ruchów magazynowych";
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-arrow-left-right"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Raport ruchów magazynowych</h1>
+                <p class="news-admin-header__subheading mb-0">Raport operacji magazynowych (PZ/WZ/MM/korekty/inwentaryzacje) z eksportem do Excel/PDF.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat">
+                <span class="news-admin-stat__label">Ruchów</span>
+                <strong class="news-admin-stat__value">@Model.Rows.Count</strong>
+            </div>
+            <div class="news-admin-stat">
+                <span class="news-admin-stat__label">Typów</span>
+                <strong class="news-admin-stat__value">@Model.PodsumowanieTypow.Count</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="report-filters report-filters__card">
+        <form method="get" role="search" aria-label="Filtry raportu ruchów">
+            <div class="p-3 p-lg-4">
+                <div class="report-filters__head mb-3">
+                    <div>
+                        <div class="report-filters__title">
+                            <i class="bi bi-funnel"></i>
+                            <span>Filtry</span>
+                        </div>
+                        <div class="report-filters__hint small text-muted">
+                            Wyszukuj i zawężaj raport po magazynie, typie ruchu i dacie utworzenia.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-xxl-8">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="report-moves-search" class="form-label report-filters__label">Szukaj</label>
+                                <div class="report-filters__control">
+                                    <input id="report-moves-search"
+                                        class="form-control report-filters__input ps-5"
+                                        name="searchTerm"
+                                        value="@searchTerm"
+                                        placeholder="Produkt, magazyn, referencja, notatka..." />
+                                    <i class="bi bi-search report-filters__icon"></i>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-xl-4">
+                                <label for="report-moves-warehouse" class="form-label report-filters__label">Magazyn</label>
+                                <div class="report-filters__control">
+                                    <select id="report-moves-warehouse" class="form-select report-filters__select" name="idMagazynu">
+                                        <option value="">Wszystkie magazyny</option>
+                                        @foreach (var option in Model.Magazyny)
+                                        {
+                                            <option value="@option.Value" selected="@(Model.IdMagazynu == option.Value)">@option.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 col-xl-4">
+                                <label for="report-moves-type" class="form-label report-filters__label">Typ ruchu</label>
+                                <div class="report-filters__control">
+                                    <select id="report-moves-type" class="form-select report-filters__select" name="typ">
+                                        <option value="">Wszystkie typy</option>
+                                        @foreach (var movementType in Enum.GetValues<TypRuchuMagazynowego>())
+                                        {
+                                            <option value="@movementType" selected="@(Model.Typ == movementType)">@movementType</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-xl-4">
+                                <fieldset class="report-filters__range">
+                                    <legend class="report-filters__label mb-1">Zakres dat (utworzono)</legend>
+
+                                    <div class="report-filters__range-grid">
+                                        <div>
+                                            <label for="report-moves-date-from" class="form-label report-filters__sub-label">Od</label>
+                                            <input id="report-moves-date-from"
+                                                class="form-control report-filters__input"
+                                                type="date"
+                                                name="dataOd"
+                                                value="@(Model.DataOd?.ToString("yyyy-MM-dd"))" />
+                                        </div>
+
+                                        <div>
+                                            <label for="report-moves-date-to" class="form-label report-filters__sub-label">Do</label>
+                                            <input id="report-moves-date-to"
+                                                class="form-control report-filters__input"
+                                                type="date"
+                                                name="dataDo"
+                                                value="@(Model.DataDo?.ToString("yyyy-MM-dd"))" />
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-xxl-4">
+                        <div class="report-filters__actions">
+                            <button class="btn btn-primary d-inline-flex align-items-center justify-content-center gap-2" type="submit">
+                                <i class="bi bi-search"></i>
+                                <span>Filtruj</span>
+                            </button>
+
+                            @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.IdMagazynu.HasValue || Model.Typ.HasValue || Model.DataOd.HasValue || Model.DataDo.HasValue)
+                            {
+                                <a class="btn btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-2"
+                                href="@Url.Action("RuchyMagazynowe")"
+                                title="Wyczyść filtry">
+                                    <i class="bi bi-x-lg"></i>
+                                    <span>Wyczyść</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <section class="entity-table-panel mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 py-2">
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="small text-muted">Podsumowanie typów</span>
+                @if (Model.PodsumowanieTypow.Any())
+                {
+                    @foreach (var item in Model.PodsumowanieTypow)
+                    {
+                        <span class="d-inline-flex align-items-center gap-1 me-1">
+                            <partial name="_MovementTypeBadge" model="item.Typ" />
+                            <span class="small text-muted">@item.LiczbaRuchow</span>
+                        </span>
+                    }
+                }
+                else
+                {
+                    <span class="small text-muted">Brak danych</span>
+                }
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-success btn-sm"
+                   asp-action="EksportRuchowExcel"
+                   asp-route-searchTerm="@Model.SearchTerm"
+                   asp-route-idMagazynu="@Model.IdMagazynu"
+                   asp-route-typ="@Model.Typ"
+                   asp-route-dataOd="@(Model.DataOd?.ToString("yyyy-MM-dd"))"
+                   asp-route-dataDo="@(Model.DataDo?.ToString("yyyy-MM-dd"))">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                </a>
+                <a class="btn btn-outline-danger btn-sm"
+                   asp-action="EksportRuchowPdf"
+                   asp-route-searchTerm="@Model.SearchTerm"
+                   asp-route-idMagazynu="@Model.IdMagazynu"
+                   asp-route-typ="@Model.Typ"
+                   asp-route-dataOd="@(Model.DataOd?.ToString("yyyy-MM-dd"))"
+                   asp-route-dataDo="@(Model.DataDo?.ToString("yyyy-MM-dd"))">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                </a>
+            </div>
+        </div>
+    </section>
+
+    @if (!Model.Rows.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-arrow-left-right"></i></div>
+            <h2 class="h4 mb-2">Brak ruchów do raportu</h2>
+            <p class="text-muted mb-0">Zmień filtry lub dodaj ruchy magazynowe.</p>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Typ</th>
+                            <th>Produkt</th>
+                            <th>Z</th>
+                            <th>Do</th>
+                            <th class="text-end">Ilość</th>
+                            <th>JM</th>
+                            <th>Referencja</th>
+                            <th>Utworzono</th>
+                            <th>Użytkownik</th>
+                            <th class="text-end">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td><partial name="_MovementTypeBadge" model="row.Typ" /></td>
+                            <td>
+                                <div class="entity-cell-title">@row.ProduktKod</div>
+                                <div class="entity-cell-subtitle">@row.ProduktNazwa</div>
+                            </td>
+                            <td title="@(row.MagazynZNazwa == "-" ? "-" : row.MagazynZNazwa)">
+                                <div class="entity-cell-title">@row.LokacjaZKod</div>
+                                <div class="entity-cell-subtitle">@row.MagazynZNazwa</div>
+                            </td>
+                            <td title="@(row.MagazynDoNazwa == "-" ? "-" : row.MagazynDoNazwa)">
+                                <div class="entity-cell-title">@row.LokacjaDoKod</div>
+                                <div class="entity-cell-subtitle">@row.MagazynDoNazwa</div>
+                            </td>
+                            <td class="text-end">@row.Ilosc.ToString("0.###")</td>
+                            <td>@row.Jednostka</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Referencja) ? "-" : row.Referencja)</td>
+                            <td>@row.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>@row.UzytkownikLabel</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a class="btn btn-outline-info" asp-controller="RuchMagazynowy" asp-action="Details" asp-route-id="@row.IdRuchu" title="Szczegóły ruchu">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a class="btn btn-outline-primary" asp-controller="Produkt" asp-action="Details" asp-route-id="@row.IdProduktu" title="Szczegóły produktu">
+                                        <i class="bi bi-box-seam"></i>
+                                    </a>
+                                    @if (row.IdLokacjiZ.HasValue)
+                                    {
+                                        <a class="btn btn-outline-secondary" asp-controller="Lokacja" asp-action="Details" asp-route-id="@row.IdLokacjiZ" title="Szczegóły lokacji Z">
+                                            <i class="bi bi-geo-alt"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>

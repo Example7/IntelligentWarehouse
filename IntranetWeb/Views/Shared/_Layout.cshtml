@@ -17,8 +17,12 @@
 
 @{
         var currentController = (ViewContext.RouteData.Values["controller"]?.ToString()) ?? "";
+        var currentAction = (ViewContext.RouteData.Values["action"]?.ToString()) ?? "";
         var currentSectionLabel = string.IsNullOrWhiteSpace(currentController) ? "Dashboard" : currentController;
         bool IsActive(string c) => string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase);
+        bool IsActiveAction(string c, string a) =>
+            string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(currentAction, a, StringComparison.OrdinalIgnoreCase);
 }
 
 <body class="has-sidebar intranet-shell">
@@ -142,6 +146,14 @@
                 <a class="nav-link rounded-3 sidebar-link @(IsActive("RuchMagazynowy") ? "active" : "")"
                    asp-controller="RuchMagazynowy" asp-action="Index">
                     <i class="bi bi-arrow-left-right me-2"></i> Ruchy magazynowe
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActiveAction("Raport", "StanyMagazynowe") ? "active" : "")"
+                   asp-controller="Raport" asp-action="StanyMagazynowe">
+                    <i class="bi bi-file-earmark-bar-graph me-2"></i> Raporty stanów
+                </a>
+                <a class="nav-link rounded-3 sidebar-link @(IsActiveAction("Raport", "RuchyMagazynowe") ? "active" : "")"
+                   asp-controller="Raport" asp-action="RuchyMagazynowe">
+                    <i class="bi bi-file-earmark-spreadsheet me-2"></i> Raporty ruchów
                 </a>
 
                 <hr class="my-2" />

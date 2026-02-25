@@ -44,6 +44,7 @@ namespace Services.DependencyInjection
             services.AddScoped<ILokacjaService, LokacjaService>();
             services.AddScoped<IMagazynService, MagazynService>();
             services.AddScoped<IStanMagazynowyService, StanMagazynowyService>();
+            services.AddScoped<IRaportMagazynowyService, RaportMagazynowyService>();
             services.AddScoped<IRuchMagazynowyService, RuchMagazynowyService>();
             services.AddScoped<IRegulaAlertuService, RegulaAlertuService>();
             services.AddScoped<IAlertService, AlertService>();
