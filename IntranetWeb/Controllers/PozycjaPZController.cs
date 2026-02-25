@@ -53,7 +53,7 @@ namespace IntranetWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,IdDokumentu,Lp,IdProduktu,IdLokacji,Ilosc,CenaJednostkowa")] PozycjaPZ pozycjaPZ)
+        public async Task<IActionResult> Create([Bind("Id,IdDokumentu,Lp,IdProduktu,IdLokacji,IdPartii,Ilosc,CenaJednostkowa")] PozycjaPZ pozycjaPZ)
         {
             await WalidujPozycjePzAsync(pozycjaPZ, isEdit: false);
 
@@ -95,7 +95,7 @@ namespace IntranetWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,IdDokumentu,Lp,IdProduktu,IdLokacji,Ilosc,CenaJednostkowa")] PozycjaPZ pozycjaPZ)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,IdDokumentu,Lp,IdProduktu,IdLokacji,IdPartii,Ilosc,CenaJednostkowa")] PozycjaPZ pozycjaPZ)
         {
             if (id != pozycjaPZ.Id)
             {
@@ -127,6 +127,7 @@ namespace IntranetWeb.Controllers
                     existing.Lp = pozycjaPZ.Lp;
                     existing.IdProduktu = pozycjaPZ.IdProduktu;
                     existing.IdLokacji = pozycjaPZ.IdLokacji;
+                    existing.IdPartii = pozycjaPZ.IdPartii;
                     existing.Ilosc = pozycjaPZ.Ilosc;
                     existing.CenaJednostkowa = pozycjaPZ.CenaJednostkowa;
 
@@ -254,6 +255,26 @@ namespace IntranetWeb.Controllers
                 "IdProduktu",
                 "Label",
                 model.IdProduktu);
+
+            var partieItems = _context.Partia
+                .AsNoTracking()
+                .Include(b => b.Produkt)
+                .OrderBy(b => b.Produkt.Kod)
+                .ThenBy(b => b.NumerPartii)
+                .Select(b => new SelectListItem
+                {
+                    Value = b.IdPartii.ToString(),
+                    Text = $"{(b.Produkt != null ? b.Produkt.Kod : "-")} / {b.NumerPartii}",
+                    Selected = model.IdPartii == b.IdPartii
+                })
+                .ToList();
+            partieItems.Insert(0, new SelectListItem
+            {
+                Value = string.Empty,
+                Text = "(brak partii)",
+                Selected = !model.IdPartii.HasValue
+            });
+            ViewData["IdPartii"] = partieItems;
         }
 
         private async Task WalidujPozycjePzAsync(PozycjaPZ pozycjaPZ, bool isEdit)
@@ -297,6 +318,21 @@ namespace IntranetWeb.Controllers
             if (duplicateLpExists)
             {
                 ModelState.AddModelError(nameof(PozycjaPZ.Lp), "Pozycja o takim numerze Lp już istnieje w tym dokumencie PZ.");
+            }
+            if (pozycjaPZ.IdPartii.HasValue)
+            {
+                var partia = await _context.Partia
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.IdPartii == pozycjaPZ.IdPartii.Value);
+
+                if (partia == null)
+                {
+                    ModelState.AddModelError(nameof(PozycjaPZ.IdPartii), "Wybrana partia nie istnieje.");
+                }
+                else if (partia.IdProduktu != pozycjaPZ.IdProduktu)
+                {
+                    ModelState.AddModelError(nameof(PozycjaPZ.IdPartii), "Wybrana partia musi należeć do wybranego produktu.");
+                }
             }
         }
 
@@ -346,3 +382,4 @@ namespace IntranetWeb.Controllers
         }
     }
 }
+

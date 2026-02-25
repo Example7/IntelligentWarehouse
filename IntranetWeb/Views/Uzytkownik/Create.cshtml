@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.Uzytkownik
 
 @{
-    ViewData["Title"] = "Dodaj uzytkownika";
+    ViewData["Title"] = "Dodaj użytkownika";
 }
 
 <div class="news-admin-page">
@@ -9,8 +9,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Dodaj uzytkownika</h1>
-                <p class="news-admin-header__subheading mb-0">Utworz konto systemowe i ustaw dane logowania.</p>
+                <h1 class="news-admin-header__heading mb-1">Dodaj użytkownika</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz konto systemowe i ustaw dane logowania.</p>
             </div>
         </div>
     </section>
@@ -18,7 +18,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane konta</h2>
-            <p class="text-muted mb-0">Wprowadz login, hash hasla (techniczny), email i status aktywnosci.</p>
+            <p class="text-muted mb-0">Wprowadź login, hash hasła (techniczny), e-mail i status aktywności.</p>
         </div>
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
@@ -47,8 +47,8 @@
                 </div>
             </div>
             <div class="news-form-actions">
-                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz uzytkownika</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz użytkownika</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
             </div>
         </form>
     </section>

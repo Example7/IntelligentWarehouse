@@ -21,6 +21,7 @@ namespace Services.Magazyn
                     .ThenInclude(l => l.Magazyn)
                 .Include(p => p.Produkt)
                     .ThenInclude(p => p.DomyslnaJednostka)
+                .Include(p => p.Partia)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -31,6 +32,7 @@ namespace Services.Magazyn
                     (p.Dokument != null && EF.Functions.Like(p.Dokument.Status, $"%{term}%")) ||
                     (p.Produkt != null && EF.Functions.Like(p.Produkt.Kod, $"%{term}%")) ||
                     (p.Produkt != null && EF.Functions.Like(p.Produkt.Nazwa, $"%{term}%")) ||
+                    (p.Partia != null && EF.Functions.Like(p.Partia.NumerPartii, $"%{term}%")) ||
                     (p.Lokacja != null && EF.Functions.Like(p.Lokacja.Kod, $"%{term}%")) ||
                     (p.Lokacja != null && p.Lokacja.Opis != null && EF.Functions.Like(p.Lokacja.Opis, $"%{term}%")) ||
                     (p.Lokacja != null && p.Lokacja.Magazyn != null && EF.Functions.Like(p.Lokacja.Magazyn.Nazwa, $"%{term}%")));
@@ -46,6 +48,7 @@ namespace Services.Magazyn
                 .Include(p => p.Dokument).ThenInclude(d => d.Magazyn)
                 .Include(p => p.Lokacja).ThenInclude(l => l.Magazyn)
                 .Include(p => p.Produkt).ThenInclude(p => p.DomyslnaJednostka)
+                .Include(p => p.Partia)
                 .FirstOrDefaultAsync(p => p.Id == idPozycji);
             if (pozycja == null)
             {
@@ -66,6 +69,7 @@ namespace Services.Magazyn
                 .Include(p => p.Dokument).ThenInclude(d => d.Magazyn)
                 .Include(p => p.Lokacja).ThenInclude(l => l.Magazyn)
                 .Include(p => p.Produkt).ThenInclude(p => p.DomyslnaJednostka)
+                .Include(p => p.Partia)
                 .FirstOrDefaultAsync(p => p.Id == idPozycji);
             if (pozycja == null)
             {
@@ -77,7 +81,7 @@ namespace Services.Magazyn
             {
                 Pozycja = pozycja,
                 CzyDokumentDraft = isDraft,
-                PowodBlokady = isDraft ? null : "Pozycje mo¿na usuwaæ tylko dla dokumentu WZ w statusie Draft."
+                PowodBlokady = isDraft ? null : "Pozycje moÅ¼na usuwaÄ‡ tylko dla dokumentu WZ w statusie Draft."
             };
         }
     }

@@ -1,9 +1,9 @@
-@model IEnumerable<Data.Data.Magazyn.Rola>
+﻿@model Interfaces.Magazyn.Dtos.RolaIndexDto
 
 @{
     ViewData["Title"] = "Role";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
 }
 
 <div class="news-admin-page">
@@ -12,17 +12,18 @@
             <span class="news-admin-header__icon"><i class="bi bi-shield-lock"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Role</h1>
-                <p class="news-admin-header__subheading mb-0">Slownik rol i uprawnien wykorzystywanych w systemie.</p>
+                <p class="news-admin-header__subheading mb-0">Słownik ról i uprawnień wykorzystywanych w systemie.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
             <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Przypisania</span><strong class="news-admin-stat__value">@items.Sum(x => x.LiczbaUzytkownikow)</strong></div>
         </div>
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie rol">
-            <label for="roleSearchTerm" class="visually-hidden">Szukaj rol</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie ról">
+            <label for="roleSearchTerm" class="visually-hidden">Szukaj ról</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon"></i>
                 <input id="roleSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
@@ -31,39 +32,40 @@
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")"><i class="bi bi-x-lg"></i></a>
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
             }
         </form>
-        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj role</a>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj rolę</a>
     </section>
 
     @if (!items.Any())
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-shield-lock"></i></div>
-            <h2 class="h4 mb-2">Brak rol</h2>
-            <p class="text-muted mb-3">Dodaj pierwsza role, aby przypisywac uprawnienia uzytkownikom.</p>
-            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj role</a>
+            <h2 class="h4 mb-2">Brak ról</h2>
+            <p class="text-muted mb-3">Dodaj pierwszą rolę, aby przypisywać uprawnienia użytkownikom.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj rolę</a>
         </section>
     }
     else
     {
         <div class="news-admin-grid">
-            @foreach (var item in items.OrderBy(x => x.Nazwa))
+            @foreach (var item in items.OrderBy(x => x.Rola.Nazwa))
             {
                 <article class="news-card">
                     <div class="news-card__accent"></div>
                     <div class="news-card__body">
-                        <div class="news-card__meta-top">
-                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @item.IdRoli</span>
+                        <div class="news-card__meta-top d-flex align-items-center gap-2 flex-wrap">
+                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @item.Rola.IdRoli</span>
+                            <span class="entity-badge entity-badge--muted">@item.LiczbaUzytkownikow użyt.</span>
                         </div>
-                        <h2 class="news-card__title">@item.Nazwa</h2>
-                        <p class="news-card__content">Rola systemowa do nadawania uprawnien.</p>
+                        <h2 class="news-card__title">@item.Rola.Nazwa</h2>
+                        <p class="news-card__content">Rola systemowa do nadawania uprawnień.</p>
                         <div class="news-card__footer">
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla roli @item.Nazwa">
-                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdRoli"><i class="bi bi-pencil"></i></a>
-                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdRoli"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdRoli"><i class="bi bi-trash"></i></a>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla roli @item.Rola.Nazwa">
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Rola.IdRoli" title="Edytuj rolę"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Rola.IdRoli" title="Szczegóły roli"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Rola.IdRoli" title="Usuń rolę"><i class="bi bi-trash"></i></a>
                             </div>
                         </div>
                     </div>

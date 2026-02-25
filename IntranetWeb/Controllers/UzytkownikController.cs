@@ -1,5 +1,6 @@
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,16 +10,17 @@ namespace IntranetWeb.Controllers
 {
     public class UzytkownikController : BaseSearchController<Uzytkownik>
     {
+        private readonly IUzytkownikService _uzytkownikService;
 
-        public UzytkownikController(DataContext context) : base(context) { }
+        public UzytkownikController(DataContext context, IUzytkownikService uzytkownikService) : base(context)
+        {
+            _uzytkownikService = uzytkownikService;
+        }
 
         // GET: Uzytkownik
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.Uzytkownik.AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Login, x => x.Email);
-
-            return View(await query.ToListAsync());
+            return View(await _uzytkownikService.GetIndexDataAsync(searchTerm));
         }
 
         // GET: Uzytkownik/Details/5
@@ -29,14 +31,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var uzytkownik = await _context.Uzytkownik
-                .FirstOrDefaultAsync(m => m.IdUzytkownika == id);
-            if (uzytkownik == null)
+            var data = await _uzytkownikService.GetDetailsDataAsync(id.Value);
+            if (data == null)
             {
                 return NotFound();
             }
 
-            return View(uzytkownik);
+            return View(data);
         }
 
         // GET: Uzytkownik/Create
@@ -52,11 +53,31 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdUzytkownika,Login,HashHasla,Email,CzyAktywny")] Uzytkownik uzytkownik)
         {
+            uzytkownik.Login = (uzytkownik.Login ?? string.Empty).Trim();
+            uzytkownik.Email = (uzytkownik.Email ?? string.Empty).Trim();
+            uzytkownik.HashHasla = (uzytkownik.HashHasla ?? string.Empty).Trim();
+
+            if (await _context.Uzytkownik.AsNoTracking().AnyAsync(x => x.Login == uzytkownik.Login))
+            {
+                ModelState.AddModelError(nameof(Uzytkownik.Login), $"Użytkownik o loginie '{uzytkownik.Login}' już istnieje.");
+            }
+            if (await _context.Uzytkownik.AsNoTracking().AnyAsync(x => x.Email == uzytkownik.Email))
+            {
+                ModelState.AddModelError(nameof(Uzytkownik.Email), $"Użytkownik o e-mail '{uzytkownik.Email}' już istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(uzytkownik);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(uzytkownik);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(string.Empty, "Nie udało się zapisać użytkownika. Sprawdź, czy login i e-mail są unikalne.");
+                }
             }
             return View(uzytkownik);
         }
@@ -89,11 +110,33 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
+            uzytkownik.Login = (uzytkownik.Login ?? string.Empty).Trim();
+            uzytkownik.Email = (uzytkownik.Email ?? string.Empty).Trim();
+            uzytkownik.HashHasla = (uzytkownik.HashHasla ?? string.Empty).Trim();
+
+            if (await _context.Uzytkownik.AsNoTracking().AnyAsync(x => x.IdUzytkownika != id && x.Login == uzytkownik.Login))
+            {
+                ModelState.AddModelError(nameof(Uzytkownik.Login), $"Użytkownik o loginie '{uzytkownik.Login}' już istnieje.");
+            }
+            if (await _context.Uzytkownik.AsNoTracking().AnyAsync(x => x.IdUzytkownika != id && x.Email == uzytkownik.Email))
+            {
+                ModelState.AddModelError(nameof(Uzytkownik.Email), $"Użytkownik o e-mail '{uzytkownik.Email}' już istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
+                var existing = await _context.Uzytkownik.FirstOrDefaultAsync(x => x.IdUzytkownika == id);
+                if (existing == null)
+                {
+                    return NotFound();
+                }
+
                 try
                 {
-                    _context.Update(uzytkownik);
+                    existing.Login = uzytkownik.Login;
+                    existing.Email = uzytkownik.Email;
+                    existing.HashHasla = uzytkownik.HashHasla;
+                    existing.CzyAktywny = uzytkownik.CzyAktywny;
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -106,6 +149,11 @@ namespace IntranetWeb.Controllers
                     {
                         throw;
                     }
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(string.Empty, "Nie udało się zapisać zmian. Sprawdź, czy login i e-mail są unikalne.");
+                    return View(uzytkownik);
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -120,14 +168,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var uzytkownik = await _context.Uzytkownik
-                .FirstOrDefaultAsync(m => m.IdUzytkownika == id);
-            if (uzytkownik == null)
+            var data = await _uzytkownikService.GetDeleteDataAsync(id.Value);
+            if (data == null)
             {
                 return NotFound();
             }
 
-            return View(uzytkownik);
+            return View(data);
         }
 
         // POST: Uzytkownik/Delete/5
@@ -135,14 +182,35 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var deleteData = await _uzytkownikService.GetDeleteDataAsync(id);
+            if (deleteData == null)
+            {
+                return NotFound();
+            }
+
+            if (!deleteData.CzyMoznaUsunac)
+            {
+                ModelState.AddModelError(string.Empty, "Nie można usunąć użytkownika, ponieważ ma powiązane rekordy w systemie.");
+                return View("Delete", deleteData);
+            }
+
             var uzytkownik = await _context.Uzytkownik.FindAsync(id);
             if (uzytkownik != null)
             {
                 _context.Uzytkownik.Remove(uzytkownik);
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Nie udało się usunąć użytkownika, ponieważ jest powiązany z innymi danymi.");
+                var refreshDeleteData = await _uzytkownikService.GetDeleteDataAsync(id);
+                return refreshDeleteData == null ? NotFound() : View("Delete", refreshDeleteData);
+            }
         }
 
         private bool UzytkownikExists(int id)

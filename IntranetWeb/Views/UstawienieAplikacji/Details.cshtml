@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.UstawienieAplikacji
+@model Interfaces.Magazyn.Dtos.UstawienieAplikacjiDetailsDto
 
 @{
     ViewData["Title"] = "Szczegóły ustawienia aplikacji";
+    var s = Model.Ustawienie;
 }
 
 <div class="news-admin-page">
@@ -14,40 +15,39 @@
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Klucz</span><strong class="news-admin-stat__value">@Model.Klucz</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Klucz</span><strong class="news-admin-stat__value">@s.Klucz</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title text-truncate entity-mono" title="@Model.Klucz">@Model.Klucz</h2>
+            <h2 class="news-details-panel__title text-truncate entity-mono" title="@s.Klucz">@s.Klucz</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.Klucz" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.Klucz" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Edit" asp-route-id="@s.Klucz" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@s.Klucz" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Klucz</div><div class="news-details-item__value entity-mono">@Model.Klucz</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Zmienił User ID</div><div class="news-details-item__value">@(Model.ZmienilUserId?.ToString() ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Zmieniono</div><div class="news-details-item__value">@Model.ZmienionoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Klucz</div><div class="news-details-item__value entity-mono">@s.Klucz</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zmienił</div><div class="news-details-item__value">@(Model.ZmienilEmail ?? s.ZmienilUserId?.ToString() ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zmieniono</div><div class="news-details-item__value">@s.ZmienionoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">User ID</div><div class="news-details-item__value">@(s.ZmienilUserId?.ToString() ?? "-")</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Wartość</div>
-                <div class="news-details-item__value news-details-item__value--content">
-                    <pre class="mb-0 entity-json-block">@Model.Wartosc</pre>
-                </div>
+                <div class="news-details-item__value news-details-item__value--content"><pre class="mb-0 entity-json-block">@s.Wartosc</pre></div>
             </div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Opis</div>
                 <div class="news-details-item__value news-details-item__value--content">
-                    @if (string.IsNullOrWhiteSpace(Model.Opis))
+                    @if (string.IsNullOrWhiteSpace(s.Opis))
                     {
                         <span class="text-muted">Brak opisu.</span>
                     }
                     else
                     {
-                        @Model.Opis
+                        @s.Opis
                     }
                 </div>
             </div>

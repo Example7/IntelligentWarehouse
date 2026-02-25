@@ -1,4 +1,4 @@
-@model Data.Data.CMS.Aktualnosc
+﻿@model Interfaces.CMS.Dtos.AktualnoscDetailsDto
 
 @{
     ViewData["Title"] = "Szczegóły aktualności";
@@ -12,9 +12,7 @@
             </span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szczegóły aktualności</h1>
-                <p class="news-admin-header__subheading mb-0">
-                    Podgląd danych wpisu CMS i szybkie przejście do edycji
-                </p>
+                <p class="news-admin-header__subheading mb-0">Podgląd danych wpisu CMS i szybkie przejście do edycji.</p>
             </div>
         </div>
 
@@ -34,37 +32,28 @@
         <div class="news-details-panel__header">
             <h2 class="news-details-panel__title">@Model.Nazwa</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdAktualnosci" class="btn btn-primary">
-                    <i class="bi bi-pencil-square me-1"></i> Edytuj
-                </a>
-                <a asp-action="Delete" asp-route-id="@Model.IdAktualnosci" class="btn btn-outline-danger">
-                    <i class="bi bi-trash me-1"></i> Usuń
-                </a>
-                <a asp-action="Index" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i> Lista
-                </a>
+                <a asp-action="Edit" asp-route-id="@Model.IdAktualnosci" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@Model.IdAktualnosci" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
             <div class="news-details-item">
-                <div class="news-details-item__label">Tytuł linku</div>
-                <div class="news-details-item__value">@Html.DisplayFor(m => m.TytulLinku)</div>
+                <div class="news-details-item__label">Tytuł odnośnika</div>
+                <div class="news-details-item__value">@Model.TytulLinku</div>
             </div>
-
             <div class="news-details-item">
-                <div class="news-details-item__label">Nazwa</div>
-                <div class="news-details-item__value">@Html.DisplayFor(m => m.Nazwa)</div>
+                <div class="news-details-item__label">Nazwa aktualności</div>
+                <div class="news-details-item__value">@Model.Nazwa</div>
             </div>
-
             <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">Treść</div>
-                <div class="news-details-item__value news-details-item__value--content">@Html.DisplayFor(m => m.Tresc)</div>
+                <div class="news-details-item__label">Treść aktualności</div>
+                <div class="news-details-item__value news-details-item__value--content">@Model.Tresc</div>
             </div>
-
             <div class="news-details-item">
-                <div class="news-details-item__label">Pozycja</div>
-                <div class="news-details-item__value">@Html.DisplayFor(m => m.Pozycja)</div>
+                <div class="news-details-item__label">Pozycja wyświetlania</div>
+                <div class="news-details-item__value">@Model.Pozycja</div>
             </div>
         </div>
     </section>

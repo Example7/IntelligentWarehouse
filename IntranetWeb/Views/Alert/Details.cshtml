@@ -1,10 +1,11 @@
-@model Data.Data.Magazyn.Alert
+@model Interfaces.Magazyn.Dtos.AlertDetailsDto
 
 @{
-    ViewData["Title"] = "Szczegoly alertu";
-    var severityClass = string.Equals(Model.Waga, "CRIT", StringComparison.OrdinalIgnoreCase)
+    ViewData["Title"] = "Szczegóły alertu";
+    var a = Model.Alert;
+    var severityClass = string.Equals(a.Waga, "CRIT", StringComparison.OrdinalIgnoreCase)
         ? "entity-badge--danger"
-        : string.Equals(Model.Waga, "WARN", StringComparison.OrdinalIgnoreCase) ? "entity-badge--warning" : "entity-badge--muted";
+        : string.Equals(a.Waga, "WARN", StringComparison.OrdinalIgnoreCase) ? "entity-badge--warning" : "entity-badge--muted";
 }
 
 <div class="news-admin-page">
@@ -17,34 +18,35 @@
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(Model.CzyPotwierdzony ? "Potwierdzony" : "Nowy")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@a.Id</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(a.CzyPotwierdzony ? "Potwierdzony" : "Nowy")</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title text-truncate" title="@Model.Tresc">@Model.Tresc</h2>
+            <h2 class="news-details-panel__title text-truncate" title="@a.Tresc">@a.Tresc</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Edit" asp-route-id="@a.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@a.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Waga</div><div class="news-details-item__value"><span class="entity-badge @severityClass">@Model.Waga</span></div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Regula</div><div class="news-details-item__value">@(Model.Regula?.Typ ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(Model.Magazyn?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kod produktu</div><div class="news-details-item__value entity-mono">@(Model.Produkt?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Czy potwierdzony</div><div class="news-details-item__value">@(Model.CzyPotwierdzony ? "Tak" : "Nie")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Potwierdził User ID</div><div class="news-details-item__value">@(Model.PotwierdzilUserId?.ToString() ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Potwierdzono</div><div class="news-details-item__value">@(Model.PotwierdzonoUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Waga</div><div class="news-details-item__value"><span class="entity-badge @severityClass">@a.Waga</span></div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Reguła</div><div class="news-details-item__value">@(a.Regula?.Typ ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(a.Magazyn?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(a.Produkt?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kod produktu</div><div class="news-details-item__value entity-mono">@(a.Produkt?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Jednostka</div><div class="news-details-item__value">@(a.Produkt?.DomyslnaJednostka?.Kod ?? "j.m.")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@a.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Potwierdzenie</div><div class="news-details-item__value">@(a.CzyPotwierdzony ? "Potwierdzony" : "Nowy")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Potwierdził</div><div class="news-details-item__value">@(Model.PotwierdzilEmail ?? a.PotwierdzilUserId?.ToString() ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Potwierdzono</div><div class="news-details-item__value">@(a.PotwierdzonoUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "-")</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Treść</div>
-                <div class="news-details-item__value news-details-item__value--content">@Model.Tresc</div>
+                <div class="news-details-item__value news-details-item__value--content">@a.Tresc</div>
             </div>
         </div>
     </section>

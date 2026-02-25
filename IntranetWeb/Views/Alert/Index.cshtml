@@ -1,11 +1,11 @@
-@model IEnumerable<Data.Data.Magazyn.Alert>
+@model Interfaces.Magazyn.Dtos.AlertIndexDto
 
 @{
     ViewData["Title"] = "Alerty";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
-    var acknowledgedCount = items.Count(x => x.CzyPotwierdzony);
-    var criticalCount = items.Count(x => string.Equals(x.Waga, "CRIT", StringComparison.OrdinalIgnoreCase));
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var acknowledgedCount = items.Count(x => x.Alert.CzyPotwierdzony);
+    var criticalCount = items.Count(x => string.Equals(x.Alert.Waga, "CRIT", StringComparison.OrdinalIgnoreCase));
 }
 
 <div class="news-admin-page">
@@ -30,7 +30,7 @@
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
                 <input id="alertSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
-                       placeholder="Szukaj po wadze lub tresci..." />
+                       placeholder="Szukaj po wadze, treści, magazynie, produkcie lub regule..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -83,8 +83,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in items.OrderByDescending(x => x.UtworzonoUtc).ThenByDescending(x => x.Id))
+                    @foreach (var row in items)
                     {
+                        var item = row.Alert;
                         var severityClass = string.Equals(item.Waga, "CRIT", StringComparison.OrdinalIgnoreCase)
                             ? "entity-badge--danger"
                             : string.Equals(item.Waga, "WARN", StringComparison.OrdinalIgnoreCase)
@@ -92,9 +93,7 @@
                                 : "entity-badge--muted";
                         <tr>
                             <td><span class="entity-badge @severityClass">@item.Waga</span></td>
-                            <td>
-                                <div class="entity-cell-title text-truncate" title="@item.Tresc">@item.Tresc</div>
-                            </td>
+                            <td><div class="entity-cell-title text-truncate" title="@item.Tresc">@item.Tresc</div></td>
                             <td>@(item.Magazyn?.Nazwa ?? "-")</td>
                             <td>
                                 <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
@@ -109,9 +108,9 @@
                             </td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla alertu @item.Id">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usuń"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

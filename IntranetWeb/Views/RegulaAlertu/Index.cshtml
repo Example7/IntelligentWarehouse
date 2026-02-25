@@ -1,36 +1,34 @@
-@model IEnumerable<Data.Data.Magazyn.RegulaAlertu>
+@model Interfaces.Magazyn.Dtos.RegulaAlertuIndexDto
 
 @{
-    ViewData["Title"] = "Reguly alertow";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
-    var enabledCount = items.Count(x => x.CzyWlaczona);
-    var ruleTypes = items.Select(x => x.Typ).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+    ViewData["Title"] = "Reguły alertów";
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var enabledCount = items.Count(x => x.Regula.CzyWlaczona);
+    var ruleTypes = items.Select(x => x.Regula.Typ).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-bell"></i></span>
+            <span class="news-admin-header__icon"><i class="bi bi-bell"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Reguly alertow</h1>
+                <h1 class="news-admin-header__heading mb-1">Reguły alertów</h1>
                 <p class="news-admin-header__subheading mb-0">Konfiguracja reguł alertów magazynowych dla magazynów i produktów.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
             <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Właczone</span><strong class="news-admin-stat__value">@enabledCount</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Włączone</span><strong class="news-admin-stat__value">@enabledCount</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Typy</span><strong class="news-admin-stat__value">@ruleTypes</strong></div>
         </div>
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie reguł alertow">
-            <label for="alertRuleSearchTerm" class="visually-hidden">Szukaj reguł alertow</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie reguł alertów">
             <div class="news-admin-search__input-wrap">
-                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
-                <input id="alertRuleSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
-                       placeholder="Szukaj po typie..." />
+                <i class="bi bi-search news-admin-search__icon"></i>
+                <input class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm" placeholder="Szukaj po typie, magazynie lub produkcie..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -45,24 +43,8 @@
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-bell-slash"></i></div>
-            <h2 class="h4 mb-2">Brak regul alertow</h2>
-            <p class="text-muted mb-3">
-                @if (string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    <span>Nie dodano jeszcze żadnych regul alertow.</span>
-                }
-                else
-                {
-                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
-                }
-            </p>
-            <div class="d-flex justify-content-center gap-2 flex-wrap">
-                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj regułę</a>
-                @if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
-                }
-            </div>
+            <h2 class="h4 mb-2">Brak reguł alertów</h2>
+            <p class="text-muted mb-0">Brak wyników do wyświetlenia.</p>
         </section>
     }
     else
@@ -73,36 +55,41 @@
                     <thead>
                         <tr>
                             <th>Typ</th>
-                            <th class="text-end">Prog</th>
+                            <th class="text-end">Próg</th>
                             <th>Magazyn</th>
                             <th>Produkt</th>
                             <th>Status</th>
+                            <th class="text-end">Alerty</th>
+                            <th class="text-end">Nowe</th>
                             <th>Utworzono</th>
                             <th class="text-end">Akcje</th>
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in items.OrderBy(x => x.Typ).ThenBy(x => x.Magazyn != null ? x.Magazyn.Nazwa : string.Empty))
+                    @foreach (var item in items.OrderBy(x => x.Regula.Typ).ThenBy(x => x.Regula.Magazyn?.Nazwa ?? string.Empty))
                     {
+                        var r = item.Regula;
                         <tr>
-                            <td><span class="entity-badge entity-badge--muted">@item.Typ</span></td>
-                            <td class="text-end">@item.Prog.ToString("0.###")</td>
-                            <td>@(item.Magazyn?.Nazwa ?? "-")</td>
+                            <td><span class="entity-badge entity-badge--muted">@r.Typ</span></td>
+                            <td class="text-end">@r.Prog.ToString("0.###")</td>
+                            <td>@(r.Magazyn?.Nazwa ?? "-")</td>
                             <td>
-                                <div class="entity-cell-title">@(item.Produkt?.Kod ?? "Wszystkie")</div>
-                                <div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? "Regula ogolna dla magazynu")</div>
+                                <div class="entity-cell-title">@(r.Produkt?.Kod ?? "Wszystkie")</div>
+                                <div class="entity-cell-subtitle">@(r.Produkt?.Nazwa ?? "Reguła ogólna dla magazynu")</div>
                             </td>
                             <td>
-                                <span class="entity-badge @(item.CzyWlaczona ? "entity-badge--success" : "entity-badge--muted")">
-                                    @(item.CzyWlaczona ? "Wlaczona" : "Wylaczona")
+                                <span class="entity-badge @(r.CzyWlaczona ? "entity-badge--success" : "entity-badge--muted")">
+                                    @(r.CzyWlaczona ? "Włączona" : "Wyłączona")
                                 </span>
                             </td>
-                            <td>@item.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                            <td class="text-end">@item.LiczbaAlertow</td>
+                            <td class="text-end">@item.LiczbaAlertowNiepotwierdzonych</td>
+                            <td>@r.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                             <td class="text-end">
-                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla reguly alertu @item.Id">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                <div class="btn-group btn-group-sm">
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@r.Id" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@r.Id" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@r.Id" title="Usuń"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

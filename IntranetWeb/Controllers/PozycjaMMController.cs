@@ -50,7 +50,7 @@ namespace IntranetWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,IdDokumentu,Lp,IdProduktu,IdLokacjiZ,IdLokacjiDo,Ilosc")] PozycjaMM pozycjaMM)
+        public async Task<IActionResult> Create([Bind("Id,IdDokumentu,Lp,IdProduktu,IdPartii,IdLokacjiZ,IdLokacjiDo,Ilosc")] PozycjaMM pozycjaMM)
         {
             await WalidujPozycjeMmAsync(pozycjaMM, isEdit: false);
 
@@ -92,7 +92,7 @@ namespace IntranetWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,IdDokumentu,Lp,IdProduktu,IdLokacjiZ,IdLokacjiDo,Ilosc")] PozycjaMM pozycjaMM)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,IdDokumentu,Lp,IdProduktu,IdPartii,IdLokacjiZ,IdLokacjiDo,Ilosc")] PozycjaMM pozycjaMM)
         {
             if (id != pozycjaMM.Id)
             {
@@ -123,6 +123,7 @@ namespace IntranetWeb.Controllers
                     existing.IdDokumentu = pozycjaMM.IdDokumentu;
                     existing.Lp = pozycjaMM.Lp;
                     existing.IdProduktu = pozycjaMM.IdProduktu;
+                    existing.IdPartii = pozycjaMM.IdPartii;
                     existing.IdLokacjiZ = pozycjaMM.IdLokacjiZ;
                     existing.IdLokacjiDo = pozycjaMM.IdLokacjiDo;
                     existing.Ilosc = pozycjaMM.Ilosc;
@@ -219,6 +220,25 @@ namespace IntranetWeb.Controllers
                 .Select(p => new { p.IdProduktu, Label = $"{p.Kod} - {p.Nazwa} ({(p.DomyslnaJednostka != null ? p.DomyslnaJednostka.Kod : "j.m.")})" }).ToList(),
                 "IdProduktu", "Label", model.IdProduktu);
 
+            var partieItems = _context.Partia.AsNoTracking()
+                .Include(b => b.Produkt)
+                .OrderBy(b => b.Produkt != null ? b.Produkt.Kod : string.Empty)
+                .ThenBy(b => b.NumerPartii)
+                .Select(b => new SelectListItem
+                {
+                    Value = b.IdPartii.ToString(),
+                    Text = $"{(b.Produkt != null ? b.Produkt.Kod : "-")} / {b.NumerPartii}",
+                    Selected = model.IdPartii == b.IdPartii
+                })
+                .ToList();
+            partieItems.Insert(0, new SelectListItem
+            {
+                Value = string.Empty,
+                Text = "(brak partii)",
+                Selected = !model.IdPartii.HasValue
+            });
+            ViewData["IdPartii"] = partieItems;
+
             var productUomMap = _context.Produkt.AsNoTracking().Include(p => p.DomyslnaJednostka)
                 .Select(p => new { p.IdProduktu, Uom = p.DomyslnaJednostka != null ? p.DomyslnaJednostka.Kod : "j.m." })
                 .ToDictionary(x => x.IdProduktu, x => x.Uom);
@@ -274,6 +294,21 @@ namespace IntranetWeb.Controllers
             if (!produktExists)
             {
                 ModelState.AddModelError(nameof(PozycjaMM.IdProduktu), "Wybrany produkt nie istnieje.");
+            }
+
+            if (pozycjaMM.IdPartii.HasValue)
+            {
+                var partia = await _context.Partia.AsNoTracking()
+                    .FirstOrDefaultAsync(b => b.IdPartii == pozycjaMM.IdPartii.Value);
+
+                if (partia == null)
+                {
+                    ModelState.AddModelError(nameof(PozycjaMM.IdPartii), "Wybrana partia nie istnieje.");
+                }
+                else if (partia.IdProduktu != pozycjaMM.IdProduktu)
+                {
+                    ModelState.AddModelError(nameof(PozycjaMM.IdPartii), "Wybrana partia nie nalezy do wskazanego produktu.");
+                }
             }
 
             var duplicateLpExists = await _context.PozycjaMM.AsNoTracking().AnyAsync(p =>

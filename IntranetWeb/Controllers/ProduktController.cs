@@ -134,16 +134,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var produkt = await _context.Produkt
-                .Include(p => p.DomyslnaJednostka)
-                .Include(p => p.Kategoria)
-                .FirstOrDefaultAsync(m => m.IdProduktu == id);
-            if (produkt == null)
+            var data = await _produktService.GetDeleteDataAsync(id.Value);
+            if (data == null)
             {
                 return NotFound();
             }
 
-            return View(produkt);
+            return View(data);
         }
 
         // POST: Produkt/Delete/5
@@ -151,14 +148,39 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var produkt = await _context.Produkt.FindAsync(id);
-            if (produkt != null)
+            var deleteData = await _produktService.GetDeleteDataAsync(id);
+            if (deleteData == null)
             {
-                _context.Produkt.Remove(produkt);
+                return NotFound();
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (!deleteData.CzyMoznaUsunac)
+            {
+                ModelState.AddModelError(string.Empty, "Nie można usunąć produktu, ponieważ ma powiązane stany lub dokumenty.");
+                return View("Delete", deleteData);
+            }
+
+            try
+            {
+                var produkt = await _context.Produkt.FindAsync(id);
+                if (produkt != null)
+                {
+                    _context.Produkt.Remove(produkt);
+                    await _context.SaveChangesAsync();
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Nie udało się usunąć produktu. Produkt może być nadal powiązany z innymi rekordami.");
+                var refreshed = await _produktService.GetDeleteDataAsync(id);
+                if (refreshed == null)
+                {
+                    return NotFound();
+                }
+                return View("Delete", refreshed);
+            }
         }
 
         private bool ProduktExists(int id)

@@ -1,7 +1,9 @@
-@model Data.Data.Magazyn.Uzytkownik
+﻿@model Interfaces.Magazyn.Dtos.UzytkownikDetailsDto
 
 @{
-    ViewData["Title"] = "Szczegoly uzytkownika";
+    ViewData["Title"] = "Szczegóły użytkownika";
+    var user = Model.Uzytkownik;
+    var totalDocs = Model.LiczbaDokumentowPz + Model.LiczbaDokumentowWz + Model.LiczbaDokumentowMm;
 }
 
 <div class="news-admin-page">
@@ -9,30 +11,244 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-person-badge"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Szczegoly uzytkownika</h1>
-                <p class="news-admin-header__subheading mb-0">Podglad danych konta systemowego.</p>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły użytkownika</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd danych konta systemowego i jego użycia w modułach WMS.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdUzytkownika</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Role</span><strong class="news-admin-stat__value">@Model.LiczbaRol</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Dokumenty</span><strong class="news-admin-stat__value">@totalDocs</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@user.IdUzytkownika</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(user.CzyAktywny ? "Aktywny" : "Nieaktywny")</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Login</h2>
+            <h2 class="news-details-panel__title">@user.Login</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdUzytkownika" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdUzytkownika" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Edit" asp-route-id="@user.IdUzytkownika" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@user.IdUzytkownika" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
+
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Login</div><div class="news-details-item__value">@Model.Login</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Email</div><div class="news-details-item__value">@Model.Email</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
-            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Haslo</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(Model.HashHasla) ? "Brak" : "Ustawione (ukryte)")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Login</div><div class="news-details-item__value">@user.Login</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">E-mail</div><div class="news-details-item__value">@user.Email</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(user.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Hasło</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(user.HashHasla) ? "Brak" : "Ustawione (ukryte)")</div></div>
+
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Role użytkownika</div>
+                <div class="news-details-item__value">
+                    @if (Model.RoleNazwy.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var roleName in Model.RoleNazwy)
+                            {
+                                <span class="entity-badge entity-badge--info">@roleName</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Brak przypisanych ról</span>
+                    }
+                </div>
+            </div>
+
+            <div class="news-details-item"><div class="news-details-item__label">Klienci</div><div class="news-details-item__value">@Model.LiczbaKlientow</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Rezerwacje</div><div class="news-details-item__value">@Model.LiczbaRezerwacji</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty PZ</div><div class="news-details-item__value">@Model.LiczbaDokumentowPz</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty WZ</div><div class="news-details-item__value">@Model.LiczbaDokumentowWz</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Dokumenty MM</div><div class="news-details-item__value">@Model.LiczbaDokumentowMm</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Inwentaryzacje</div><div class="news-details-item__value">@Model.LiczbaInwentaryzacji</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ruchy magazynowe</div><div class="news-details-item__value">@Model.LiczbaRuchow</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Logi audytu</div><div class="news-details-item__value">@Model.LiczbaLogowAudytu</div></div>
+        </div>
+    </section>
+
+    <section class="entity-table-panel mt-4">
+        <div class="entity-table-panel__header d-flex justify-content-between align-items-center gap-2 flex-wrap px-3 pt-3">
+            <div>
+                <h3 class="h5 mb-1">Ostatnie dokumenty PZ / WZ / MM</h3>
+                <p class="text-muted mb-0 small">Najnowsze dokumenty utworzone przez tego użytkownika.</p>
+            </div>
+        </div>
+        <div class="row g-3 p-3 pt-2">
+            <div class="col-12 col-xl-4">
+                <div class="border rounded-3 p-3 h-100 bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-semibold">PZ</div>
+                        <span class="entity-badge entity-badge--muted">@Model.OstatnieDokumentyPz.Count</span>
+                    </div>
+                    @if (Model.OstatnieDokumentyPz.Any())
+                    {
+                        <div class="d-flex flex-column gap-2">
+                            @foreach (var d in Model.OstatnieDokumentyPz)
+                            {
+                                <div class="border rounded-2 p-2">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <div>
+                                            <div class="entity-cell-title">@d.Numer</div>
+                                            <div class="entity-cell-subtitle">@d.Magazyn.Nazwa</div>
+                                        </div>
+                                        <div class="text-muted small text-nowrap">@d.DataPrzyjeciaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted small border rounded-2 p-3 text-center">Brak dokumentów PZ.</div>
+                    }
+                </div>
+            </div>
+            <div class="col-12 col-xl-4">
+                <div class="border rounded-3 p-3 h-100 bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-semibold">WZ</div>
+                        <span class="entity-badge entity-badge--muted">@Model.OstatnieDokumentyWz.Count</span>
+                    </div>
+                    @if (Model.OstatnieDokumentyWz.Any())
+                    {
+                        <div class="d-flex flex-column gap-2">
+                            @foreach (var d in Model.OstatnieDokumentyWz)
+                            {
+                                <div class="border rounded-2 p-2">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <div>
+                                            <div class="entity-cell-title">@d.Numer</div>
+                                            <div class="entity-cell-subtitle">@d.Magazyn.Nazwa</div>
+                                        </div>
+                                        <div class="text-muted small text-nowrap">@d.DataWydaniaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted small border rounded-2 p-3 text-center">Brak dokumentów WZ.</div>
+                    }
+                </div>
+            </div>
+            <div class="col-12 col-xl-4">
+                <div class="border rounded-3 p-3 h-100 bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="fw-semibold">MM</div>
+                        <span class="entity-badge entity-badge--muted">@Model.OstatnieDokumentyMm.Count</span>
+                    </div>
+                    @if (Model.OstatnieDokumentyMm.Any())
+                    {
+                        <div class="d-flex flex-column gap-2">
+                            @foreach (var d in Model.OstatnieDokumentyMm)
+                            {
+                                <div class="border rounded-2 p-2">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <div>
+                                            <div class="entity-cell-title">@d.Numer</div>
+                                            <div class="entity-cell-subtitle">@d.Magazyn.Nazwa</div>
+                                        </div>
+                                        <div class="text-muted small text-nowrap">@d.DataUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted small border rounded-2 p-3 text-center">Brak dokumentów MM.</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="entity-table-panel mt-4">
+        <div class="entity-table-panel__header d-flex justify-content-between align-items-center gap-2 flex-wrap px-3 pt-3">
+            <div>
+                <h3 class="h5 mb-1">Ostatnie ruchy magazynowe</h3>
+                <p class="text-muted mb-0 small">Ruchy wykonane przez tego użytkownika.</p>
+            </div>
+        </div>
+        <div class="entity-table-wrap">
+            <table class="table table-hover align-middle mb-0 entity-table">
+                <thead>
+                    <tr>
+                        <th>Typ</th>
+                        <th>Produkt</th>
+                        <th>Z / Do</th>
+                        <th>Ilość</th>
+                        <th>Utworzono</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model.OstatnieRuchy.Any())
+                {
+                    @foreach (var r in Model.OstatnieRuchy)
+                    {
+                        <tr>
+                            <td><partial name="_MovementTypeBadge" model="r.Typ" /></td>
+                            <td>
+                                <div class="entity-cell-title">@r.Produkt.Kod</div>
+                                <div class="entity-cell-subtitle">@r.Produkt.Nazwa</div>
+                            </td>
+                            <td>
+                                <div class="entity-cell-title">@(r.LokacjaZ?.Kod ?? "-") -> @(r.LokacjaDo?.Kod ?? "-")</div>
+                            </td>
+                            <td>@r.Ilosc.ToString("0.###")</td>
+                            <td>@r.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="5" class="text-muted">Brak ruchów magazynowych.</td></tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="entity-table-panel mt-4">
+        <div class="entity-table-panel__header d-flex justify-content-between align-items-center gap-2 flex-wrap px-3 pt-3">
+            <div>
+                <h3 class="h5 mb-1">Ostatnie logi audytu</h3>
+                <p class="text-muted mb-0 small">Najnowsze wpisy audytowe powiązane z użytkownikiem.</p>
+            </div>
+        </div>
+        <div class="entity-table-wrap">
+            <table class="table table-hover align-middle mb-0 entity-table">
+                <thead>
+                    <tr>
+                        <th>Akcja</th>
+                        <th>Encja</th>
+                        <th>ID encji</th>
+                        <th>Kiedy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model.OstatnieLogiAudytu.Any())
+                {
+                    @foreach (var log in Model.OstatnieLogiAudytu)
+                    {
+                        <tr>
+                            <td><span class="entity-badge entity-badge--muted">@log.Akcja</span></td>
+                            <td>@log.Encja</td>
+                            <td class="entity-mono">@(string.IsNullOrWhiteSpace(log.IdEncji) ? "-" : log.IdEncji)</td>
+                            <td>@log.KiedyUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="4" class="text-muted">Brak logów audytu.</td></tr>
+                }
+                </tbody>
+            </table>
         </div>
     </section>
 </div>

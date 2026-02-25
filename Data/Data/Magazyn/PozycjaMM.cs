@@ -31,6 +31,14 @@ namespace Data.Data.Magazyn
         [ForeignKey(nameof(IdProduktu))]
         public Produkt Produkt { get; set; } = null!;
 
+        [Column("BatchId")]
+        [Display(Name = "Partia")]
+        public int? IdPartii { get; set; }
+
+        [ValidateNever]
+        [ForeignKey(nameof(IdPartii))]
+        public Partia? Partia { get; set; }
+
         [Required]
         [Column("FromLocationId")]
         public int IdLokacjiZ { get; set; }

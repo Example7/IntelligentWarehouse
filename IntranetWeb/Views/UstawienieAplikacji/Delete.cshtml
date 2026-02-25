@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.UstawienieAplikacji
+@model Interfaces.Magazyn.Dtos.UstawienieAplikacjiDeleteDto
 
 @{
     ViewData["Title"] = "Usuń ustawienie aplikacji";
+    var s = Model.Ustawienie;
 }
 
 <div class="news-admin-page">
@@ -25,25 +26,26 @@
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Klucz</div><div class="news-details-item__value entity-mono">@Model.Klucz</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Zmieniono</div><div class="news-details-item__value">@Model.ZmienionoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Zmienił User ID</div><div class="news-details-item__value">@(Model.ZmienilUserId?.ToString() ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Klucz</div><div class="news-details-item__value entity-mono">@s.Klucz</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zmieniono</div><div class="news-details-item__value">@s.ZmienionoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Zmienił</div><div class="news-details-item__value">@(Model.ZmienilEmail ?? s.ZmienilUserId?.ToString() ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">User ID</div><div class="news-details-item__value">@(s.ZmienilUserId?.ToString() ?? "-")</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Wartość (podgląd)</div>
                 <div class="news-details-item__value news-details-item__value--content">
-                    <pre class="mb-0 entity-json-block">@(Model.Wartosc.Length > 800 ? Model.Wartosc[..800] + "..." : Model.Wartosc)</pre>
+                    <pre class="mb-0 entity-json-block">@(s.Wartosc.Length > 800 ? s.Wartosc[..800] + "..." : s.Wartosc)</pre>
                 </div>
             </div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Opis</div>
-                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Opis) ? "Brak opisu." : Model.Opis)</div>
+                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(s.Opis) ? "Brak opisu." : s.Opis)</div>
             </div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="Klucz" />
+            <input type="hidden" asp-for="Ustawienie.Klucz" name="id" />
             <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń ustawienie</button>
-            <a asp-action="Details" asp-route-id="@Model.Klucz" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <a asp-action="Details" asp-route-id="@s.Klucz" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

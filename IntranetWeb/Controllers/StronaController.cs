@@ -1,27 +1,26 @@
 using Data.Data;
 using Data.Data.CMS;
+using IntranetWeb.Controllers.Abstrakcja;
+using Interfaces.CMS;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
-using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
     public class StronaController : BaseSearchController<Strona>
     {
+        private readonly IStronaService _stronaService;
 
-        public StronaController(DataContext context) : base(context) { }
-
-        // GET: Strona
-        public async Task<IActionResult> Index(string? searchTerm)
+        public StronaController(DataContext context, IStronaService stronaService) : base(context)
         {
-            var query = _context.Strona.AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.TytulLinku, x => x.Nazwa, x => x.Tresc);
-
-            return View(await query.ToListAsync());
+            _stronaService = stronaService;
         }
 
-        // GET: Strona/Details/5
+        public async Task<IActionResult> Index(string? searchTerm)
+        {
+            return View(await _stronaService.GetIndexDataAsync(searchTerm));
+        }
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -29,39 +28,45 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var strona = await _context.Strona
-                .FirstOrDefaultAsync(m => m.IdStrony == id);
-            if (strona == null)
+            var dto = await _stronaService.GetDetailsDataAsync(id.Value);
+            if (dto == null)
             {
                 return NotFound();
             }
 
-            return View(strona);
+            return View(dto);
         }
 
-        // GET: Strona/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new Strona { TytulLinku = string.Empty, Nazwa = string.Empty, Tresc = string.Empty });
         }
 
-        // POST: Strona/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdStrony,TytulLinku,Nazwa,Tresc,Pozycja")] Strona strona)
         {
-            if (ModelState.IsValid)
+            Normalize(strona);
+            await ValidateUniqueTytulLinkuAsync(strona.TytulLinku);
+
+            if (!ModelState.IsValid)
+            {
+                return View(strona);
+            }
+
+            try
             {
                 _context.Add(strona);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(strona);
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(nameof(Strona.TytulLinku), $"Strona o tytule odnośnika '{strona.TytulLinku}' już istnieje.");
+                return View(strona);
+            }
         }
 
-        // GET: Strona/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -74,12 +79,10 @@ namespace IntranetWeb.Controllers
             {
                 return NotFound();
             }
+
             return View(strona);
         }
 
-        // POST: Strona/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("IdStrony,TytulLinku,Nazwa,Tresc,Pozycja")] Strona strona)
@@ -89,30 +92,46 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            Normalize(strona);
+            await ValidateUniqueTytulLinkuAsync(strona.TytulLinku, strona.IdStrony);
+
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(strona);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!StronaExists(strona.IdStrony))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                return View(strona);
+            }
+
+            var existing = await _context.Strona.FirstOrDefaultAsync(x => x.IdStrony == id);
+            if (existing == null)
+            {
+                return NotFound();
+            }
+
+            existing.TytulLinku = strona.TytulLinku;
+            existing.Nazwa = strona.Nazwa;
+            existing.Tresc = strona.Tresc;
+            existing.Pozycja = strona.Pozycja;
+
+            try
+            {
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(strona);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.Strona.AnyAsync(e => e.IdStrony == strona.IdStrony))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(nameof(Strona.TytulLinku), $"Strona o tytule odnośnika '{strona.TytulLinku}' już istnieje.");
+                return View(strona);
+            }
         }
 
-        // GET: Strona/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -120,34 +139,44 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var strona = await _context.Strona
-                .FirstOrDefaultAsync(m => m.IdStrony == id);
-            if (strona == null)
+            var dto = await _stronaService.GetDeleteDataAsync(id.Value);
+            if (dto == null)
             {
                 return NotFound();
             }
 
-            return View(strona);
+            return View(dto);
         }
 
-        // POST: Strona/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var strona = await _context.Strona.FindAsync(id);
-            if (strona != null)
+            if (strona == null)
             {
-                _context.Strona.Remove(strona);
+                return RedirectToAction(nameof(Index));
             }
 
+            _context.Strona.Remove(strona);
             await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        private bool StronaExists(int id)
+        private static void Normalize(Strona strona)
         {
-            return _context.Strona.Any(e => e.IdStrony == id);
+            strona.TytulLinku = (strona.TytulLinku ?? string.Empty).Trim();
+            strona.Nazwa = (strona.Nazwa ?? string.Empty).Trim();
+            strona.Tresc = (strona.Tresc ?? string.Empty).Trim();
+        }
+
+        private async Task ValidateUniqueTytulLinkuAsync(string tytulLinku, int? excludeId = null)
+        {
+            if (await _stronaService.TytulLinkuExistsAsync(tytulLinku, excludeId))
+            {
+                ModelState.AddModelError(nameof(Strona.TytulLinku), $"Strona o tytule odnośnika '{(tytulLinku ?? string.Empty).Trim()}' już istnieje.");
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-@model Data.Data.CMS.Aktualnosc
+﻿@model Data.Data.CMS.Aktualnosc
 
 @{
     ViewData["Title"] = "Edytuj aktualność";
@@ -12,9 +12,7 @@
             </span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Edytuj aktualność</h1>
-                <p class="news-admin-header__subheading mb-0">
-                    Zmień treść i ustawienia wybranego wpisu CMS
-                </p>
+                <p class="news-admin-header__subheading mb-0">Zmień treść i ustawienia wybranego wpisu CMS.</p>
             </div>
         </div>
 
@@ -34,7 +32,6 @@
 
         <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="IdAktualnosci" />
-
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
 
             <div class="news-form-grid">
@@ -82,7 +79,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

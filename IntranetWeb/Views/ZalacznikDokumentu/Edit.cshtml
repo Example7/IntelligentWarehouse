@@ -1,13 +1,15 @@
-@model Data.Data.CMS.ZalacznikDokumentu
+﻿@model Data.Data.CMS.ZalacznikDokumentu
+@using System.Text.Json
 
 @{
     ViewData["Title"] = "Edytuj załącznik dokumentu";
+    var powiazaneDokumentyJson = (string?)ViewData["PowiazaneDokumentyJson"] ?? "[]";
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-pencil-square"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Edytuj załącznik dokumentu</h1>
                 <p class="news-admin-header__subheading mb-0">Aktualizacja danych powiązania pliku z dokumentem.</p>
@@ -21,44 +23,49 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Edycja załącznika</h2>
-            <p class="text-muted mb-0">Zmień typ dokumentu, identyfikator dokumentu i metadane pliku.</p>
+            <p class="text-muted mb-0">Zmień typ dokumentu, dokument powiązany i metadane pliku. Czas wgrania jest tylko do podglądu.</p>
         </div>
         <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="IdDokumentu" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
             <div class="news-form-grid">
                 <div class="news-form-field">
-                    <label asp-for="TypDokumentu" class="form-label news-form-label"></label>
-                    <input asp-for="TypDokumentu" class="form-control news-form-control" />
+                    <label asp-for="TypDokumentu" class="form-label news-form-label">Typ dokumentu</label>
+                    <select asp-for="TypDokumentu" class="form-select news-form-control" id="typDokumentuSelect">
+                        <option value="PZ">PZ</option>
+                        <option value="WZ">WZ</option>
+                        <option value="MM">MM</option>
+                    </select>
                     <span asp-validation-for="TypDokumentu" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="IdDokumentu" class="form-label news-form-label"></label>
-                    <input asp-for="IdDokumentu" class="form-control news-form-control" />
+                    <label class="form-label news-form-label" for="powiazanyDokumentSelect">Dokument powiązany</label>
+                    <select id="powiazanyDokumentSelect" class="form-select news-form-control"></select>
+                    <div class="form-text">Wybierz konkretny dokument dla typu wskazanego w polu „Typ dokumentu”. ID zapisze się automatycznie.</div>
                     <span asp-validation-for="IdDokumentu" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="NazwaPliku" class="form-label news-form-label"></label>
+                    <label asp-for="NazwaPliku" class="form-label news-form-label">Nazwa pliku</label>
                     <input asp-for="NazwaPliku" class="form-control news-form-control" />
                     <span asp-validation-for="NazwaPliku" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="ContentType" class="form-label news-form-label"></label>
+                    <label asp-for="ContentType" class="form-label news-form-label">Typ pliku</label>
                     <input asp-for="ContentType" class="form-control news-form-control" />
                     <span asp-validation-for="ContentType" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field news-form-field--full">
-                    <label asp-for="Sciezka" class="form-label news-form-label"></label>
+                    <label asp-for="Sciezka" class="form-label news-form-label">Ścieżka</label>
                     <input asp-for="Sciezka" class="form-control news-form-control" />
                     <span asp-validation-for="Sciezka" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="WgranoUtc" class="form-label news-form-label"></label>
-                    <input asp-for="WgranoUtc" class="form-control news-form-control" />
-                    <span asp-validation-for="WgranoUtc" class="text-danger small"></span>
+                    <label class="form-label news-form-label">Wgrano</label>
+                    <input class="form-control news-form-control" value="@Model.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" readonly />
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="WgralUserId" class="form-label news-form-label"></label>
+                    <label asp-for="WgralUserId" class="form-label news-form-label">Wgrał</label>
                     <select asp-for="WgralUserId" class="form-select news-form-control" asp-items="ViewBag.WgralUserId">
                         <option value="">(brak)</option>
                     </select>
@@ -76,4 +83,52 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        (() => {
+            const options = @Html.Raw(powiazaneDokumentyJson);
+            const typeInput = document.getElementById('typDokumentuSelect');
+            const docSelect = document.getElementById('powiazanyDokumentSelect');
+            const hiddenDocId = document.getElementById('IdDokumentu');
+
+            if (!typeInput || !docSelect || !hiddenDocId) return;
+
+            const getType = (item) => String(item.typ ?? item.Typ ?? '').toUpperCase();
+            const getId = (item) => String(item.id ?? item.Id ?? '');
+            const getLabel = (item) => String(item.label ?? item.Label ?? '');
+
+            const renderOptions = () => {
+                const selectedType = (typeInput.value || '').toUpperCase();
+                const currentId = hiddenDocId.value;
+                const filtered = options.filter(x => getType(x) === selectedType);
+
+                docSelect.innerHTML = '';
+
+                const emptyOpt = document.createElement('option');
+                emptyOpt.value = '';
+                emptyOpt.textContent = filtered.length ? '(wybierz dokument)' : '(brak dokumentów)';
+                docSelect.appendChild(emptyOpt);
+
+                for (const item of filtered) {
+                    const opt = document.createElement('option');
+                    opt.value = getId(item);
+                    opt.textContent = getLabel(item);
+                    docSelect.appendChild(opt);
+                }
+
+                if (currentId && filtered.some(x => getId(x) === String(currentId))) {
+                    docSelect.value = String(currentId);
+                } else {
+                    docSelect.value = '';
+                    hiddenDocId.value = '';
+                }
+            };
+
+            typeInput.addEventListener('change', renderOptions);
+            docSelect.addEventListener('change', () => {
+                hiddenDocId.value = docSelect.value;
+            });
+
+            renderOptions();
+        })();
+    </script>
 }

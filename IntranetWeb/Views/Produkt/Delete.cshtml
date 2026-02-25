@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.Produkt
+﻿@model Interfaces.Magazyn.Dtos.ProduktDeleteDto
 
 @{
     ViewData["Title"] = "Usuń produkt";
+    var p = Model.Produkt;
 }
 
 <div class="news-admin-page">
@@ -20,25 +21,43 @@
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
                 <strong>Usunięcie produktu</strong>
-                <div>Produkt może być powiązany ze stanami i dokumentami magazynowymi.</div>
+                <div>Operacja jest blokowana, jeśli produkt ma powiązane stany, dokumenty lub inne rekordy WMS.</div>
             </div>
         </div>
 
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation mt-3 mb-0" role="alert"></div>
+        }
+
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value">@Model.Kod</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kategoria</div><div class="news-details-item__value">@(Model.Kategoria?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">JM</div><div class="news-details-item__value">@(Model.DomyslnaJednostka?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value">@p.Kod</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@p.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kategoria</div><div class="news-details-item__value">@(p.Kategoria?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">JM</div><div class="news-details-item__value">@(p.DomyslnaJednostka?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Stany magazynowe</div><div class="news-details-item__value">@Model.LiczbaStanowMagazynowych</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ruchy magazynowe</div><div class="news-details-item__value">@Model.LiczbaRuchowMagazynowych</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Pozycje PZ / WZ / MM</div><div class="news-details-item__value">@Model.LiczbaPozycjiPz / @Model.LiczbaPozycjiWz / @Model.LiczbaPozycjiMm</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Rezerwacje / Inwent.</div><div class="news-details-item__value">@Model.LiczbaPozycjiRezerwacji / @Model.LiczbaPozycjiInwentaryzacji</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Alerty / Reguły</div><div class="news-details-item__value">@Model.LiczbaAlertow / @Model.LiczbaRegulAlertow</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kody / Jednostki / Partie</div><div class="news-details-item__value">@Model.LiczbaKodowProduktu / @Model.LiczbaJednostekProduktu / @Model.LiczbaPartii</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Opis</div>
-                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(Model.Opis) ? "Brak opisu" : Model.Opis)</div>
+                <div class="news-details-item__value news-details-item__value--content">@(string.IsNullOrWhiteSpace(p.Opis) ? "Brak opisu" : p.Opis)</div>
             </div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="IdProduktu" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń produkt</button>
-            <a asp-action="Details" asp-route-id="@Model.IdProduktu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <input type="hidden" name="id" value="@p.IdProduktu" />
+            @if (Model.CzyMoznaUsunac)
+            {
+                <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń produkt</button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-danger news-form-actions__primary" disabled><i class="bi bi-trash3-fill"></i> Usuń produkt</button>
+            }
+            <a asp-action="Details" asp-route-id="@p.IdProduktu" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

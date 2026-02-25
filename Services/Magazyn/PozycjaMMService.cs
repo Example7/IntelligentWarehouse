@@ -23,6 +23,7 @@ namespace Services.Magazyn
                     .ThenInclude(l => l.Magazyn)
                 .Include(p => p.Produkt)
                     .ThenInclude(p => p.DomyslnaJednostka)
+                .Include(p => p.Partia)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -33,6 +34,7 @@ namespace Services.Magazyn
                     (p.Dokument != null && EF.Functions.Like(p.Dokument.Status, $"%{term}%")) ||
                     (p.Produkt != null && EF.Functions.Like(p.Produkt.Kod, $"%{term}%")) ||
                     (p.Produkt != null && EF.Functions.Like(p.Produkt.Nazwa, $"%{term}%")) ||
+                    (p.Partia != null && EF.Functions.Like(p.Partia.NumerPartii, $"%{term}%")) ||
                     (p.LokacjaZ != null && EF.Functions.Like(p.LokacjaZ.Kod, $"%{term}%")) ||
                     (p.LokacjaZ != null && p.LokacjaZ.Opis != null && EF.Functions.Like(p.LokacjaZ.Opis, $"%{term}%")) ||
                     (p.LokacjaDo != null && EF.Functions.Like(p.LokacjaDo.Kod, $"%{term}%")) ||
@@ -52,6 +54,7 @@ namespace Services.Magazyn
                 .Include(p => p.LokacjaZ).ThenInclude(l => l.Magazyn)
                 .Include(p => p.LokacjaDo).ThenInclude(l => l.Magazyn)
                 .Include(p => p.Produkt).ThenInclude(p => p.DomyslnaJednostka)
+                .Include(p => p.Partia)
                 .FirstOrDefaultAsync(p => p.Id == idPozycji);
             if (pozycja == null)
             {
@@ -73,6 +76,7 @@ namespace Services.Magazyn
                 .Include(p => p.LokacjaZ).ThenInclude(l => l.Magazyn)
                 .Include(p => p.LokacjaDo).ThenInclude(l => l.Magazyn)
                 .Include(p => p.Produkt).ThenInclude(p => p.DomyslnaJednostka)
+                .Include(p => p.Partia)
                 .FirstOrDefaultAsync(p => p.Id == idPozycji);
             if (pozycja == null)
             {

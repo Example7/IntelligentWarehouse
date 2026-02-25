@@ -18,34 +18,29 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane ustawienia</h2>
-            <p class="text-muted mb-0">Klucz powinien być unikalny. Wartość może przechowywać tekst, liczbę lub JSON.</p>
+            <p class="text-muted mb-0">Klucz powinien być unikalny. Czas modyfikacji jest ustawiany automatycznie.</p>
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
             <div class="news-form-grid">
                 <div class="news-form-field">
-                    <label asp-for="Klucz" class="form-label news-form-label"></label>
-                    <input asp-for="Klucz" class="form-control news-form-control entity-mono" />
+                    <label asp-for="Klucz" class="form-label news-form-label">Klucz</label>
+                    <input asp-for="Klucz" class="form-control news-form-control entity-mono" placeholder="np. APP_DEFAULT_WAREHOUSE" />
                     <span asp-validation-for="Klucz" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="ZmienilUserId" class="form-label news-form-label"></label>
-                    <input asp-for="ZmienilUserId" class="form-control news-form-control" />
+                    <label asp-for="ZmienilUserId" class="form-label news-form-label">Zmienił User ID (opcjonalnie)</label>
+                    <input asp-for="ZmienilUserId" class="form-control news-form-control" type="number" min="1" />
                     <span asp-validation-for="ZmienilUserId" class="text-danger small"></span>
                 </div>
-                <div class="news-form-field">
-                    <label asp-for="ZmienionoUtc" class="form-label news-form-label"></label>
-                    <input asp-for="ZmienionoUtc" class="form-control news-form-control" />
-                    <span asp-validation-for="ZmienionoUtc" class="text-danger small"></span>
-                </div>
                 <div class="news-form-field news-form-field--full">
-                    <label asp-for="Wartosc" class="form-label news-form-label"></label>
+                    <label asp-for="Wartosc" class="form-label news-form-label">Wartość</label>
                     <textarea asp-for="Wartosc" class="form-control news-form-control news-form-control--textarea" rows="4"></textarea>
                     <span asp-validation-for="Wartosc" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field news-form-field--full">
-                    <label asp-for="Opis" class="form-label news-form-label"></label>
+                    <label asp-for="Opis" class="form-label news-form-label">Opis (opcjonalnie)</label>
                     <textarea asp-for="Opis" class="form-control news-form-control news-form-control--textarea" rows="3"></textarea>
                     <span asp-validation-for="Opis" class="text-danger small"></span>
                 </div>

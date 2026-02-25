@@ -9,6 +9,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddCmsAppServices();
 builder.Services.AddDashboardAppServices();
 builder.Services.AddWarehouseAppServices();
 builder.Services.AddHostedService<ExpiredReservationsReleaseHostedService>();

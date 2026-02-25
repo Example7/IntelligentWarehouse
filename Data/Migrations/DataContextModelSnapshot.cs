@@ -1018,6 +1018,10 @@ namespace Data.Migrations
                         .HasColumnType("int")
                         .HasColumnName("FromLocationId");
 
+                    b.Property<int?>("IdPartii")
+                        .HasColumnType("int")
+                        .HasColumnName("BatchId");
+
                     b.Property<int>("IdProduktu")
                         .HasColumnType("int")
                         .HasColumnName("ProductId");
@@ -1035,6 +1039,8 @@ namespace Data.Migrations
                     b.HasIndex("IdLokacjiDo");
 
                     b.HasIndex("IdLokacjiZ");
+
+                    b.HasIndex("IdPartii");
 
                     b.HasIndex("IdProduktu");
 
@@ -1065,6 +1071,10 @@ namespace Data.Migrations
                         .HasColumnType("int")
                         .HasColumnName("LocationId");
 
+                    b.Property<int?>("IdPartii")
+                        .HasColumnType("int")
+                        .HasColumnName("BatchId");
+
                     b.Property<int>("IdProduktu")
                         .HasColumnType("int")
                         .HasColumnName("ProductId");
@@ -1080,6 +1090,8 @@ namespace Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IdLokacji");
+
+                    b.HasIndex("IdPartii");
 
                     b.HasIndex("IdProduktu");
 
@@ -1147,6 +1159,10 @@ namespace Data.Migrations
                         .HasColumnType("int")
                         .HasColumnName("LocationId");
 
+                    b.Property<int?>("IdPartii")
+                        .HasColumnType("int")
+                        .HasColumnName("BatchId");
+
                     b.Property<int>("IdProduktu")
                         .HasColumnType("int")
                         .HasColumnName("ProductId");
@@ -1162,6 +1178,8 @@ namespace Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IdLokacji");
+
+                    b.HasIndex("IdPartii");
 
                     b.HasIndex("IdProduktu");
 
@@ -1864,6 +1882,11 @@ namespace Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Data.Data.Magazyn.Partia", "Partia")
+                        .WithMany()
+                        .HasForeignKey("IdPartii")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
                         .WithMany()
                         .HasForeignKey("IdProduktu")
@@ -1875,6 +1898,8 @@ namespace Data.Migrations
                     b.Navigation("LokacjaDo");
 
                     b.Navigation("LokacjaZ");
+
+                    b.Navigation("Partia");
 
                     b.Navigation("Produkt");
                 });
@@ -1893,6 +1918,11 @@ namespace Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Data.Data.Magazyn.Partia", "Partia")
+                        .WithMany()
+                        .HasForeignKey("IdPartii")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
                         .WithMany()
                         .HasForeignKey("IdProduktu")
@@ -1902,6 +1932,8 @@ namespace Data.Migrations
                     b.Navigation("Dokument");
 
                     b.Navigation("Lokacja");
+
+                    b.Navigation("Partia");
 
                     b.Navigation("Produkt");
                 });
@@ -1945,6 +1977,11 @@ namespace Data.Migrations
                         .HasForeignKey("IdLokacji")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Data.Data.Magazyn.Partia", "Partia")
+                        .WithMany()
+                        .HasForeignKey("IdPartii")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Data.Data.Magazyn.Produkt", "Produkt")
                         .WithMany()
                         .HasForeignKey("IdProduktu")
@@ -1954,6 +1991,8 @@ namespace Data.Migrations
                     b.Navigation("Dokument");
 
                     b.Navigation("Lokacja");
+
+                    b.Navigation("Partia");
 
                     b.Navigation("Produkt");
                 });

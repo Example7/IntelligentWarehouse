@@ -67,6 +67,10 @@
                 }
             </div>
             <div class="news-details-item">
+                <div class="news-details-item__label">Partia</div>
+                <div class="news-details-item__value">@(p.Partia?.NumerPartii ?? "(brak)")</div>
+            </div>
+            <div class="news-details-item">
                 <div class="news-details-item__label">Z lokacji</div>
                 <div class="news-details-item__value">@(p.LokacjaZ?.Kod ?? "-")</div>
                 <div class="news-details-item__value news-details-item__value--content">@(p.LokacjaZ?.Magazyn?.Nazwa ?? "-")</div>

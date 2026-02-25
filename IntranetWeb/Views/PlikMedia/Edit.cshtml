@@ -1,4 +1,4 @@
-@model Data.Data.CMS.PlikMedia
+﻿@model Data.Data.CMS.PlikMedia
 
 @{
     ViewData["Title"] = "Edytuj plik media";
@@ -7,7 +7,7 @@
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-pencil-square"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Edytuj plik media</h1>
                 <p class="news-admin-header__subheading mb-0">Aktualizacja metadanych pliku w repozytorium CMS.</p>
@@ -21,7 +21,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Edycja metadanych</h2>
-            <p class="text-muted mb-0">Zmień dane techniczne, opis lub użytkownika wgrywającego.</p>
+            <p class="text-muted mb-0">Zmień dane techniczne, opis lub użytkownika wgrywającego. Czas wgrania jest tylko do podglądu.</p>
         </div>
         <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="Id" />
@@ -44,16 +44,15 @@
                 </div>
                 <div class="news-form-field">
                     <label asp-for="RozmiarBajty" class="form-label news-form-label"></label>
-                    <input asp-for="RozmiarBajty" class="form-control news-form-control" />
+                    <input asp-for="RozmiarBajty" class="form-control news-form-control" type="number" min="0" step="1" />
                     <span asp-validation-for="RozmiarBajty" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="WgranoUtc" class="form-label news-form-label"></label>
-                    <input asp-for="WgranoUtc" class="form-control news-form-control" />
-                    <span asp-validation-for="WgranoUtc" class="text-danger small"></span>
+                    <label class="form-label news-form-label">Wgrano</label>
+                    <input class="form-control news-form-control" value="@Model.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" readonly />
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="WgralUserId" class="form-label news-form-label"></label>
+                    <label asp-for="WgralUserId" class="form-label news-form-label">Wgrał</label>
                     <select asp-for="WgralUserId" class="form-select news-form-control" asp-items="ViewBag.WgralUserId">
                         <option value="">(brak)</option>
                     </select>

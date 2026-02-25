@@ -54,6 +54,7 @@
                             <th>Dokument</th>
                             <th class="text-end">Lp</th>
                             <th>Produkt</th>
+                            <th>Partia</th>
                             <th>Z lokacji</th>
                             <th>Do lokacji</th>
                             <th class="text-end">Ilosc</th>
@@ -73,6 +74,7 @@
                             </td>
                             <td class="text-end">@item.Lp</td>
                             <td><div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div><div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? "Brak nazwy")</div></td>
+                            <td><div class="entity-cell-title">@(item.Partia?.NumerPartii ?? "(brak)")</div></td>
                             <td><div class="entity-cell-title">@(item.LokacjaZ?.Kod ?? "-")</div><div class="entity-cell-subtitle">@(item.LokacjaZ?.Magazyn?.Nazwa ?? "-")</div></td>
                             <td><div class="entity-cell-title">@(item.LokacjaDo?.Kod ?? "-")</div><div class="entity-cell-subtitle">@(item.LokacjaDo?.Magazyn?.Nazwa ?? "-")</div></td>
                             <td class="text-end">@item.Ilosc.ToString("0.###") @jm</td>

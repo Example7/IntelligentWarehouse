@@ -39,6 +39,14 @@ namespace Data.Data.Magazyn
         [ForeignKey(nameof(IdLokacji))]
         public Lokacja? Lokacja { get; set; }
 
+        [Column("BatchId")]
+        [Display(Name = "Partia")]
+        public int? IdPartii { get; set; }
+
+        [ValidateNever]
+        [ForeignKey(nameof(IdPartii))]
+        public Partia? Partia { get; set; }
+
         [Required]
         [Column("Quantity", TypeName = "decimal(18,3)")]
         public decimal Ilosc { get; set; }

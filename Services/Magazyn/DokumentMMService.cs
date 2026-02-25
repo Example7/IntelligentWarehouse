@@ -55,6 +55,7 @@ namespace Services.Magazyn
                 .AsNoTracking()
                 .Include(p => p.Produkt)
                     .ThenInclude(p => p.DomyslnaJednostka)
+                .Include(p => p.Partia)
                 .Include(p => p.LokacjaZ)
                     .ThenInclude(l => l.Magazyn)
                 .Include(p => p.LokacjaDo)
@@ -224,3 +225,5 @@ namespace Services.Magazyn
         }
     }
 }
+
+

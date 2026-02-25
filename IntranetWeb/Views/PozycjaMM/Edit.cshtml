@@ -49,6 +49,12 @@
                 </div>
 
                 <div class="news-form-field">
+                    <label asp-for="IdPartii" class="form-label news-form-label">Partia (opcjonalnie)</label>
+                    <select asp-for="IdPartii" class="form-select news-form-control" asp-items="ViewBag.IdPartii"></select>
+                    <span asp-validation-for="IdPartii" class="text-danger small"></span>
+                </div>
+
+                <div class="news-form-field">
                     <label asp-for="IdLokacjiZ" class="form-label news-form-label">Z lokacji</label>
                     <select asp-for="IdLokacjiZ" class="form-select news-form-control" asp-items="ViewBag.IdLokacjiZ"></select>
                     <span asp-validation-for="IdLokacjiZ" class="text-danger small"></span>

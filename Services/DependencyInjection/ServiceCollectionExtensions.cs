@@ -14,6 +14,9 @@ namespace Services.DependencyInjection
         {
             services.AddScoped<IAktualnoscService, AktualnoscService>();
             services.AddScoped<IStronaService, StronaService>();
+            services.AddScoped<IPlikMediaService, PlikMediaService>();
+            services.AddScoped<ISzablonWydrukuService, SzablonWydrukuService>();
+            services.AddScoped<IZalacznikDokumentuService, ZalacznikDokumentuService>();
 
             return services;
         }
@@ -42,6 +45,13 @@ namespace Services.DependencyInjection
             services.AddScoped<IMagazynService, MagazynService>();
             services.AddScoped<IStanMagazynowyService, StanMagazynowyService>();
             services.AddScoped<IRuchMagazynowyService, RuchMagazynowyService>();
+            services.AddScoped<IRegulaAlertuService, RegulaAlertuService>();
+            services.AddScoped<IAlertService, AlertService>();
+            services.AddScoped<ILogAudytuService, LogAudytuService>();
+            services.AddScoped<IUstawienieAplikacjiService, UstawienieAplikacjiService>();
+            services.AddScoped<IUzytkownikService, UzytkownikService>();
+            services.AddScoped<IRolaService, RolaService>();
+            services.AddScoped<IUzytkownikRolaService, UzytkownikRolaService>();
 
             return services;
         }

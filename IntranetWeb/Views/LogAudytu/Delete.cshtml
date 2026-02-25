@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.LogAudytu
+@model Interfaces.Magazyn.Dtos.LogAudytuDeleteDto
 
 @{
     ViewData["Title"] = "Usuń wpis audytu";
+    var log = Model.Log;
 }
 
 <div class="news-admin-page">
@@ -25,31 +26,31 @@
         </div>
 
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.Id</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Akcja</div><div class="news-details-item__value">@Model.Akcja</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Encja</div><div class="news-details-item__value">@Model.Encja</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">ID encji</div><div class="news-details-item__value entity-mono">@(string.IsNullOrWhiteSpace(Model.IdEncji) ? "-" : Model.IdEncji)</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Użytkownik</div><div class="news-details-item__value">@(Model.Uzytkownik?.Email ?? "System")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kiedy</div><div class="news-details-item__value">@Model.KiedyUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@log.Id</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Akcja</div><div class="news-details-item__value">@log.Akcja</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Encja</div><div class="news-details-item__value">@log.Encja</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">ID encji</div><div class="news-details-item__value entity-mono">@(string.IsNullOrWhiteSpace(log.IdEncji) ? "-" : log.IdEncji)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Użytkownik</div><div class="news-details-item__value">@(log.Uzytkownik?.Email ?? "System")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kiedy</div><div class="news-details-item__value">@log.KiedyUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Nowe JSON (podgląd)</div>
                 <div class="news-details-item__value news-details-item__value--content">
-                    @if (string.IsNullOrWhiteSpace(Model.NoweJson))
+                    @if (string.IsNullOrWhiteSpace(log.NoweJson))
                     {
                         <span class="text-muted">Brak danych.</span>
                     }
                     else
                     {
-                        <pre class="mb-0 entity-json-block">@(Model.NoweJson!.Length > 800 ? Model.NoweJson[..800] + "..." : Model.NoweJson)</pre>
+                        <pre class="mb-0 entity-json-block">@(log.NoweJson!.Length > 800 ? log.NoweJson[..800] + "..." : log.NoweJson)</pre>
                     }
                 </div>
             </div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Log.Id" name="Id" />
             <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń wpis</button>
-            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <a asp-action="Details" asp-route-id="@log.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

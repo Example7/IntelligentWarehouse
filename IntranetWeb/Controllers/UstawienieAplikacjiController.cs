@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
@@ -9,62 +10,76 @@ namespace IntranetWeb.Controllers
 {
     public class UstawienieAplikacjiController : BaseSearchController<UstawienieAplikacji>
     {
+        private readonly IUstawienieAplikacjiService _ustawienieAplikacjiService;
 
-        public UstawienieAplikacjiController(DataContext context) : base(context) { }
+        public UstawienieAplikacjiController(DataContext context, IUstawienieAplikacjiService ustawienieAplikacjiService) : base(context)
+        {
+            _ustawienieAplikacjiService = ustawienieAplikacjiService;
+        }
 
         // GET: UstawienieAplikacji
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.UstawienieAplikacji.AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Klucz, x => x.Wartosc, x => x.Opis);
-
-            return View(await query.ToListAsync());
+            var model = await _ustawienieAplikacjiService.GetIndexDataAsync(searchTerm);
+            return View(model);
         }
 
-        // GET: UstawienieAplikacji/Details/5
+        // GET: UstawienieAplikacji/Details/KEY
         public async Task<IActionResult> Details(string id)
         {
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return NotFound();
             }
 
-            var ustawienieAplikacji = await _context.UstawienieAplikacji
-                .FirstOrDefaultAsync(m => m.Klucz == id);
-            if (ustawienieAplikacji == null)
+            var model = await _ustawienieAplikacjiService.GetDetailsDataAsync(id);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(ustawienieAplikacji);
+            return View(model);
         }
 
         // GET: UstawienieAplikacji/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new UstawienieAplikacji());
         }
 
         // POST: UstawienieAplikacji/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Klucz,Wartosc,Opis,ZmienionoUtc,ZmienilUserId")] UstawienieAplikacji ustawienieAplikacji)
+        public async Task<IActionResult> Create([Bind("Klucz,Wartosc,Opis,ZmienilUserId")] UstawienieAplikacji ustawienieAplikacji)
         {
+            Normalizuj(ustawienieAplikacji, isCreate: true);
+            ustawienieAplikacji.ZmienionoUtc = DateTime.UtcNow;
+
+            if (await _context.UstawienieAplikacji.AnyAsync(x => x.Klucz == ustawienieAplikacji.Klucz))
+            {
+                ModelState.AddModelError(nameof(UstawienieAplikacji.Klucz), $"Ustawienie o kluczu '{ustawienieAplikacji.Klucz}' juz istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(ustawienieAplikacji);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(nameof(UstawienieAplikacji.Klucz), $"Ustawienie o kluczu '{ustawienieAplikacji.Klucz}' juz istnieje.");
+                }
             }
             return View(ustawienieAplikacji);
         }
 
-        // GET: UstawienieAplikacji/Edit/5
+        // GET: UstawienieAplikacji/Edit/KEY
         public async Task<IActionResult> Edit(string id)
         {
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return NotFound();
             }
@@ -77,24 +92,35 @@ namespace IntranetWeb.Controllers
             return View(ustawienieAplikacji);
         }
 
-        // POST: UstawienieAplikacji/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST: UstawienieAplikacji/Edit/KEY
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Klucz,Wartosc,Opis,ZmienionoUtc,ZmienilUserId")] UstawienieAplikacji ustawienieAplikacji)
+        public async Task<IActionResult> Edit(string id, [Bind("Klucz,Wartosc,Opis,ZmienilUserId")] UstawienieAplikacji ustawienieAplikacji)
         {
             if (id != ustawienieAplikacji.Klucz)
             {
                 return NotFound();
             }
 
+            Normalizuj(ustawienieAplikacji, isCreate: false);
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(ustawienieAplikacji);
+                    var existing = await _context.UstawienieAplikacji.FirstOrDefaultAsync(x => x.Klucz == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existing.Wartosc = ustawienieAplikacji.Wartosc;
+                    existing.Opis = ustawienieAplikacji.Opis;
+                    existing.ZmienilUserId = ustawienieAplikacji.ZmienilUserId;
+                    existing.ZmienionoUtc = DateTime.UtcNow;
+
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -102,35 +128,30 @@ namespace IntranetWeb.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(ustawienieAplikacji);
         }
 
-        // GET: UstawienieAplikacji/Delete/5
+        // GET: UstawienieAplikacji/Delete/KEY
         public async Task<IActionResult> Delete(string id)
         {
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return NotFound();
             }
 
-            var ustawienieAplikacji = await _context.UstawienieAplikacji
-                .FirstOrDefaultAsync(m => m.Klucz == id);
-            if (ustawienieAplikacji == null)
+            var model = await _ustawienieAplikacjiService.GetDeleteDataAsync(id);
+            if (model == null)
             {
                 return NotFound();
             }
 
-            return View(ustawienieAplikacji);
+            return View(model);
         }
 
-        // POST: UstawienieAplikacji/Delete/5
+        // POST: UstawienieAplikacji/Delete/KEY
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -148,6 +169,18 @@ namespace IntranetWeb.Controllers
         private bool UstawienieAplikacjiExists(string id)
         {
             return _context.UstawienieAplikacji.Any(e => e.Klucz == id);
+        }
+
+        private static void Normalizuj(UstawienieAplikacji model, bool isCreate)
+        {
+            model.Klucz = (model.Klucz ?? string.Empty).Trim();
+            model.Wartosc = (model.Wartosc ?? string.Empty).Trim();
+            model.Opis = string.IsNullOrWhiteSpace(model.Opis) ? null : model.Opis.Trim();
+
+            if (isCreate)
+            {
+                model.Klucz = model.Klucz.ToUpperInvariant();
+            }
         }
     }
 }

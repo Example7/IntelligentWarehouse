@@ -1,9 +1,10 @@
-@model IEnumerable<Data.Data.Magazyn.UstawienieAplikacji>
+﻿@model Interfaces.Magazyn.Dtos.UstawienieAplikacjiIndexDto
 
 @{
     ViewData["Title"] = "Ustawienia aplikacji";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var itemDtos = Model.Items.ToList();
+    var items = itemDtos.Select(x => x.Ustawienie).ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
     var updatedTodayCount = items.Count(x => x.ZmienionoUtc.Date == DateTime.UtcNow.Date);
     var withDescriptionCount = items.Count(x => !string.IsNullOrWhiteSpace(x.Opis));
 }
@@ -14,7 +15,7 @@
             <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-sliders"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Ustawienia aplikacji</h1>
-                <p class="news-admin-header__subheading mb-0">Konfiguracja kluczy systemowych, wartosci i opisow ustawien aplikacji.</p>
+                <p class="news-admin-header__subheading mb-0">Konfiguracja kluczy systemowych, wartości i opisów ustawień aplikacji.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -25,12 +26,15 @@
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie ustawien aplikacji">
-            <label for="appSettingSearchTerm" class="visually-hidden">Szukaj ustawien aplikacji</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie ustawień aplikacji">
+            <label for="appSettingSearchTerm" class="visually-hidden">Szukaj ustawień aplikacji</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
-                <input id="appSettingSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
-                       placeholder="Szukaj po kluczu, wartosci lub opisie..." />
+                <input id="appSettingSearchTerm"
+                       class="form-control news-admin-search__input"
+                       name="searchTerm"
+                       value="@searchTerm"
+                       placeholder="Szukaj po kluczu, wartości lub opisie..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -45,11 +49,11 @@
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-slash-circle"></i></div>
-            <h2 class="h4 mb-2">Brak ustawien aplikacji</h2>
+            <h2 class="h4 mb-2">Brak ustawień aplikacji</h2>
             <p class="text-muted mb-3">
                 @if (string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    <span>Nie dodano jeszcze żadnych ustawien aplikacji.</span>
+                    <span>Nie dodano jeszcze żadnych ustawień aplikacji.</span>
                 }
                 else
                 {
@@ -73,34 +77,37 @@
                     <thead>
                         <tr>
                             <th>Klucz</th>
-                            <th>Wartosc</th>
+                            <th>Wartość</th>
                             <th>Opis</th>
                             <th>Zmieniono</th>
-                            <th>Zmienił User ID</th>
+                            <th>Zmienił</th>
                             <th class="text-end">Akcje</th>
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in items.OrderBy(x => x.Klucz))
+                    @foreach (var itemDto in itemDtos.OrderBy(x => x.Ustawienie.Klucz))
                     {
+                        var item = itemDto.Ustawienie;
                         var valuePreview = string.IsNullOrWhiteSpace(item.Wartosc)
                             ? "-"
                             : (item.Wartosc.Length > 80 ? item.Wartosc[..80] + "..." : item.Wartosc);
+                        var changedByLabel = !string.IsNullOrWhiteSpace(itemDto.ZmienilEmail)
+                            ? itemDto.ZmienilEmail
+                            : (item.ZmienilUserId?.ToString() ?? "-");
+                        var changedByTitle = item.ZmienilUserId.HasValue
+                            ? $"User ID: {item.ZmienilUserId.Value}"
+                            : "Brak użytkownika";
                         <tr>
                             <td><div class="entity-cell-title entity-mono">@item.Klucz</div></td>
-                            <td>
-                                <div class="entity-cell-title text-truncate" style="max-width: 20rem;" title="@item.Wartosc">@valuePreview</div>
-                            </td>
-                            <td>
-                                <div class="entity-cell-subtitle text-truncate" style="max-width: 18rem;" title="@item.Opis">@(string.IsNullOrWhiteSpace(item.Opis) ? "-" : item.Opis)</div>
-                            </td>
+                            <td><div class="entity-cell-title text-truncate" style="max-width: 20rem;" title="@item.Wartosc">@valuePreview</div></td>
+                            <td><div class="entity-cell-subtitle text-truncate" style="max-width: 18rem;" title="@item.Opis">@(string.IsNullOrWhiteSpace(item.Opis) ? "-" : item.Opis)</div></td>
                             <td>@item.ZmienionoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td>
-                            <td>@(item.ZmienilUserId?.ToString() ?? "-")</td>
+                            <td title="@changedByTitle">@changedByLabel</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla ustawienia @item.Klucz">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Klucz"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Klucz"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Klucz"><i class="bi bi-trash"></i></a>
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Klucz" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Klucz" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Klucz" title="Usuń"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

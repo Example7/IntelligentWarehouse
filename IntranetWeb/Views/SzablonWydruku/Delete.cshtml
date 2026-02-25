@@ -1,4 +1,4 @@
-@model Data.Data.CMS.SzablonWydruku
+@model Interfaces.CMS.Dtos.SzablonWydrukuDeleteDto
 
 @{
     ViewData["Title"] = "Usuń szablon wydruku";
@@ -7,7 +7,7 @@
 <div class="news-admin-page">
     <section class="news-admin-header news-admin-header--danger">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
+            <span class="news-admin-header__icon news-admin-header__icon--danger" aria-hidden="true"><i class="bi bi-trash3"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Usuń szablon wydruku</h1>
                 <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie szablonu dokumentu z repozytorium.</p>
@@ -26,17 +26,18 @@
 
         <div class="news-details-grid">
             <div class="news-details-item"><div class="news-details-item__label">ID</div><div class="news-details-item__value">@Model.Id</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.TypDokumentu)</div><div class="news-details-item__value">@Html.DisplayFor(m => m.TypDokumentu)</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.Wersja)</div><div class="news-details-item__value">@Html.DisplayFor(m => m.Wersja)</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.CzyAktywny)</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
-            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.Nazwa)</div><div class="news-details-item__value">@Html.DisplayFor(m => m.Nazwa)</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.NazwaPliku)</div><div class="news-details-item__value">@Html.DisplayFor(m => m.NazwaPliku)</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.Wgral)</div><div class="news-details-item__value">@(Model.Wgral?.Email ?? "-")</div></div>
-            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">@Html.DisplayNameFor(m => m.Sciezka)</div><div class="news-details-item__value entity-mono">@Html.DisplayFor(m => m.Sciezka)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Typ dokumentu</div><div class="news-details-item__value">@Model.TypDokumentu</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Wersja</div><div class="news-details-item__value">@Model.Wersja</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(Model.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Nazwa szablonu</div><div class="news-details-item__value">@Model.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa pliku</div><div class="news-details-item__value">@Model.NazwaPliku</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Wgrał</div><div class="news-details-item__value">@(string.IsNullOrWhiteSpace(Model.WgralEmail) ? "-" : Model.WgralEmail)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Wgrano</div><div class="news-details-item__value">@Model.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Ścieżka</div><div class="news-details-item__value entity-mono">@Model.Sciezka</div></div>
         </div>
 
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="Id" />
+            <input type="hidden" name="id" value="@Model.Id" />
             <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń szablon</button>
             <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>

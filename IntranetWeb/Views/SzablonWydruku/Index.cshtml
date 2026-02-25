@@ -1,16 +1,16 @@
-@model IEnumerable<Data.Data.CMS.SzablonWydruku>
+@model Interfaces.CMS.Dtos.SzablonWydrukuIndexDto
 
 @{
     ViewData["Title"] = "Szablony wydruków";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm;
     var activeCount = items.Count(x => x.CzyAktywny);
 }
 
 <div class="news-admin-page">
     <section class="news-admin-header">
         <div class="news-admin-header__title">
-            <span class="news-admin-header__icon"><i class="bi bi-filetype-docx"></i></span>
+            <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-filetype-docx"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szablony wydruków</h1>
                 <p class="news-admin-header__subheading mb-0">Zarządzanie szablonami dokumentów, wersjami i ścieżkami plików.</p>
@@ -26,14 +26,22 @@
         <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie szablonów wydruku">
             <label for="templateSearchTerm" class="visually-hidden">Szukaj szablonów wydruku</label>
             <div class="news-admin-search__input-wrap">
-                <i class="bi bi-search news-admin-search__icon"></i>
-                <input id="templateSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
+                <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
+                <input id="templateSearchTerm"
+                       class="form-control news-admin-search__input"
+                       name="searchTerm"
+                       value="@searchTerm"
                        placeholder="Szukaj po typie, nazwie, wersji, pliku lub ścieżce..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")"><i class="bi bi-x-lg"></i></a>
+                <a class="btn btn-outline-secondary news-admin-search__clear"
+                   href="@Url.Action("Index")"
+                   title="Wyczyść filtr"
+                   aria-label="Wyczyść filtrowanie">
+                    <i class="bi bi-x-lg"></i>
+                </a>
             }
         </form>
         <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj szablon</a>
@@ -42,9 +50,18 @@
     @if (!items.Any())
     {
         <section class="news-admin-empty">
-            <div class="news-admin-empty__icon"><i class="bi bi-file-earmark-plus"></i></div>
+            <div class="news-admin-empty__icon" aria-hidden="true"><i class="bi bi-file-earmark-plus"></i></div>
             <h2 class="h4 mb-2">Brak szablonów wydruków</h2>
-            <p class="text-muted mb-3">Dodaj pierwszy szablon wydruku dla dokumentów WMS.</p>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Dodaj pierwszy szablon wydruku dla dokumentów WMS.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
             <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj szablon</a>
         </section>
     }
@@ -67,7 +84,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach (var item in items.OrderBy(x => x.TypDokumentu).ThenBy(x => x.Nazwa).ThenByDescending(x => x.Wersja))
+                    @foreach (var item in items)
                     {
                         <tr>
                             <td><span class="entity-badge entity-badge--muted">@item.TypDokumentu</span></td>
@@ -81,12 +98,12 @@
                                 </span>
                             </td>
                             <td>@item.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-                            <td>@(item.Wgral?.Email ?? "-")</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.WgralEmail) ? "-" : item.WgralEmail)</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla szablonu @item.Nazwa">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usuń"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

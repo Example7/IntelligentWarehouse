@@ -60,6 +60,7 @@
                             <th>Dokument</th>
                             <th class="text-end">Lp</th>
                             <th>Produkt</th>
+                            <th>Partia</th>
                             <th>Lokacja</th>
                             <th class="text-end">Ilość</th>
                             <th class="text-end">Akcje</th>
@@ -87,6 +88,9 @@
                             <td>
                                 <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
                                 <div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? "Brak nazwy")</div>
+                            </td>
+                            <td>
+                                <div class="entity-cell-title">@(item.Partia?.NumerPartii ?? "(brak)")</div>
                             </td>
                             <td>
                                 <div class="entity-cell-title">@(item.Lokacja?.Kod ?? "-")</div>

@@ -41,6 +41,7 @@
             <div class="news-details-item"><div class="news-details-item__label">Status dokumentu PZ</div><div class="news-details-item__value"><span class="entity-badge @docStatusClass">@docStatus</span></div></div>
             <div class="news-details-item"><div class="news-details-item__label">Lp</div><div class="news-details-item__value">@p.Lp</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(p.Produkt?.Kod ?? "-") - @(p.Produkt?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Partia</div><div class="news-details-item__value">@(p.Partia?.NumerPartii ?? "(brak)")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Lokacja</div><div class="news-details-item__value">@(p.Lokacja?.Kod ?? "-") / @(p.Lokacja?.Magazyn?.Nazwa ?? "-")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Ilość</div><div class="news-details-item__value">@p.Ilosc.ToString("0.###") @jm</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Cena jednostkowa</div><div class="news-details-item__value">@(p.CenaJednostkowa?.ToString("0.00") ?? "-")</div></div>

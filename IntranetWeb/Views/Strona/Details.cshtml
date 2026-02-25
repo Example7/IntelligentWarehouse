@@ -1,4 +1,4 @@
-@model Data.Data.CMS.Strona
+﻿@model Interfaces.CMS.Dtos.StronaDetailsDto
 
 @{
     ViewData["Title"] = "Szczegóły strony";
@@ -31,20 +31,20 @@
 
         <div class="news-details-grid">
             <div class="news-details-item">
-                <div class="news-details-item__label">@Html.DisplayNameFor(m => m.TytulLinku)</div>
-                <div class="news-details-item__value">@Html.DisplayFor(m => m.TytulLinku)</div>
+                <div class="news-details-item__label">Tytuł odnośnika</div>
+                <div class="news-details-item__value">@Model.TytulLinku</div>
             </div>
             <div class="news-details-item">
-                <div class="news-details-item__label">@Html.DisplayNameFor(m => m.Nazwa)</div>
-                <div class="news-details-item__value">@Html.DisplayFor(m => m.Nazwa)</div>
+                <div class="news-details-item__label">Nazwa strony</div>
+                <div class="news-details-item__value">@Model.Nazwa</div>
             </div>
             <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">@Html.DisplayNameFor(m => m.Tresc)</div>
-                <div class="news-details-item__value news-details-item__value--content">@Html.DisplayFor(m => m.Tresc)</div>
+                <div class="news-details-item__label">Treść strony</div>
+                <div class="news-details-item__value news-details-item__value--content">@Model.Tresc</div>
             </div>
             <div class="news-details-item">
-                <div class="news-details-item__label">@Html.DisplayNameFor(m => m.Pozycja)</div>
-                <div class="news-details-item__value">@Html.DisplayFor(m => m.Pozycja)</div>
+                <div class="news-details-item__label">Pozycja wyświetlania</div>
+                <div class="news-details-item__value">@Model.Pozycja</div>
             </div>
         </div>
     </section>

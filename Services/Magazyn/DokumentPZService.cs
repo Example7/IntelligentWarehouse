@@ -57,6 +57,7 @@ namespace Services.Magazyn
                 .AsNoTracking()
                 .Include(p => p.Produkt)
                     .ThenInclude(p => p.DomyslnaJednostka)
+                .Include(p => p.Partia)
                 .Include(p => p.Lokacja)
                     .ThenInclude(l => l.Magazyn)
                 .Where(p => p.IdDokumentu == idDokumentu)

@@ -132,5 +132,36 @@ namespace Services.Magazyn
                 OstatnieAlerty = ostatnieAlerty
             };
         }
+
+        public async Task<ProduktDeleteDto?> GetDeleteDataAsync(int idProduktu)
+        {
+            var produkt = await _context.Produkt
+                .AsNoTracking()
+                .Include(p => p.DomyslnaJednostka)
+                .Include(p => p.Kategoria)
+                .FirstOrDefaultAsync(p => p.IdProduktu == idProduktu);
+
+            if (produkt == null)
+            {
+                return null;
+            }
+
+            return new ProduktDeleteDto
+            {
+                Produkt = produkt,
+                LiczbaStanowMagazynowych = await _context.StanMagazynowy.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaPozycjiPz = await _context.PozycjaPZ.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaPozycjiWz = await _context.PozycjaWZ.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaPozycjiMm = await _context.PozycjaMM.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaPozycjiInwentaryzacji = await _context.PozycjaInwentaryzacji.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaPozycjiRezerwacji = await _context.PozycjaRezerwacji.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaRuchowMagazynowych = await _context.RuchMagazynowy.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaAlertow = await _context.Alert.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaRegulAlertow = await _context.RegulaAlertu.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaKodowProduktu = await _context.KodProduktu.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaJednostekProduktu = await _context.ProduktJednostka.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu),
+                LiczbaPartii = await _context.Partia.AsNoTracking().CountAsync(x => x.IdProduktu == idProduktu)
+            };
+        }
     }
 }

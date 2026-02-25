@@ -8,5 +8,6 @@ namespace Interfaces.Magazyn
         Task<IList<Produkt>> GetProdukty(int idKategorii);
         Task<Produkt?> GetProdukt(int? idProduktu);
         Task<ProduktDetailsDto?> GetDetailsDataAsync(int idProduktu);
+        Task<ProduktDeleteDto?> GetDeleteDataAsync(int idProduktu);
     }
 }

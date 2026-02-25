@@ -14,17 +14,21 @@ namespace Data.Data.CMS
 
         [Required, MaxLength(260)]
         [Column("FileName")]
+        [Display(Name = "Nazwa pliku")]
         public string NazwaPliku { get; set; } = null!;
 
         [Required, MaxLength(100)]
         [Column("ContentType")]
+        [Display(Name = "Typ zawartości")]
         public string ContentType { get; set; } = null!;
 
         [Required, MaxLength(400)]
         [Column("FilePath")]
+        [Display(Name = "Ścieżka")]
         public string Sciezka { get; set; } = null!;
 
         [Column("SizeBytes")]
+        [Display(Name = "Rozmiar (bajty)")]
         public long RozmiarBajty { get; set; }
 
         [MaxLength(300)]
@@ -35,6 +39,7 @@ namespace Data.Data.CMS
         public DateTime WgranoUtc { get; set; } = DateTime.UtcNow;
 
         [Column("UploadedByUserId")]
+        [Display(Name = "Wgrany przez")]
         public int? WgralUserId { get; set; }
 
         [ValidateNever]

@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.RegulaAlertu
+@model Interfaces.Magazyn.Dtos.RegulaAlertuDetailsDto
 
 @{
     ViewData["Title"] = "Szczegóły reguły alertu";
+    var r = Model.Regula;
 }
 
 <div class="news-admin-page">
@@ -10,33 +11,95 @@
             <span class="news-admin-header__icon"><i class="bi bi-bell"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szczegóły reguły alertu</h1>
-                <p class="news-admin-header__subheading mb-0">Podgląd konfiguracji progu, typu i zakresu reguły.</p>
+                <p class="news-admin-header__subheading mb-0">Podgląd konfiguracji progu i ostatnich alertów tej reguły.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.Id</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@(Model.CzyWlaczona ? "łączona" : "Wyłączona")</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Alerty</span><strong class="news-admin-stat__value">@Model.LiczbaAlertow</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Nowe</span><strong class="news-admin-stat__value">@Model.LiczbaAlertowNiepotwierdzonych</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@r.Id</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Typ</h2>
+            <h2 class="news-details-panel__title">@r.Typ</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@r.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
-
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Typ</div><div class="news-details-item__value">@Model.Typ</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Prog</div><div class="news-details-item__value">@Model.Prog.ToString("0.###")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(Model.Magazyn?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(Model.Produkt?.Nazwa ?? "Reguła ogólna")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Kod produktu</div><div class="news-details-item__value entity-mono">@(Model.Produkt?.Kod ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Czy wlaczona</div><div class="news-details-item__value">@(Model.CzyWlaczona ? "Tak" : "Nie")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@Model.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Typ</div><div class="news-details-item__value">@r.Typ</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Próg</div><div class="news-details-item__value">@r.Prog.ToString("0.###")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(r.Magazyn?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Produkt</div><div class="news-details-item__value">@(r.Produkt?.Nazwa ?? "Reguła ogólna dla magazynu")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Kod produktu</div><div class="news-details-item__value entity-mono">@(r.Produkt?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(r.CzyWlaczona ? "Włączona" : "Wyłączona")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@r.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
         </div>
+    </section>
+
+    <section class="entity-table-panel mt-3">
+        <div class="entity-table-panel__header d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2">
+            <div>
+                <h3 class="mb-0 h5">Ostatnie alerty (@Model.LiczbaAlertow)</h3>
+                <div class="text-muted small">Ostatnie alerty wygenerowane przez tę regułę (max 10).</div>
+            </div>
+            <a class="btn btn-sm btn-outline-secondary" asp-controller="Alert" asp-action="Index">
+                <i class="bi bi-list-ul me-1"></i> Lista alertów
+            </a>
+        </div>
+        @if (!Model.OstatnieAlerty.Any())
+        {
+            <div class="news-admin-empty py-4">
+                <div class="news-admin-empty__icon"><i class="bi bi-bell-slash"></i></div>
+                <h4 class="h6 mb-1">Brak alertów</h4>
+                <p class="text-muted mb-0">Ta reguła nie wygenerowała jeszcze alertów.</p>
+            </div>
+        }
+        else
+        {
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Waga</th>
+                            <th>Treść</th>
+                            <th>Produkt</th>
+                            <th>Magazyn</th>
+                            <th>Status</th>
+                            <th>Utworzono</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var a in Model.OstatnieAlerty)
+                    {
+                        var severityClass = string.Equals(a.Waga, "CRIT", StringComparison.OrdinalIgnoreCase)
+                            ? "entity-badge--danger"
+                            : string.Equals(a.Waga, "WARN", StringComparison.OrdinalIgnoreCase)
+                                ? "entity-badge--warning"
+                                : "entity-badge--muted";
+                        <tr>
+                            <td><span class="entity-badge @severityClass">@a.Waga</span></td>
+                            <td>@a.Tresc</td>
+                            <td>
+                                <div class="entity-cell-title">@(a.Produkt?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle">@(a.Produkt?.Nazwa ?? "-")</div>
+                            </td>
+                            <td>@(a.Magazyn?.Nazwa ?? "-")</td>
+                            <td>
+                                <span class="entity-badge @(a.CzyPotwierdzony ? "entity-badge--success" : "entity-badge--muted")">
+                                    @(a.CzyPotwierdzony ? "Potwierdzony" : "Nowy")
+                                </span>
+                            </td>
+                            <td>@a.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
     </section>
 </div>

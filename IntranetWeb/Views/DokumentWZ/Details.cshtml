@@ -88,7 +88,7 @@
             <div class="news-admin-empty py-4">
                 <div class="news-admin-empty__icon"><i class="bi bi-list-task"></i></div>
                 <h4 class="h6 mb-1">Brak pozycji WZ</h4>
-                <p class="text-muted mb-0">Ten dokument nie ma jeszcze zadnych pozycji.</p>
+                <p class="text-muted mb-0">Ten dokument nie ma jeszcze żadnych pozycji.</p>
             </div>
         }
         else
@@ -99,6 +99,7 @@
                         <tr>
                             <th class="text-end">Lp</th>
                             <th>Produkt</th>
+                            <th>Partia</th>
                             <th>Lokacja</th>
                             <th class="text-end">Ilość</th>
                             <th class="text-end">Akcje</th>
@@ -111,12 +112,13 @@
                         <tr>
                             <td class="text-end">@p.Lp</td>
                             <td><div class="entity-cell-title">@(p.Produkt?.Kod ?? "-")</div><div class="entity-cell-subtitle">@(p.Produkt?.Nazwa ?? "Brak nazwy")</div></td>
+                            <td><div class="entity-cell-title">@(p.Partia?.NumerPartii ?? "(brak)")</div></td>
                             <td><div class="entity-cell-title">@(p.Lokacja?.Kod ?? "-")</div><div class="entity-cell-subtitle">@(p.Lokacja?.Magazyn?.Nazwa ?? "-")</div></td>
                             <td class="text-end">@p.Ilosc.ToString("0.###") @jm</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm">
-                                    <a class="btn btn-outline-info" asp-controller="PozycjaWZ" asp-action="Details" asp-route-id="@p.Id"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-warning" asp-controller="PozycjaWZ" asp-action="Edit" asp-route-id="@p.Id"><i class="bi bi-pencil"></i></a>
+                                    <a class="btn btn-outline-info" asp-controller="PozycjaWZ" asp-action="Details" asp-route-id="@p.Id" title="Szczegóły pozycji WZ"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-warning" asp-controller="PozycjaWZ" asp-action="Edit" asp-route-id="@p.Id" title="Edytuj pozycję WZ"><i class="bi bi-pencil"></i></a>
                                 </div>
                             </td>
                         </tr>

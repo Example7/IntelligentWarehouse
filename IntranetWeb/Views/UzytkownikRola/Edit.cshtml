@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.UzytkownikRola
 
 @{
-    ViewData["Title"] = "Edytuj role uzytkownika";
+    ViewData["Title"] = "Edytuj rolę użytkownika";
 }
 
 <div class="news-admin-page">
@@ -9,7 +9,7 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Edytuj role uzytkownika</h1>
+                <h1 class="news-admin-header__heading mb-1">Edytuj rolę użytkownika</h1>
                 <p class="news-admin-header__subheading mb-0">Aktualizacja przypisania roli do konta.</p>
             </div>
         </div>
@@ -20,7 +20,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Edycja przypisania</h2>
-            <p class="text-muted mb-0">Zmien uzytkownika lub role.</p>
+            <p class="text-muted mb-0">Zmień użytkownika lub rolę.</p>
         </div>
         <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="Id" />
@@ -29,21 +29,21 @@
                 <div class="news-form-field">
                     <label asp-for="IdUzytkownika" class="form-label news-form-label"></label>
                     <select asp-for="IdUzytkownika" class="form-select news-form-control" asp-items="ViewBag.IdUzytkownika">
-                        <option value="">(wybierz uzytkownika)</option>
+                        <option value="">(wybierz użytkownika)</option>
                     </select>
                     <span asp-validation-for="IdUzytkownika" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
                     <label asp-for="IdRoli" class="form-label news-form-label"></label>
                     <select asp-for="IdRoli" class="form-select news-form-control" asp-items="ViewBag.IdRoli">
-                        <option value="">(wybierz role)</option>
+                        <option value="">(wybierz rolę)</option>
                     </select>
                     <span asp-validation-for="IdRoli" class="text-danger small"></span>
                 </div>
             </div>
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
-                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>

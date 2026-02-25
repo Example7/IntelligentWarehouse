@@ -1,4 +1,4 @@
-@model Data.Data.CMS.Aktualnosc
+﻿@model Interfaces.CMS.Dtos.AktualnoscDeleteDto
 
 @{
     ViewData["Title"] = "Usuń aktualność";
@@ -12,9 +12,7 @@
             </span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Usuń aktualność</h1>
-                <p class="news-admin-header__subheading mb-0">
-                    Operacja jest nieodwracalna. Sprawdź dane przed usunięciem.
-                </p>
+                <p class="news-admin-header__subheading mb-0">Operacja jest nieodwracalna. Sprawdź dane przed usunięciem.</p>
             </div>
         </div>
     </section>
@@ -33,42 +31,29 @@
                 <div class="news-details-item__label">ID</div>
                 <div class="news-details-item__value">@Model.IdAktualnosci</div>
             </div>
-
             <div class="news-details-item">
-                <div class="news-details-item__label">Pozycja</div>
+                <div class="news-details-item__label">Pozycja wyświetlania</div>
                 <div class="news-details-item__value">@Model.Pozycja</div>
             </div>
-
             <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">Nazwa</div>
-                <div class="news-details-item__value">@Html.DisplayFor(m => m.Nazwa)</div>
+                <div class="news-details-item__label">Nazwa aktualności</div>
+                <div class="news-details-item__value">@Model.Nazwa</div>
             </div>
-
             <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">Tytuł linku</div>
-                <div class="news-details-item__value">@Html.DisplayFor(m => m.TytulLinku)</div>
+                <div class="news-details-item__label">Tytuł odnośnika</div>
+                <div class="news-details-item__value">@Model.TytulLinku</div>
             </div>
-
             <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">Treść</div>
-                <div class="news-details-item__value news-details-item__value--content">@Html.DisplayFor(m => m.Tresc)</div>
+                <div class="news-details-item__label">Treść aktualności</div>
+                <div class="news-details-item__value news-details-item__value--content">@Model.Tresc</div>
             </div>
         </div>
 
-        <form asp-action="Delete" asp-route-id="@Model.IdAktualnosci" method="post" class="news-form-actions">
+        <form asp-action="Delete" method="post" class="news-form-actions">
             <input type="hidden" name="id" value="@Model.IdAktualnosci" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary">
-                <i class="bi bi-trash3-fill"></i>
-                Usuń aktualność
-            </button>
-            <a asp-action="Details" asp-route-id="@Model.IdAktualnosci" class="btn btn-outline-info">
-                <i class="bi bi-eye"></i>
-                Szczegóły
-            </a>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i>
-                Anuluj
-            </a>
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń aktualność</button>
+            <a asp-action="Details" asp-route-id="@Model.IdAktualnosci" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+            <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>
 </div>

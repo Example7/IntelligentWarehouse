@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.Rola
+﻿@model Interfaces.Magazyn.Dtos.RolaDetailsDto
 
 @{
-    ViewData["Title"] = "Szczegoly roli";
+    ViewData["Title"] = "Szczegóły roli";
+    var role = Model.Rola;
 }
 
 <div class="news-admin-page">
@@ -9,25 +10,68 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-shield-lock"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Szczegoly roli</h1>
-                <p class="news-admin-header__subheading mb-0">Podglad danych roli systemowej.</p>
+                <h1 class="news-admin-header__heading mb-1">Szczegóły roli</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd danych roli systemowej.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@Model.IdRoli</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Przypisania</span><strong class="news-admin-stat__value">@Model.LiczbaPrzypisan</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@role.IdRoli</strong></div>
         </div>
     </section>
+
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@Model.Nazwa</h2>
+            <h2 class="news-details-panel__title">@role.Nazwa</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@Model.IdRoli" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@Model.IdRoli" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usun</a>
+                <a asp-action="Edit" asp-route-id="@role.IdRoli" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                <a asp-action="Delete" asp-route-id="@role.IdRoli" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
         <div class="news-details-grid">
-            <div class="news-details-item news-details-item--full"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@Model.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@role.Nazwa</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Przypisania</div><div class="news-details-item__value">@Model.LiczbaPrzypisan</div></div>
+        </div>
+    </section>
+
+    <section class="entity-table-panel mt-4">
+        <div class="entity-table-panel__header d-flex justify-content-between align-items-center gap-2 flex-wrap px-3 pt-3">
+            <div>
+                <h3 class="h5 mb-1">Ostatnie przypisania użytkowników</h3>
+                <p class="text-muted mb-0 small">Najnowsze konta posiadające tę rolę.</p>
+            </div>
+        </div>
+        <div class="entity-table-wrap">
+            <table class="table table-hover align-middle mb-0 entity-table">
+                <thead>
+                    <tr>
+                        <th>Użytkownik</th>
+                        <th>Login</th>
+                        <th>ID przypisania</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model.OstatniePrzypisania.Any())
+                {
+                    @foreach (var item in Model.OstatniePrzypisania)
+                    {
+                        <tr>
+                            <td>
+                                <div class="entity-cell-title">@item.Uzytkownik.Email</div>
+                                <div class="entity-cell-subtitle">User ID: @item.IdUzytkownika</div>
+                            </td>
+                            <td>@item.Uzytkownik.Login</td>
+                            <td>@item.Id</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="3" class="text-muted">Brak przypisań użytkowników.</td></tr>
+                }
+                </tbody>
+            </table>
         </div>
     </section>
 </div>

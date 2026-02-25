@@ -1,7 +1,8 @@
-@model Data.Data.Magazyn.UzytkownikRola
+﻿@model Interfaces.Magazyn.Dtos.UzytkownikRolaDeleteDto
 
 @{
-    ViewData["Title"] = "Usun role uzytkownika";
+    ViewData["Title"] = "Usuń rolę użytkownika";
+    var item = Model.UzytkownikRola;
 }
 
 <div class="news-admin-page">
@@ -9,8 +10,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon news-admin-header__icon--danger"><i class="bi bi-trash3"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Usun role uzytkownika</h1>
-                <p class="news-admin-header__subheading mb-0">Potwierdz usuniecie przypisania roli.</p>
+                <h1 class="news-admin-header__heading mb-1">Usuń rolę użytkownika</h1>
+                <p class="news-admin-header__subheading mb-0">Potwierdź usunięcie przypisania roli.</p>
             </div>
         </div>
     </section>
@@ -18,20 +19,20 @@
         <div class="news-delete-warning" role="alert">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <div>
-                <strong>Usuniecie przypisania</strong>
-                <div>Po usunieciu uzytkownik utraci uprawnienia wynikajace z tej roli.</div>
+                <strong>Usunięcie przypisania</strong>
+                <div>Po usunięciu użytkownik utraci uprawnienia wynikające z tej roli.</div>
             </div>
         </div>
         <div class="news-details-grid">
-            <div class="news-details-item"><div class="news-details-item__label">Uzytkownik</div><div class="news-details-item__value">@(Model.Uzytkownik?.Email ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Rola</div><div class="news-details-item__value">@(Model.Rola?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">User ID</div><div class="news-details-item__value">@Model.IdUzytkownika</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Role ID</div><div class="news-details-item__value">@Model.IdRoli</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Użytkownik</div><div class="news-details-item__value">@(item.Uzytkownik?.Email ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Rola</div><div class="news-details-item__value">@(item.Rola?.Nazwa ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Role użytkownika (łącznie)</div><div class="news-details-item__value">@Model.LiczbaRolUzytkownika</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Użytkowników w tej roli</div><div class="news-details-item__value">@Model.LiczbaUzytkownikowWRoli</div></div>
         </div>
         <form asp-action="Delete" method="post" class="news-form-actions">
-            <input type="hidden" asp-for="Id" />
-            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usun przypisanie</button>
-            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+            <input type="hidden" name="id" value="@item.Id" />
+            <button type="submit" class="btn btn-danger news-form-actions__primary"><i class="bi bi-trash3-fill"></i> Usuń przypisanie</button>
+            <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
             <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Anuluj</a>
         </form>
     </section>

@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.UzytkownikRola
 
 @{
-    ViewData["Title"] = "Dodaj role uzytkownikowi";
+    ViewData["Title"] = "Dodaj rolę użytkownikowi";
 }
 
 <div class="news-admin-page">
@@ -9,15 +9,15 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Dodaj role uzytkownikowi</h1>
-                <p class="news-admin-header__subheading mb-0">Utworz przypisanie roli do konta systemowego.</p>
+                <h1 class="news-admin-header__heading mb-1">Dodaj rolę użytkownikowi</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz przypisanie roli do konta systemowego.</p>
             </div>
         </div>
     </section>
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Przypisanie roli</h2>
-            <p class="text-muted mb-0">Wybierz uzytkownika i role.</p>
+            <p class="text-muted mb-0">Wybierz użytkownika i rolę.</p>
         </div>
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
@@ -25,21 +25,21 @@
                 <div class="news-form-field">
                     <label asp-for="IdUzytkownika" class="form-label news-form-label"></label>
                     <select asp-for="IdUzytkownika" class="form-select news-form-control" asp-items="ViewBag.IdUzytkownika">
-                        <option value="">(wybierz uzytkownika)</option>
+                        <option value="">(wybierz użytkownika)</option>
                     </select>
                     <span asp-validation-for="IdUzytkownika" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
                     <label asp-for="IdRoli" class="form-label news-form-label"></label>
                     <select asp-for="IdRoli" class="form-select news-form-control" asp-items="ViewBag.IdRoli">
-                        <option value="">(wybierz role)</option>
+                        <option value="">(wybierz rolę)</option>
                     </select>
                     <span asp-validation-for="IdRoli" class="text-danger small"></span>
                 </div>
             </div>
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz przypisanie</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
             </div>
         </form>
     </section>

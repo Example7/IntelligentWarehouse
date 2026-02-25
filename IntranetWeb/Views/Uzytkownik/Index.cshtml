@@ -1,10 +1,10 @@
-@model IEnumerable<Data.Data.Magazyn.Uzytkownik>
+﻿@model Interfaces.Magazyn.Dtos.UzytkownikIndexDto
 
 @{
-    ViewData["Title"] = "Uzytkownicy";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
-    var activeCount = items.Count(x => x.CzyAktywny);
+    ViewData["Title"] = "Użytkownicy";
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var activeCount = items.Count(x => x.Uzytkownik.CzyAktywny);
 }
 
 <div class="news-admin-page">
@@ -12,8 +12,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-person-badge"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Uzytkownicy</h1>
-                <p class="news-admin-header__subheading mb-0">Konta dostepu do systemu, loginy i adresy e-mail.</p>
+                <h1 class="news-admin-header__heading mb-1">Użytkownicy</h1>
+                <p class="news-admin-header__subheading mb-0">Konta dostępu do systemu, loginy i adresy e-mail.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -23,17 +23,17 @@
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie uzytkownikow">
-            <label for="userSearchTerm" class="visually-hidden">Szukaj uzytkownikow</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie użytkowników">
+            <label for="userSearchTerm" class="visually-hidden">Szukaj użytkowników</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon"></i>
                 <input id="userSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
-                       placeholder="Szukaj po loginie lub emailu..." />
+                       placeholder="Szukaj po loginie lub e-mailu..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")"><i class="bi bi-x-lg"></i></a>
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
             }
         </form>
         <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj użytkownika</a>
@@ -43,22 +43,38 @@
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-person-badge"></i></div>
-            <h2 class="h4 mb-2">Brak uzytkowników</h2>
-            <p class="text-muted mb-3">Dodaj pierwsze konto dostępu do systemu.</p>
-            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj użytkownika</a>
+            <h2 class="h4 mb-2">Brak użytkowników</h2>
+            <p class="text-muted mb-3">
+                @if (string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <span>Dodaj pierwsze konto dostępu do systemu.</span>
+                }
+                else
+                {
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
+                }
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj użytkownika</a>
+                @if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
+                }
+            </div>
         </section>
     }
     else
     {
         <div class="news-admin-grid">
-            @foreach (var item in items.OrderBy(x => x.Login))
+            @foreach (var item in items.OrderBy(x => x.Uzytkownik.Login))
             {
+                var user = item.Uzytkownik;
                 <article class="news-card">
                     <div class="news-card__accent"></div>
                     <div class="news-card__body">
                         <div class="news-card__meta-top">
-                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @item.IdUzytkownika</span>
-                            @if (item.CzyAktywny)
+                            <span class="news-card__badge"><i class="bi bi-upc"></i> ID @user.IdUzytkownika</span>
+                            @if (user.CzyAktywny)
                             {
                                 <span class="entity-badge">Aktywny</span>
                             }
@@ -67,19 +83,28 @@
                                 <span class="entity-badge entity-badge--muted">Nieaktywny</span>
                             }
                         </div>
-                        <h2 class="news-card__title" title="@item.Login">@item.Login</h2>
-                        <p class="news-card__content" title="@item.Email">@item.Email</p>
+
+                        <h2 class="news-card__title" title="@user.Login">@user.Login</h2>
+                        <p class="news-card__content" title="@user.Email">@user.Email</p>
 
                         <div class="entity-inline-meta">
-                            <span class="entity-inline-meta__label">Haslo:</span>
-                            <span class="entity-inline-meta__value">@(string.IsNullOrWhiteSpace(item.HashHasla) ? "Brak" : "Ustawione")</span>
+                            <span class="entity-inline-meta__label">Hasło:</span>
+                            <span class="entity-inline-meta__value">@(string.IsNullOrWhiteSpace(user.HashHasla) ? "Brak" : "Ustawione")</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">Role:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaRol</span>
+                        </div>
+                        <div class="entity-inline-meta">
+                            <span class="entity-inline-meta__label">Dokumenty:</span>
+                            <span class="entity-inline-meta__value">@item.LiczbaDokumentow</span>
                         </div>
 
                         <div class="news-card__footer">
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla uzytkownika @item.Login">
-                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdUzytkownika"><i class="bi bi-pencil"></i></a>
-                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdUzytkownika"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdUzytkownika"><i class="bi bi-trash"></i></a>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla użytkownika @user.Login">
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@user.IdUzytkownika" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@user.IdUzytkownika" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@user.IdUzytkownika" title="Usuń"><i class="bi bi-trash"></i></a>
                             </div>
                         </div>
                     </div>

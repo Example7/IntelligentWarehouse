@@ -25,34 +25,29 @@
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
             <div class="news-form-grid">
                 <div class="news-form-field">
-                    <label asp-for="IdMagazynu" class="form-label news-form-label"></label>
+                    <label asp-for="IdMagazynu" class="form-label news-form-label">Magazyn</label>
                     <select asp-for="IdMagazynu" class="form-select news-form-control" asp-items="ViewBag.IdMagazynu"></select>
                     <span asp-validation-for="IdMagazynu" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="IdProduktu" class="form-label news-form-label"></label>
+                    <label asp-for="IdProduktu" class="form-label news-form-label">Produkt (opcjonalnie)</label>
                     <select asp-for="IdProduktu" class="form-select news-form-control" asp-items="ViewBag.IdProduktu"></select>
                     <span asp-validation-for="IdProduktu" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="Typ" class="form-label news-form-label"></label>
-                    <input asp-for="Typ" class="form-control news-form-control" />
+                    <label asp-for="Typ" class="form-label news-form-label">Typ reguły</label>
+                    <select asp-for="Typ" class="form-select news-form-control" asp-items="ViewBag.RuleTypes"></select>
                     <span asp-validation-for="Typ" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="Prog" class="form-label news-form-label"></label>
-                    <input asp-for="Prog" class="form-control news-form-control" />
+                    <label asp-for="Prog" class="form-label news-form-label">Próg</label>
+                    <input asp-for="Prog" class="form-control news-form-control" step="0.001" />
                     <span asp-validation-for="Prog" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <label asp-for="UtworzonoUtc" class="form-label news-form-label"></label>
-                    <input asp-for="UtworzonoUtc" class="form-control news-form-control" />
-                    <span asp-validation-for="UtworzonoUtc" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" asp-for="CzyWlaczona" />
-                        <label class="form-check-label news-form-label mb-0" asp-for="CzyWlaczona"></label>
+                        <label class="form-check-label news-form-label mb-0" asp-for="CzyWlaczona">Czy włączona</label>
                     </div>
                     <span asp-validation-for="CzyWlaczona" class="text-danger small"></span>
                 </div>

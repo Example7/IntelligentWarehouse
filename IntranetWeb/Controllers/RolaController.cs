@@ -1,5 +1,6 @@
 using Data.Data;
 using Data.Data.Magazyn;
+using Interfaces.Magazyn;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,16 +10,17 @@ namespace IntranetWeb.Controllers
 {
     public class RolaController : BaseSearchController<Rola>
     {
+        private readonly IRolaService _rolaService;
 
-        public RolaController(DataContext context) : base(context) { }
+        public RolaController(DataContext context, IRolaService rolaService) : base(context)
+        {
+            _rolaService = rolaService;
+        }
 
         // GET: Rola
         public async Task<IActionResult> Index(string? searchTerm)
         {
-            var query = _context.Rola.AsNoTracking();
-            query = ApplySearchAny(query, searchTerm, x => x.Nazwa);
-
-            return View(await query.ToListAsync());
+            return View(await _rolaService.GetIndexDataAsync(searchTerm));
         }
 
         // GET: Rola/Details/5
@@ -29,14 +31,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var rola = await _context.Rola
-                .FirstOrDefaultAsync(m => m.IdRoli == id);
-            if (rola == null)
+            var data = await _rolaService.GetDetailsDataAsync(id.Value);
+            if (data == null)
             {
                 return NotFound();
             }
 
-            return View(rola);
+            return View(data);
         }
 
         // GET: Rola/Create
@@ -52,11 +53,25 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdRoli,Nazwa")] Rola rola)
         {
+            rola.Nazwa = (rola.Nazwa ?? string.Empty).Trim();
+
+            if (await _context.Rola.AnyAsync(x => x.Nazwa == rola.Nazwa))
+            {
+                ModelState.AddModelError(nameof(Rola.Nazwa), $"Rola o nazwie '{rola.Nazwa}' już istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(rola);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(rola);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(nameof(Rola.Nazwa), $"Nie udało się zapisać roli '{rola.Nazwa}'. Sprawdź, czy nazwa jest unikalna.");
+                }
             }
             return View(rola);
         }
@@ -89,11 +104,24 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
+            rola.Nazwa = (rola.Nazwa ?? string.Empty).Trim();
+
+            if (await _context.Rola.AnyAsync(x => x.IdRoli != rola.IdRoli && x.Nazwa == rola.Nazwa))
+            {
+                ModelState.AddModelError(nameof(Rola.Nazwa), $"Rola o nazwie '{rola.Nazwa}' już istnieje.");
+            }
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(rola);
+                    var existing = await _context.Rola.FirstOrDefaultAsync(x => x.IdRoli == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existing.Nazwa = rola.Nazwa;
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -106,6 +134,11 @@ namespace IntranetWeb.Controllers
                     {
                         throw;
                     }
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError(nameof(Rola.Nazwa), $"Nie udało się zapisać roli '{rola.Nazwa}'. Sprawdź, czy nazwa jest unikalna.");
+                    return View(rola);
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -120,14 +153,13 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var rola = await _context.Rola
-                .FirstOrDefaultAsync(m => m.IdRoli == id);
-            if (rola == null)
+            var data = await _rolaService.GetDeleteDataAsync(id.Value);
+            if (data == null)
             {
                 return NotFound();
             }
 
-            return View(rola);
+            return View(data);
         }
 
         // POST: Rola/Delete/5
@@ -135,14 +167,39 @@ namespace IntranetWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var rola = await _context.Rola.FindAsync(id);
-            if (rola != null)
+            var deleteData = await _rolaService.GetDeleteDataAsync(id);
+            if (deleteData == null)
             {
-                _context.Rola.Remove(rola);
+                return NotFound();
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            if (!deleteData.CzyMoznaUsunac)
+            {
+                ModelState.AddModelError(string.Empty, "Nie można usunąć roli, ponieważ jest przypisana do użytkowników.");
+                return View("Delete", deleteData);
+            }
+
+            try
+            {
+                var rola = await _context.Rola.FindAsync(id);
+                if (rola != null)
+                {
+                    _context.Rola.Remove(rola);
+                    await _context.SaveChangesAsync();
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(string.Empty, "Nie udało się usunąć roli. Rola może być nadal powiązana z użytkownikami.");
+                var refreshed = await _rolaService.GetDeleteDataAsync(id);
+                if (refreshed == null)
+                {
+                    return NotFound();
+                }
+                return View("Delete", refreshed);
+            }
         }
 
         private bool RolaExists(int id)

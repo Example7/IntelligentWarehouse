@@ -267,6 +267,12 @@ namespace Data.Data
                 .HasForeignKey(p => p.IdLokacji)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<PozycjaPZ>()
+                .HasOne(p => p.Partia)
+                .WithMany()
+                .HasForeignKey(p => p.IdPartii)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // --- DokumentWZ: FK restricty
             modelBuilder.Entity<DokumentWZ>()
@@ -300,6 +306,12 @@ namespace Data.Data
                 .HasForeignKey(p => p.IdLokacji)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<PozycjaWZ>()
+                .HasOne(p => p.Partia)
+                .WithMany()
+                .HasForeignKey(p => p.IdPartii)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
             // --- DokumentMM: FK restricty
             modelBuilder.Entity<DokumentMM>()
@@ -331,6 +343,12 @@ namespace Data.Data
                 .HasOne(p => p.LokacjaDo)
                 .WithMany()
                 .HasForeignKey(p => p.IdLokacjiDo)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PozycjaMM>()
+                .HasOne(p => p.Partia)
+                .WithMany()
+                .HasForeignKey(p => p.IdPartii)
                 .OnDelete(DeleteBehavior.Restrict);
 
 

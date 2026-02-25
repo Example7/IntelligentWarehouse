@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.Rola
 
 @{
-    ViewData["Title"] = "Dodaj role";
+    ViewData["Title"] = "Dodaj rolę";
 }
 
 <div class="news-admin-page">
@@ -9,15 +9,15 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Dodaj role</h1>
-                <p class="news-admin-header__subheading mb-0">Utworz nowa role systemowa.</p>
+                <h1 class="news-admin-header__heading mb-1">Dodaj rolę</h1>
+                <p class="news-admin-header__subheading mb-0">Utwórz nową rolę systemową.</p>
             </div>
         </div>
     </section>
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane roli</h2>
-            <p class="text-muted mb-0">Wprowadz nazwe roli, np. Admin lub Worker.</p>
+            <p class="text-muted mb-0">Wprowadź nazwę roli, np. Admin lub Worker.</p>
         </div>
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
@@ -29,8 +29,8 @@
                 </div>
             </div>
             <div class="news-form-actions">
-                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz role</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
+                <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz rolę</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
             </div>
         </form>
     </section>

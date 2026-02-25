@@ -1,9 +1,9 @@
-@model IEnumerable<Data.Data.CMS.Aktualnosc>
+﻿@model Interfaces.CMS.Dtos.AktualnoscIndexDto
 
 @{
-    ViewData["Title"] = "Zarządzanie aktualnościami";
-    var items = Model.ToList();
-    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    ViewData["Title"] = "Aktualności";
+    var items = Model.Items.ToList();
+    var searchTerm = Model.SearchTerm;
 }
 
 <div class="news-admin-page">
@@ -15,7 +15,7 @@
             <div>
                 <h1 class="news-admin-header__heading mb-1">Aktualności</h1>
                 <p class="news-admin-header__subheading mb-0">
-                    Zarządzanie wpisami CMS, filtrowanie i szybkie akcje
+                    Zarządzanie wpisami CMS, filtrowanie i szybkie akcje.
                 </p>
             </div>
         </div>
@@ -38,20 +38,15 @@
     <section class="news-admin-toolbar">
         <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie aktualności">
             <label for="newsSearchTerm" class="visually-hidden">Szukaj aktualności</label>
-
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
                 <input id="newsSearchTerm"
                        class="form-control news-admin-search__input"
                        name="searchTerm"
                        value="@searchTerm"
-                       placeholder="Szukaj po nazwie, linku lub treści..." />
+                       placeholder="Szukaj po nazwie, tytule odnośnika lub treści..." />
             </div>
-
-            <button class="btn btn-primary news-admin-search__submit" type="submit">
-                Szukaj
-            </button>
-
+            <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 <a class="btn btn-outline-secondary news-admin-search__clear"
@@ -100,11 +95,10 @@
     else
     {
         <div class="news-admin-grid" id="cardContainer">
-            @foreach (var item in items.OrderBy(x => x.Pozycja).ThenBy(x => x.Nazwa))
+            @foreach (var item in items)
             {
                 <article class="news-card">
                     <div class="news-card__accent"></div>
-
                     <div class="news-card__body">
                         <div class="news-card__meta-top">
                             <span class="news-card__badge" title="@item.TytulLinku">
@@ -115,32 +109,13 @@
                         </div>
 
                         <h2 class="news-card__title" title="@item.Nazwa">@item.Nazwa</h2>
-
                         <p class="news-card__content" title="@item.Tresc">@item.Tresc</p>
 
                         <div class="news-card__footer">
                             <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla aktualności @item.Nazwa">
-                                <a class="btn btn-outline-warning"
-                                   asp-action="Edit"
-                                   asp-route-id="@item.IdAktualnosci"
-                                   title="Edytuj aktualność"
-                                   aria-label="Edytuj aktualność @item.Nazwa">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a class="btn btn-outline-info"
-                                   asp-action="Details"
-                                   asp-route-id="@item.IdAktualnosci"
-                                   title="Zobacz szczegóły"
-                                   aria-label="Zobacz szczegóły aktualności @item.Nazwa">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a class="btn btn-outline-danger"
-                                   asp-action="Delete"
-                                   asp-route-id="@item.IdAktualnosci"
-                                   title="Usuń aktualność"
-                                   aria-label="Usuń aktualność @item.Nazwa">
-                                    <i class="bi bi-trash"></i>
-                                </a>
+                                <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdAktualnosci" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdAktualnosci" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdAktualnosci" title="Usuń"><i class="bi bi-trash"></i></a>
                             </div>
                         </div>
                     </div>

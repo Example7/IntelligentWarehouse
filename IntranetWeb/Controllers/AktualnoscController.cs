@@ -1,6 +1,7 @@
-﻿using Data.Data;
+using Data.Data;
 using Data.Data.CMS;
 using IntranetWeb.Controllers.Abstrakcja;
+using Interfaces.CMS;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,19 +9,18 @@ namespace IntranetWeb.Controllers
 {
     public class AktualnoscController : BaseSearchController<Aktualnosc>
     {
-        public AktualnoscController(DataContext context) : base(context) { }
+        private readonly IAktualnoscService _aktualnoscService;
 
-        // GET: Aktualnosc
-        public async Task<IActionResult> Index(string? searchTerm)
+        public AktualnoscController(DataContext context, IAktualnoscService aktualnoscService) : base(context)
         {
-            var query = _context.Aktualnosc.AsNoTracking();
-
-            query = ApplySearchAny(query, searchTerm, x => x.Nazwa, x => x.TytulLinku, x => x.Tresc);
-
-            return View(await query.ToListAsync());
+            _aktualnoscService = aktualnoscService;
         }
 
-        // GET: Aktualnosc/Details/5
+        public async Task<IActionResult> Index(string? searchTerm)
+        {
+            return View(await _aktualnoscService.GetIndexDataAsync(searchTerm));
+        }
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -28,39 +28,45 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var aktualnosc = await _context.Aktualnosc
-                .FirstOrDefaultAsync(m => m.IdAktualnosci == id);
-            if (aktualnosc == null)
+            var dto = await _aktualnoscService.GetDetailsDataAsync(id.Value);
+            if (dto == null)
             {
                 return NotFound();
             }
 
-            return View(aktualnosc);
+            return View(dto);
         }
 
-        // GET: Aktualnosc/Create
         public IActionResult Create()
         {
-            return View();
+            return View(new Aktualnosc { TytulLinku = string.Empty, Nazwa = string.Empty, Tresc = string.Empty });
         }
 
-        // POST: Aktualnosc/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("IdAktualnosci,TytulLinku,Nazwa,Tresc,Pozycja")] Aktualnosc aktualnosc)
         {
-            if (ModelState.IsValid)
+            Normalize(aktualnosc);
+            await ValidateUniqueTytulLinkuAsync(aktualnosc.TytulLinku);
+
+            if (!ModelState.IsValid)
+            {
+                return View(aktualnosc);
+            }
+
+            try
             {
                 _context.Add(aktualnosc);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(aktualnosc);
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(nameof(Aktualnosc.TytulLinku), $"Aktualność o tytule odnośnika '{aktualnosc.TytulLinku}' już istnieje.");
+                return View(aktualnosc);
+            }
         }
 
-        // GET: Aktualnosc/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -73,12 +79,10 @@ namespace IntranetWeb.Controllers
             {
                 return NotFound();
             }
+
             return View(aktualnosc);
         }
 
-        // POST: Aktualnosc/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("IdAktualnosci,TytulLinku,Nazwa,Tresc,Pozycja")] Aktualnosc aktualnosc)
@@ -88,30 +92,46 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            Normalize(aktualnosc);
+            await ValidateUniqueTytulLinkuAsync(aktualnosc.TytulLinku, aktualnosc.IdAktualnosci);
+
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(aktualnosc);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!AktualnoscExists(aktualnosc.IdAktualnosci))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                return View(aktualnosc);
+            }
+
+            var existing = await _context.Aktualnosc.FirstOrDefaultAsync(x => x.IdAktualnosci == id);
+            if (existing == null)
+            {
+                return NotFound();
+            }
+
+            existing.TytulLinku = aktualnosc.TytulLinku;
+            existing.Nazwa = aktualnosc.Nazwa;
+            existing.Tresc = aktualnosc.Tresc;
+            existing.Pozycja = aktualnosc.Pozycja;
+
+            try
+            {
+                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(aktualnosc);
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.Aktualnosc.AnyAsync(e => e.IdAktualnosci == aktualnosc.IdAktualnosci))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(nameof(Aktualnosc.TytulLinku), $"Aktualność o tytule odnośnika '{aktualnosc.TytulLinku}' już istnieje.");
+                return View(aktualnosc);
+            }
         }
 
-        // GET: Aktualnosc/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -119,34 +139,43 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            var aktualnosc = await _context.Aktualnosc
-                .FirstOrDefaultAsync(m => m.IdAktualnosci == id);
-            if (aktualnosc == null)
+            var dto = await _aktualnoscService.GetDeleteDataAsync(id.Value);
+            if (dto == null)
             {
                 return NotFound();
             }
 
-            return View(aktualnosc);
+            return View(dto);
         }
 
-        // POST: Aktualnosc/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var aktualnosc = await _context.Aktualnosc.FindAsync(id);
-            if (aktualnosc != null)
+            if (aktualnosc == null)
             {
-                _context.Aktualnosc.Remove(aktualnosc);
+                return RedirectToAction(nameof(Index));
             }
 
+            _context.Aktualnosc.Remove(aktualnosc);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AktualnoscExists(int id)
+        private static void Normalize(Aktualnosc aktualnosc)
         {
-            return _context.Aktualnosc.Any(e => e.IdAktualnosci == id);
+            aktualnosc.TytulLinku = (aktualnosc.TytulLinku ?? string.Empty).Trim();
+            aktualnosc.Nazwa = (aktualnosc.Nazwa ?? string.Empty).Trim();
+            aktualnosc.Tresc = (aktualnosc.Tresc ?? string.Empty).Trim();
+        }
+
+        private async Task ValidateUniqueTytulLinkuAsync(string tytulLinku, int? excludeId = null)
+        {
+            if (await _aktualnoscService.TytulLinkuExistsAsync(tytulLinku, excludeId))
+            {
+                ModelState.AddModelError(nameof(Aktualnosc.TytulLinku), $"Aktualność o tytule odnośnika '{(tytulLinku ?? string.Empty).Trim()}' już istnieje.");
+            }
         }
     }
 }
