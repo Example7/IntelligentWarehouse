@@ -48,3 +48,14 @@ Desktop.ini
 # Secrets (tylko lokalne)
 appsettings.Development.json
 secrets.json
+
+# MobileApp (Expo / React Native)
+MobileApp/node_modules/
+MobileApp/.expo/
+MobileApp/.expo-shared/
+MobileApp/dist/
+MobileApp/web-build/
+MobileApp/npm-debug.log*
+MobileApp/yarn-debug.log*
+MobileApp/yarn-error.log*
+MobileApp/.env

@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Intelligent Warehouse Mobile",
+    "slug": "intelligent-warehouse-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.intelligentwarehouse.mobile"
+    },
+    "ios": {
+      "bundleIdentifier": "com.intelligentwarehouse.mobile"
+    }
+  }
+}
