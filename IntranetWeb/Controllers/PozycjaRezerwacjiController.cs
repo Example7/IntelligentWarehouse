@@ -2,6 +2,8 @@
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using IntranetWeb.Controllers.Abstrakcja;
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +11,7 @@ using System.Text.Json;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynier)]
     public class PozycjaRezerwacjiController : BaseSearchController<PozycjaRezerwacji>
     {
         private readonly IPozycjaRezerwacjiService _pozycjaRezerwacjiService;
@@ -292,4 +295,3 @@ namespace IntranetWeb.Controllers
         }
     }
 }
-

@@ -1,13 +1,18 @@
 using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
+
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynierOperator)]
     public class MagazynController : BaseSearchController<Magazyn>
     {
         private readonly IMagazynService _magazynService;
@@ -115,6 +120,7 @@ namespace IntranetWeb.Controllers
         }
 
         // GET: Magazyn/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -134,6 +140,7 @@ namespace IntranetWeb.Controllers
         }
 
         // POST: Magazyn/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -226,3 +233,5 @@ namespace IntranetWeb.Controllers
         }
     }
 }
+
+

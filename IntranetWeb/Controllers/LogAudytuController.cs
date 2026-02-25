@@ -4,11 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminOnly)]
     public class LogAudytuController : BaseSearchController<LogAudytu>
     {
         private readonly ILogAudytuService _logAudytuService;

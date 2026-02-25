@@ -1,6 +1,8 @@
 ﻿using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +11,7 @@ using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynier)]
     public class RuchMagazynowyController : BaseSearchController<RuchMagazynowy>
     {
         private readonly IRuchMagazynowyService _ruchMagazynowyService;

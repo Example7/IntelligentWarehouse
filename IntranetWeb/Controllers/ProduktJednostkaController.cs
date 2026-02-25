@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -8,8 +9,12 @@ using Interfaces.Magazyn.Dtos;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
+
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynierOperator)]
     public class ProduktJednostkaController : BaseSearchController<ProduktJednostka>
     {
         private readonly IProduktJednostkaService _produktJednostkaService;
@@ -163,6 +168,7 @@ namespace IntranetWeb.Controllers
         }
 
         // GET: ProduktJednostka/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -180,6 +186,7 @@ namespace IntranetWeb.Controllers
         }
 
         // POST: ProduktJednostka/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -264,3 +271,4 @@ namespace IntranetWeb.Controllers
         }
     }
 }
+

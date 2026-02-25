@@ -1,9 +1,12 @@
 using Interfaces.Magazyn;
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Data.Data.Magazyn;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynierOperator)]
     public class RaportController : Controller
     {
         private readonly IRaportMagazynowyService _raportMagazynowyService;

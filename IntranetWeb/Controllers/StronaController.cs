@@ -2,11 +2,16 @@ using Data.Data;
 using Data.Data.CMS;
 using IntranetWeb.Controllers.Abstrakcja;
 using Interfaces.CMS;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
+
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminOnly)]
     public class StronaController : BaseSearchController<Strona>
     {
         private readonly IStronaService _stronaService;
@@ -180,3 +185,5 @@ namespace IntranetWeb.Controllers
         }
     }
 }
+
+

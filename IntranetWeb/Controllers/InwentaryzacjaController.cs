@@ -3,12 +3,15 @@ using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using Interfaces.Magazyn.Dtos;
 using IntranetWeb.Controllers.Abstrakcja;
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynier)]
     public class InwentaryzacjaController : BaseSearchController<Inwentaryzacja>
     {
         private readonly IInwentaryzacjaService _inwentaryzacjaService;

@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +8,12 @@ using Interfaces.Magazyn;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
+
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynier)]
     public class AlertController : BaseSearchController<Alert>
     {
         private readonly IAlertService _alertService;
@@ -251,3 +256,5 @@ namespace IntranetWeb.Controllers
         }
     }
 }
+
+

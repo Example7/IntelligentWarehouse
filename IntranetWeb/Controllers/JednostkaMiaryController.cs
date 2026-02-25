@@ -1,13 +1,18 @@
 using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
+
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynierOperator)]
     public class JednostkaMiaryController : BaseSearchController<JednostkaMiary>
     {
         private readonly IJednostkaMiaryService _jednostkaMiaryService;
@@ -109,6 +114,7 @@ namespace IntranetWeb.Controllers
         }
 
         // GET: JednostkaMiary/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -126,6 +132,7 @@ namespace IntranetWeb.Controllers
         }
 
         // POST: JednostkaMiary/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -174,3 +181,5 @@ namespace IntranetWeb.Controllers
         }
     }
 }
+
+

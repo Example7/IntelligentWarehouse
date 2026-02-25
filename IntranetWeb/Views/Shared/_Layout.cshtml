@@ -23,6 +23,11 @@
         bool IsActiveAction(string c, string a) =>
             string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(currentAction, a, StringComparison.OrdinalIgnoreCase);
+        var isAdmin = User?.IsInRole("Admin") ?? false;
+        var isMagazynier = User?.IsInRole("Magazynier") ?? false;
+        var isOperator = User?.IsInRole("Operator") ?? false;
+        var canUseWarehouse = isAdmin || isMagazynier;
+        var canUseWarehouseOrOffice = isAdmin || isMagazynier || isOperator;
 }
 
 <body class="has-sidebar intranet-shell">
@@ -107,29 +112,32 @@
                 <hr class="my-2" />
 
                 <!-- CMS -->
-                <div class="px-2 pt-1 sidebar-section-title">CMS</div>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("Strona") ? "active" : "")"
-                   asp-controller="Strona" asp-action="Index">
-                    <i class="bi bi-file-earmark-text me-2"></i> Strony
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("Aktualnosc") ? "active" : "")"
-                   asp-controller="Aktualnosc" asp-action="Index">
-                    <i class="bi bi-newspaper me-2"></i> Aktualności
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("PlikMedia") ? "active" : "")"
-                   asp-controller="PlikMedia" asp-action="Index">
-                    <i class="bi bi-images me-2"></i> Media (pliki)
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("SzablonWydruku") ? "active" : "")"
-                   asp-controller="SzablonWydruku" asp-action="Index">
-                    <i class="bi bi-filetype-docx me-2"></i> Szablony wydruków
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("ZalacznikDokumentu") ? "active" : "")"
-                   asp-controller="ZalacznikDokumentu" asp-action="Index">
-                    <i class="bi bi-paperclip me-2"></i> Załączniki dokumentów
-                </a>
+                @if (isAdmin)
+                {
+                    <div class="px-2 pt-1 sidebar-section-title">CMS</div>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("Strona") ? "active" : "")"
+                       asp-controller="Strona" asp-action="Index">
+                        <i class="bi bi-file-earmark-text me-2"></i> Strony
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("Aktualnosc") ? "active" : "")"
+                       asp-controller="Aktualnosc" asp-action="Index">
+                        <i class="bi bi-newspaper me-2"></i> Aktualności
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("PlikMedia") ? "active" : "")"
+                       asp-controller="PlikMedia" asp-action="Index">
+                        <i class="bi bi-images me-2"></i> Media (pliki)
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("SzablonWydruku") ? "active" : "")"
+                       asp-controller="SzablonWydruku" asp-action="Index">
+                        <i class="bi bi-filetype-docx me-2"></i> Szablony wydruków
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("ZalacznikDokumentu") ? "active" : "")"
+                       asp-controller="ZalacznikDokumentu" asp-action="Index">
+                        <i class="bi bi-paperclip me-2"></i> Załączniki dokumentów
+                    </a>
 
-                <hr class="my-2" />
+                    <hr class="my-2" />
+                }
 
                 <!-- MASTER DATA -->
                 <div class="px-2 pt-1 sidebar-section-title">Dane podstawowe</div>
@@ -157,25 +165,28 @@
                 <hr class="my-2" />
 
                 <!-- STANY / RUCHY -->
-                <div class="px-2 pt-1 sidebar-section-title">Stany i ruchy</div>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("StanMagazynowy") ? "active" : "")"
-                   asp-controller="StanMagazynowy" asp-action="Index">
-                    <i class="bi bi-stack me-2"></i> Stany magazynowe
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("RuchMagazynowy") ? "active" : "")"
-                   asp-controller="RuchMagazynowy" asp-action="Index">
-                    <i class="bi bi-arrow-left-right me-2"></i> Ruchy magazynowe
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActiveAction("Raport", "StanyMagazynowe") ? "active" : "")"
-                   asp-controller="Raport" asp-action="StanyMagazynowe">
-                    <i class="bi bi-file-earmark-bar-graph me-2"></i> Raporty stanów
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActiveAction("Raport", "RuchyMagazynowe") ? "active" : "")"
-                   asp-controller="Raport" asp-action="RuchyMagazynowe">
-                    <i class="bi bi-file-earmark-spreadsheet me-2"></i> Raporty ruchów
-                </a>
+                @if (canUseWarehouse)
+                {
+                    <div class="px-2 pt-1 sidebar-section-title">Stany i ruchy</div>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("StanMagazynowy") ? "active" : "")"
+                       asp-controller="StanMagazynowy" asp-action="Index">
+                        <i class="bi bi-stack me-2"></i> Stany magazynowe
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("RuchMagazynowy") ? "active" : "")"
+                       asp-controller="RuchMagazynowy" asp-action="Index">
+                        <i class="bi bi-arrow-left-right me-2"></i> Ruchy magazynowe
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActiveAction("Raport", "StanyMagazynowe") ? "active" : "")"
+                       asp-controller="Raport" asp-action="StanyMagazynowe">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i> Raporty stanów
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActiveAction("Raport", "RuchyMagazynowe") ? "active" : "")"
+                       asp-controller="Raport" asp-action="RuchyMagazynowe">
+                        <i class="bi bi-file-earmark-spreadsheet me-2"></i> Raporty ruchów
+                    </a>
 
-                <hr class="my-2" />
+                    <hr class="my-2" />
+                }
 
                 <!-- KONTRAHENCI -->
                 <div class="px-2 pt-1 sidebar-section-title">Kontrahenci</div>
@@ -201,41 +212,44 @@
                     <i class="bi bi-list-check me-2"></i> Pozycje PZ
                 </a>
 
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("DokumentWZ") ? "active" : "")"
-                   asp-controller="DokumentWZ" asp-action="Index">
-                    <i class="bi bi-box-arrow-up me-2"></i> WZ (Wydania)
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaWZ") ? "active" : "")"
-                   asp-controller="PozycjaWZ" asp-action="Index">
-                    <i class="bi bi-list-check me-2"></i> Pozycje WZ
-                </a>
+                @if (canUseWarehouse)
+                {
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("DokumentWZ") ? "active" : "")"
+                       asp-controller="DokumentWZ" asp-action="Index">
+                        <i class="bi bi-box-arrow-up me-2"></i> WZ (Wydania)
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaWZ") ? "active" : "")"
+                       asp-controller="PozycjaWZ" asp-action="Index">
+                        <i class="bi bi-list-check me-2"></i> Pozycje WZ
+                    </a>
 
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("DokumentMM") ? "active" : "")"
-                   asp-controller="DokumentMM" asp-action="Index">
-                    <i class="bi bi-arrow-repeat me-2"></i> MM (Przesunięcia)
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaMM") ? "active" : "")"
-                   asp-controller="PozycjaMM" asp-action="Index">
-                    <i class="bi bi-list-check me-2"></i> Pozycje MM
-                </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("DokumentMM") ? "active" : "")"
+                       asp-controller="DokumentMM" asp-action="Index">
+                        <i class="bi bi-arrow-repeat me-2"></i> MM (Przesunięcia)
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaMM") ? "active" : "")"
+                       asp-controller="PozycjaMM" asp-action="Index">
+                        <i class="bi bi-list-check me-2"></i> Pozycje MM
+                    </a>
 
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("Inwentaryzacja") ? "active" : "")"
-                   asp-controller="Inwentaryzacja" asp-action="Index">
-                    <i class="bi bi-clipboard-check me-2"></i> Inwentaryzacje
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaInwentaryzacji") ? "active" : "")"
-                   asp-controller="PozycjaInwentaryzacji" asp-action="Index">
-                    <i class="bi bi-list-check me-2"></i> Pozycje inwent.
-                </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("Inwentaryzacja") ? "active" : "")"
+                       asp-controller="Inwentaryzacja" asp-action="Index">
+                        <i class="bi bi-clipboard-check me-2"></i> Inwentaryzacje
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaInwentaryzacji") ? "active" : "")"
+                       asp-controller="PozycjaInwentaryzacji" asp-action="Index">
+                        <i class="bi bi-list-check me-2"></i> Pozycje inwent.
+                    </a>
 
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("Rezerwacja") ? "active" : "")"
-                   asp-controller="Rezerwacja" asp-action="Index">
-                    <i class="bi bi-bookmark-check me-2"></i> Rezerwacje
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaRezerwacji") ? "active" : "")"
-                   asp-controller="PozycjaRezerwacji" asp-action="Index">
-                    <i class="bi bi-list-check me-2"></i> Pozycje rezerw.
-                </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("Rezerwacja") ? "active" : "")"
+                       asp-controller="Rezerwacja" asp-action="Index">
+                        <i class="bi bi-bookmark-check me-2"></i> Rezerwacje
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("PozycjaRezerwacji") ? "active" : "")"
+                       asp-controller="PozycjaRezerwacji" asp-action="Index">
+                        <i class="bi bi-list-check me-2"></i> Pozycje rezerw.
+                    </a>
+                }
 
                 <hr class="my-2" />
 
@@ -258,39 +272,48 @@
 
                 <!-- ALERTY / AUDYT / USTAWIENIA -->
                 <div class="px-2 pt-1 sidebar-section-title">System</div>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("RegulaAlertu") ? "active" : "")"
-                   asp-controller="RegulaAlertu" asp-action="Index">
-                    <i class="bi bi-bell me-2"></i> Reguły alertów
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("Alert") ? "active" : "")"
-                   asp-controller="Alert" asp-action="Index">
-                    <i class="bi bi-bell-fill me-2"></i> Alerty
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("LogAudytu") ? "active" : "")"
-                   asp-controller="LogAudytu" asp-action="Index">
-                    <i class="bi bi-journal-text me-2"></i> Log audytu
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("UstawienieAplikacji") ? "active" : "")"
-                   asp-controller="UstawienieAplikacji" asp-action="Index">
-                    <i class="bi bi-sliders me-2"></i> Ustawienia aplikacji
-                </a>
+                @if (canUseWarehouse)
+                {
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("RegulaAlertu") ? "active" : "")"
+                       asp-controller="RegulaAlertu" asp-action="Index">
+                        <i class="bi bi-bell me-2"></i> Reguły alertów
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("Alert") ? "active" : "")"
+                       asp-controller="Alert" asp-action="Index">
+                        <i class="bi bi-bell-fill me-2"></i> Alerty
+                    </a>
+                }
+                @if (isAdmin)
+                {
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("LogAudytu") ? "active" : "")"
+                       asp-controller="LogAudytu" asp-action="Index">
+                        <i class="bi bi-journal-text me-2"></i> Log audytu
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("UstawienieAplikacji") ? "active" : "")"
+                       asp-controller="UstawienieAplikacji" asp-action="Index">
+                        <i class="bi bi-sliders me-2"></i> Ustawienia aplikacji
+                    </a>
+                }
 
                 <hr class="my-2" />
 
                 <!-- UŻYTKOWNICY / ROLE -->
-                <div class="px-2 pt-1 sidebar-section-title">Bezpieczeństwo</div>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("Uzytkownik") ? "active" : "")"
-                   asp-controller="Uzytkownik" asp-action="Index">
-                    <i class="bi bi-people me-2"></i> Użytkownicy
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("Rola") ? "active" : "")"
-                   asp-controller="Rola" asp-action="Index">
-                    <i class="bi bi-shield-lock me-2"></i> Role
-                </a>
-                <a class="nav-link rounded-3 sidebar-link @(IsActive("UzytkownikRola") ? "active" : "")"
-                   asp-controller="UzytkownikRola" asp-action="Index">
-                    <i class="bi bi-person-gear me-2"></i> Role użytkowników
-                </a>
+                @if (isAdmin)
+                {
+                    <div class="px-2 pt-1 sidebar-section-title">Bezpieczeństwo</div>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("Uzytkownik") ? "active" : "")"
+                       asp-controller="Uzytkownik" asp-action="Index">
+                        <i class="bi bi-people me-2"></i> Użytkownicy
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("Rola") ? "active" : "")"
+                       asp-controller="Rola" asp-action="Index">
+                        <i class="bi bi-shield-lock me-2"></i> Role
+                    </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActive("UzytkownikRola") ? "active" : "")"
+                       asp-controller="UzytkownikRola" asp-action="Index">
+                        <i class="bi bi-person-gear me-2"></i> Role użytkowników
+                    </a>
+                }
                 </nav>
             </div>
         </div>

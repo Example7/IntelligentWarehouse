@@ -2,12 +2,15 @@ using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using IntranetWeb.Controllers.Abstrakcja;
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynierOperator)]
     public class DokumentPZController : BaseSearchController<DokumentPZ>
     {
         private readonly IDokumentPZService _dokumentPzService;
@@ -219,6 +222,7 @@ namespace IntranetWeb.Controllers
             }
         }
 
+        [Authorize(Roles = AppRoles.AdminOnly)]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -235,6 +239,7 @@ namespace IntranetWeb.Controllers
             return View(model);
         }
 
+        [Authorize(Roles = AppRoles.AdminOnly)]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

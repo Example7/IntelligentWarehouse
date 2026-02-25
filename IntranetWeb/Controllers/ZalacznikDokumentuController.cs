@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -7,8 +8,12 @@ using IntranetWeb.Controllers.Abstrakcja;
 using Interfaces.CMS;
 using System.Text.Json;
 
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
+
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminOnly)]
     public class ZalacznikDokumentuController : BaseSearchController<ZalacznikDokumentu>
     {
         private readonly IZalacznikDokumentuService _zalacznikDokumentuService;
@@ -251,3 +256,5 @@ namespace IntranetWeb.Controllers
         }
     }
 }
+
+

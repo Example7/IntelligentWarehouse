@@ -4,11 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.CMS;
 using IntranetWeb.Controllers.Abstrakcja;
+using IntranetWeb.Security;
 using Interfaces.CMS;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminOnly)]
     public class SzablonWydrukuController : BaseSearchController<SzablonWydruku>
     {
         private readonly ISzablonWydrukuService _szablonWydrukuService;

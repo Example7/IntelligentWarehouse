@@ -2,6 +2,8 @@
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using Interfaces.Magazyn.Dtos;
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +11,7 @@ using IntranetWeb.Controllers.Abstrakcja;
 
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynier)]
     public class StanMagazynowyController : BaseSearchController<StanMagazynowy>
     {
         private readonly IStanMagazynowyService _stanMagazynowyService;

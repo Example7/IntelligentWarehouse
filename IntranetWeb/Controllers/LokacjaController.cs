@@ -1,14 +1,19 @@
 using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
+using IntranetWeb.Security;
+using Microsoft.AspNetCore.Authorization;
+
 namespace IntranetWeb.Controllers
 {
+    [Authorize(Roles = AppRoles.AdminMagazynierOperator)]
     public class LokacjaController : BaseSearchController<Lokacja>
     {
         private readonly ILokacjaService _lokacjaService;
@@ -145,6 +150,7 @@ namespace IntranetWeb.Controllers
         }
 
         // GET: Lokacja/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -165,6 +171,7 @@ namespace IntranetWeb.Controllers
         }
 
         // POST: Lokacja/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -279,3 +286,5 @@ namespace IntranetWeb.Controllers
         }
     }
 }
+
+
