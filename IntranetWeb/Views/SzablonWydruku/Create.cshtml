@@ -20,7 +20,7 @@
             <h2 class="h5 mb-1">Metadane szablonu</h2>
             <p class="text-muted mb-0">Wypełnij typ dokumentu, wersję i dane pliku szablonu. Czas wgrania ustawiany jest automatycznie.</p>
         </div>
-        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+        <form asp-action="Create" method="post" enctype="multipart/form-data" class="news-editor-form" novalidate>
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
             <div class="news-form-grid">
                 <div class="news-form-field">
@@ -44,6 +44,11 @@
                     <span asp-validation-for="NazwaPliku" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
+                    <label class="form-label news-form-label" for="templateFile">Plik szablonu</label>
+                    <input id="templateFile" name="templateFile" type="file" class="form-control news-form-control" accept=".docx,.html,.htm,.txt,.md" />
+                    <div class="form-text">Opcjonalnie: wgraj plik, a system zapisze go do katalogu <code>Templates/{typ}</code> i ustawi sćieżke automatycznie.</div>
+                </div>
+                <div class="news-form-field">
                     <label asp-for="WgralUserId" class="form-label news-form-label">Wgrał</label>
                     <select asp-for="WgralUserId" class="form-select news-form-control" asp-items="ViewBag.WgralUserId">
                         <option value="">(brak)</option>
@@ -53,6 +58,7 @@
                 <div class="news-form-field news-form-field--full">
                     <label asp-for="Sciezka" class="form-label news-form-label">Ścieżka</label>
                     <input asp-for="Sciezka" class="form-control news-form-control" />
+                    <div class="form-text">Możesz podać ręcznie albo żzyc pola "Plik szablonu".</div>
                     <span asp-validation-for="Sciezka" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field news-form-field--full">

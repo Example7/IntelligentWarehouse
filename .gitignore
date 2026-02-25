@@ -4,8 +4,11 @@
 *.suo
 
 # Build outputs
-bin/
-obj/
+[Bb]in/
+[Oo]bj/
+
+# Temporary local build/check folders
+.tmpbuild/
 
 # Visual Studio / VS Code
 .vscode/
@@ -32,6 +35,8 @@ publish/
 *.swp
 *.bak
 *.cache
+
+# Debug symbols (opcjonalnie - zwykle i tak w bin/obj)
 *.pdb
 
 # OS
@@ -40,6 +45,6 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Secrets (jeśli używasz)
+# Secrets (tylko lokalne)
 appsettings.Development.json
 secrets.json

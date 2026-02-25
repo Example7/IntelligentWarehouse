@@ -1,0 +1,31 @@
+Proponowany uklad sekcji dla MM_standard_v1.docx (Word)
+
+1. Naglowek dokumentu
+- Tytul: "DOKUMENT MM"
+- Numer: {{DocumentNo}}
+- Linia pomocnicza: status {{Status}}, data przesuniecia {{IssuedAt}}, zaksiegowano {{PostedAt}}
+
+2. Dane dokumentu (tabela 2 kolumny)
+- Magazyn: {{WarehouseName}}
+- ID magazynu: {{WarehouseId}}
+- Utworzyl: {{CreatedBy}}
+- Wygenerowano: {{GeneratedAt}}
+
+3. Uwagi (opcjonalnie)
+- Notatka: {{Note}}
+
+4. Tabela pozycji MM
+- Kolumny sugerowane:
+  Lp | Kod produktu | Nazwa produktu | Partia | Lokacja Z | Lokacja DO | Ilosc | JM
+- Wiersz wewnatrz petli:
+  {{LineNo}} | {{ProductCode}} | {{ProductName}} | {{BatchNo}} | {{FromLocationCode}} | {{ToLocationCode}} | {{Quantity}} | {{Unit}}
+
+5. Podsumowanie
+- Liczba pozycji: {{ItemsCount}}
+- Suma ilosci: {{TotalQty}}
+- Szablon: {{TemplateName}} v{{TemplateVersion}}
+
+Wskazowki:
+- Tabele projektuj na stale szerokosci kolumn.
+- Dla kolumn ilosci stosuj wyrownanie do prawej.
+- Placeholdery trzymaj jako pojedynczy fragment tekstu.

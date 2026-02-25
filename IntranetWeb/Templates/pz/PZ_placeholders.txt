@@ -1,0 +1,49 @@
+Placeholders for PZ_standard_v1.docx (Word template)
+
+Header/document:
+{{TemplateName}}
+{{TemplateVersion}}
+{{GeneratedAt}}
+{{GeneratedAtUtc}}
+{{DocType}}
+{{DocumentId}}
+{{DocumentNo}}
+{{Status}}
+{{IssuedAt}}            // data przyjecia
+{{PostedAt}}
+{{WarehouseName}}
+{{WarehouseId}}
+{{SupplierName}}
+{{SupplierEmail}}
+{{SupplierPhone}}
+{{SupplierTaxId}}
+{{CreatedBy}}
+{{Note}}
+{{ItemsCount}}
+{{TotalQty}}
+{{TotalValue}}
+
+Item loop (repeat block):
+{{#Items}}
+... twoj wiersz / akapit ...
+{{/Items}}
+
+Item placeholders (inside loop):
+{{ItemId}}
+{{LineNo}}
+{{ProductId}}
+{{ProductCode}}
+{{ProductName}}
+{{Quantity}}
+{{Unit}}
+{{LocationCode}}
+{{LocationName}}
+{{LocationWarehouse}}
+{{BatchNo}}
+{{UnitPrice}}
+{{LineValue}}
+
+Tips for Word (.docx):
+- Placeholder wpisuj jako zwykly tekst (bez rozbijania formatowaniem w srodku tokena).
+- Najpewniej dzialaja placeholdery w jednym "run" (jeden fragment tekstu).
+- Tabele najlepiej projektowac normalnie w Wordzie i w komorkach uzywac tokenow.

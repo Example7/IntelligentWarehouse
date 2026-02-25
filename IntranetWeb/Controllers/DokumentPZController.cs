@@ -11,12 +11,14 @@ namespace IntranetWeb.Controllers
     public class DokumentPZController : BaseSearchController<DokumentPZ>
     {
         private readonly IDokumentPZService _dokumentPzService;
+        private readonly IWydrukDokumentuService _wydrukDokumentuService;
         private static readonly string[] DozwoloneStatusyCreate = ["Draft"];
         private static readonly string[] DozwoloneStatusyEdit = ["Draft", "Cancelled"];
 
-        public DokumentPZController(DataContext context, IDokumentPZService dokumentPzService) : base(context)
+        public DokumentPZController(DataContext context, IDokumentPZService dokumentPzService, IWydrukDokumentuService wydrukDokumentuService) : base(context)
         {
             _dokumentPzService = dokumentPzService;
+            _wydrukDokumentuService = wydrukDokumentuService;
         }
 
         public async Task<IActionResult> Index(string? searchTerm)
@@ -196,6 +198,25 @@ namespace IntranetWeb.Controllers
             }
 
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Wydruk(int id, int? idSzablonu)
+        {
+            try
+            {
+                var file = await _wydrukDokumentuService.GenerujWydrukPzAsync(id, idSzablonu);
+                if (file.UzytoSzablonuAwaryjnego && !string.IsNullOrWhiteSpace(file.KomunikatInformacyjny))
+                {
+                    TempData["DokumentPZPrintInfo"] = file.KomunikatInformacyjny;
+                }
+                return File(file.Content, file.ContentType, file.FileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["DokumentPZPrintError"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id });
+            }
         }
 
         public async Task<IActionResult> Delete(int? id)

@@ -43,6 +43,18 @@
             <i class="bi bi-exclamation-octagon me-1"></i>@postError
         </div>
     }
+    @if (TempData["DokumentPZPrintInfo"] is string printInfo && !string.IsNullOrWhiteSpace(printInfo))
+    {
+        <div class="alert alert-info mt-3" role="alert">
+            <i class="bi bi-info-circle me-1"></i>@printInfo
+        </div>
+    }
+    @if (TempData["DokumentPZPrintError"] is string printErr && !string.IsNullOrWhiteSpace(printErr))
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            <i class="bi bi-printer me-1"></i>@printErr
+        </div>
+    }
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
@@ -61,6 +73,7 @@
                 {
                     <button type="button" class="btn btn-outline-secondary" disabled title="Edycja tylko dla Draft"><i class="bi bi-pencil-square me-1"></i> Edytuj</button>
                 }
+                <a asp-action="Wydruk" asp-route-id="@d.Id" class="btn btn-outline-primary" title="Generuj wydruk z aktywnego szablonu PZ"><i class="bi bi-printer me-1"></i> Wydruk</a>
                 <a asp-action="Delete" asp-route-id="@d.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>

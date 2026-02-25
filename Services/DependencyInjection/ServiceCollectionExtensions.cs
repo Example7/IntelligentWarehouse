@@ -30,6 +30,7 @@ namespace Services.DependencyInjection
             services.AddScoped<IDokumentPZService, DokumentPZService>();
             services.AddScoped<IPozycjaPZService, PozycjaPZService>();
             services.AddScoped<IDokumentWZService, DokumentWZService>();
+            services.AddScoped<IWydrukDokumentuService, WydrukDokumentuService>();
             services.AddScoped<IPozycjaWZService, PozycjaWZService>();
             services.AddScoped<IDokumentMMService, DokumentMMService>();
             services.AddScoped<IPozycjaMMService, PozycjaMMService>();

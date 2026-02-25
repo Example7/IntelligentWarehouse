@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <title>PZ {{DocumentNo}}</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 24px; color: #1f2937; }
+    .row { display: flex; gap: 12px; margin-bottom: 12px; }
+    .card { border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; flex: 1; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #d1d5db; padding: 6px 8px; }
+    th { background: #eaf1ff; text-align: left; }
+    .num { text-align: right; white-space: nowrap; }
+    .muted { color: #6b7280; }
+  </style>
+</head>
+<body>
+  <h1>Dokument PZ</h1>
+  <div class="muted">Numer: {{DocumentNo}} | Status: {{Status}} | Przyjęcie: {{IssuedAt}}</div>
+
+  <div class="row">
+    <div class="card">
+      <strong>Magazyn</strong><br />
+      {{WarehouseName}} (ID: {{WarehouseId}})
+    </div>
+    <div class="card">
+      <strong>Dostawca</strong><br />
+      {{SupplierName}}<br />
+      {{SupplierEmail}}<br />
+      {{SupplierPhone}}
+    </div>
+  </div>
+
+  <div class="card">
+    <div><strong>Utworzył:</strong> {{CreatedBy}}</div>
+    <div><strong>Notatka:</strong> {{Note}}</div>
+    <div><strong>Liczba pozycji:</strong> {{ItemsCount}}</div>
+    <div><strong>Suma ilości:</strong> {{TotalQty}}</div>
+    <div><strong>Suma wartości:</strong> {{TotalValue}}</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Lp</th><th>Kod</th><th>Nazwa</th><th>Partia</th><th>Lokacja</th><th class="num">Ilość</th><th>JM</th><th class="num">Cena</th><th class="num">Wartość</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#Items}}
+      <tr>
+        <td>{{LineNo}}</td>
+        <td>{{ProductCode}}</td>
+        <td>{{ProductName}}</td>
+        <td>{{BatchNo}}</td>
+        <td>{{LocationCode}}</td>
+        <td class="num">{{Quantity}}</td>
+        <td>{{Unit}}</td>
+        <td class="num">{{UnitPrice}}</td>
+        <td class="num">{{LineValue}}</td>
+      </tr>
+      {{/Items}}
+    </tbody>
+  </table>
+</body>
+</html>

@@ -11,12 +11,14 @@ namespace IntranetWeb.Controllers
     public class DokumentMMController : BaseSearchController<DokumentMM>
     {
         private readonly IDokumentMMService _dokumentMmService;
+        private readonly IWydrukDokumentuService _wydrukDokumentuService;
         private static readonly string[] DozwoloneStatusyCreate = ["Draft"];
         private static readonly string[] DozwoloneStatusyEdit = ["Draft", "Cancelled"];
 
-        public DokumentMMController(DataContext context, IDokumentMMService dokumentMmService) : base(context)
+        public DokumentMMController(DataContext context, IDokumentMMService dokumentMmService, IWydrukDokumentuService wydrukDokumentuService) : base(context)
         {
             _dokumentMmService = dokumentMmService;
+            _wydrukDokumentuService = wydrukDokumentuService;
         }
 
         public async Task<IActionResult> Index(string? searchTerm)
@@ -195,6 +197,25 @@ namespace IntranetWeb.Controllers
             }
 
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Wydruk(int id, int? idSzablonu)
+        {
+            try
+            {
+                var file = await _wydrukDokumentuService.GenerujWydrukMmAsync(id, idSzablonu);
+                if (file.UzytoSzablonuAwaryjnego && !string.IsNullOrWhiteSpace(file.KomunikatInformacyjny))
+                {
+                    TempData["DokumentMMPrintInfo"] = file.KomunikatInformacyjny;
+                }
+                return File(file.Content, file.ContentType, file.FileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["DokumentMMPrintError"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id });
+            }
         }
 
         public async Task<IActionResult> Delete(int? id)

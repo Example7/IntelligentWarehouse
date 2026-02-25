@@ -11,12 +11,17 @@ namespace IntranetWeb.Controllers
     public class DokumentWZController : BaseSearchController<DokumentWZ>
     {
         private readonly IDokumentWZService _dokumentWzService;
+        private readonly IWydrukDokumentuService _wydrukDokumentuService;
         private static readonly string[] DozwoloneStatusyCreate = ["Draft"];
         private static readonly string[] DozwoloneStatusyEdit = ["Draft", "Cancelled"];
 
-        public DokumentWZController(DataContext context, IDokumentWZService dokumentWzService) : base(context)
+        public DokumentWZController(
+            DataContext context,
+            IDokumentWZService dokumentWzService,
+            IWydrukDokumentuService wydrukDokumentuService) : base(context)
         {
             _dokumentWzService = dokumentWzService;
+            _wydrukDokumentuService = wydrukDokumentuService;
         }
 
         public async Task<IActionResult> Index(string? searchTerm)
@@ -196,6 +201,25 @@ namespace IntranetWeb.Controllers
             }
 
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Wydruk(int id, int? idSzablonu)
+        {
+            try
+            {
+                var file = await _wydrukDokumentuService.GenerujWydrukWzAsync(id, idSzablonu);
+                if (file.UzytoSzablonuAwaryjnego && !string.IsNullOrWhiteSpace(file.KomunikatInformacyjny))
+                {
+                    TempData["DokumentWZPrintInfo"] = file.KomunikatInformacyjny;
+                }
+                return File(file.Content, file.ContentType, file.FileName);
+            }
+            catch (Exception ex)
+            {
+                TempData["DokumentWZPrintError"] = ex.Message;
+                return RedirectToAction(nameof(Details), new { id });
+            }
         }
 
         public async Task<IActionResult> Delete(int? id)
