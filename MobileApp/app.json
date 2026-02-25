@@ -13,6 +13,9 @@
     },
     "ios": {
       "bundleIdentifier": "com.intelligentwarehouse.mobile"
-    }
+    },
+    "plugins": [
+      "expo-asset"
+    ]
   }
 }

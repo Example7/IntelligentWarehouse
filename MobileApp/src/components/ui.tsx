@@ -1,5 +1,11 @@
 import * as React from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { Pressable, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import {
+  ActivityIndicator,
+  Button as PaperButton,
+  Card as PaperCard,
+  Chip as PaperChip
+} from "react-native-paper";
 
 export const colors = {
   bg: "#070B14",
@@ -16,7 +22,11 @@ export const colors = {
 } as const;
 
 export function Card(props: React.PropsWithChildren<{ style?: ViewStyle }>) {
-  return <View style={[styles.card, props.style]}>{props.children}</View>;
+  return (
+    <PaperCard mode="outlined" style={[styles.card, props.style]}>
+      <PaperCard.Content style={styles.cardContent}>{props.children}</PaperCard.Content>
+    </PaperCard>
+  );
 }
 
 export function SectionTitle({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -39,9 +49,13 @@ export function Pill({ label, tone = "neutral" }: { label: string; tone?: "neutr
           : { backgroundColor: "rgba(157,176,208,.10)", borderColor: "rgba(157,176,208,.25)", color: colors.muted };
 
   return (
-    <View style={[styles.pill, { backgroundColor: toneStyles.backgroundColor, borderColor: toneStyles.borderColor }]}>
-      <Text style={[styles.pillText, { color: toneStyles.color }]}>{label}</Text>
-    </View>
+    <PaperChip
+      compact
+      style={[styles.pill, { backgroundColor: toneStyles.backgroundColor, borderColor: toneStyles.borderColor }]}
+      textStyle={[styles.pillText, { color: toneStyles.color }]}
+    >
+      {label}
+    </PaperChip>
   );
 }
 
@@ -81,18 +95,18 @@ export function ActionButton({
   disabled?: boolean;
 }) {
   return (
-    <Pressable
+    <PaperButton
+      mode={variant === "primary" ? "contained" : variant === "secondary" ? "contained-tonal" : "outlined"}
       onPress={onPress}
       disabled={disabled}
-      style={({ pressed }) => [
+      style={[
         styles.button,
-        variant === "primary" ? styles.buttonPrimary : variant === "secondary" ? styles.buttonSecondary : styles.buttonGhost,
-        pressed && !disabled ? { opacity: 0.82 } : null,
-        disabled ? { opacity: 0.45 } : null
+        variant === "primary" ? styles.buttonPrimary : variant === "secondary" ? styles.buttonSecondary : styles.buttonGhost
       ]}
+      labelStyle={variant === "primary" ? styles.buttonPrimaryText : styles.buttonGhostText}
     >
-      <Text style={variant === "primary" ? styles.buttonPrimaryText : styles.buttonGhostText}>{label}</Text>
-    </Pressable>
+      {label}
+    </PaperButton>
   );
 }
 
@@ -175,7 +189,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderColor: colors.line,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: 16
+  },
+  cardContent: {
     padding: 14
   },
   sectionHeader: {
@@ -193,12 +209,15 @@ const styles = StyleSheet.create({
   pill: {
     borderWidth: 1,
     borderRadius: 999,
-    paddingVertical: 4,
-    paddingHorizontal: 8
+    minHeight: 30,
+    justifyContent: "center",
+    paddingVertical: 0
   },
   pillText: {
     fontSize: 11,
-    fontWeight: "700"
+    fontWeight: "700",
+    lineHeight: 16,
+    marginVertical: 0
   },
   metricCard: {
     borderWidth: 1,
@@ -222,9 +241,6 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 12,
-    paddingVertical: 11,
-    paddingHorizontal: 14,
-    alignItems: "center",
     justifyContent: "center"
   },
   buttonPrimary: {
