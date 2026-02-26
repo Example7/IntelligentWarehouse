@@ -4,8 +4,12 @@ namespace Interfaces.Magazyn.Dtos
     {
         public string? SearchTerm { get; set; }
         public int? IdMagazynu { get; set; }
+        public int? IdDostawcy { get; set; }
+        public int? IdLokacjiPrzyjecia { get; set; }
         public DateTime WygenerowanoUtc { get; set; }
         public IList<RaportMagazynSelectOptionDto> Magazyny { get; set; } = new List<RaportMagazynSelectOptionDto>();
+        public IList<RaportMagazynSelectOptionDto> Dostawcy { get; set; } = new List<RaportMagazynSelectOptionDto>();
+        public IList<RaportMagazynSelectOptionDto> LokacjePrzyjecia { get; set; } = new List<RaportMagazynSelectOptionDto>();
         public IList<RaportPropozycjeZamowienRowDto> Rows { get; set; } = new List<RaportPropozycjeZamowienRowDto>();
     }
 

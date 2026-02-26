@@ -22,7 +22,7 @@ namespace Services.Magazyn
             QuestPDF.Settings.License = LicenseType.Community;
         }
 
-        public async Task<RaportPropozycjeZamowienDto> GetRaportPropozycjiZamowienAsync(string? searchTerm, int? idMagazynu)
+        public async Task<RaportPropozycjeZamowienDto> GetRaportPropozycjiZamowienAsync(string? searchTerm, int? idMagazynu, int? idDostawcy = null, int? idLokacjiPrzyjecia = null)
         {
             var magazyny = await _context.Magazyn
                 .AsNoTracking()
@@ -31,6 +31,36 @@ namespace Services.Magazyn
                 {
                     Value = m.IdMagazynu,
                     Text = m.Nazwa
+                })
+                .ToListAsync();
+
+            var dostawcy = await _context.Dostawca
+                .AsNoTracking()
+                .Where(d => d.CzyAktywny)
+                .OrderBy(d => d.Nazwa)
+                .Select(d => new RaportMagazynSelectOptionDto
+                {
+                    Value = d.IdDostawcy,
+                    Text = d.Nazwa
+                })
+                .ToListAsync();
+
+            var lokacjePrzyjeciaQuery = _context.Lokacja
+                .AsNoTracking()
+                .Where(l => l.CzyAktywna);
+
+            if (idMagazynu.HasValue)
+            {
+                lokacjePrzyjeciaQuery = lokacjePrzyjeciaQuery.Where(l => l.IdMagazynu == idMagazynu.Value);
+            }
+
+            var lokacjePrzyjecia = await lokacjePrzyjeciaQuery
+                .OrderBy(l => l.Magazyn.Nazwa)
+                .ThenBy(l => l.Kod)
+                .Select(l => new RaportMagazynSelectOptionDto
+                {
+                    Value = l.IdLokacji,
+                    Text = (l.Magazyn != null ? l.Magazyn.Nazwa + " / " : string.Empty) + l.Kod
                 })
                 .ToListAsync();
 
@@ -95,8 +125,12 @@ namespace Services.Magazyn
             {
                 SearchTerm = searchTerm,
                 IdMagazynu = idMagazynu,
+                IdDostawcy = idDostawcy,
+                IdLokacjiPrzyjecia = idLokacjiPrzyjecia,
                 WygenerowanoUtc = DateTime.UtcNow,
                 Magazyny = magazyny,
+                Dostawcy = dostawcy,
+                LokacjePrzyjecia = lokacjePrzyjecia,
                 Rows = rows
             };
         }

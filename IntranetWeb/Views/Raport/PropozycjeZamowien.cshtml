@@ -1,9 +1,11 @@
-@model Interfaces.Magazyn.Dtos.RaportPropozycjeZamowienDto
+﻿@model Interfaces.Magazyn.Dtos.RaportPropozycjeZamowienDto
 
 @{
-    ViewData["Title"] = "Propozycje zamówień (ROP/ROQ)";
+    ViewData["Title"] = "Propozycje zamowien (ROP/ROQ)";
     var searchTerm = Model.SearchTerm ?? string.Empty;
     var selectedWarehouseId = Model.IdMagazynu;
+    var selectedSupplierId = Model.IdDostawcy;
+    var selectedReceiptLocationId = Model.IdLokacjiPrzyjecia;
 }
 
 <div class="news-admin-page">
@@ -11,8 +13,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-cart-check"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Propozycje zamówień (ROP/ROQ)</h1>
-                <p class="news-admin-header__subheading mb-0">Raport generowany procedurą SQL na podstawie stanów, rezerwacji i WZ Draft.</p>
+                <h1 class="news-admin-header__heading mb-1">Propozycje zamowień (ROP/ROQ)</h1>
+                <p class="news-admin-header__subheading mb-0">Zamów produkty z propozycji w ilościach z pola Proponowana ilość zamowienia.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -28,7 +30,7 @@
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search w-100" role="search" aria-label="Filtry raportu propozycji zamówień">
+        <form method="get" class="news-admin-search w-100" role="search" aria-label="Filtry raportu propozycji zamowien">
             <div class="d-flex flex-wrap gap-2 w-100">
                 <div class="news-admin-search__input-wrap flex-grow-1" style="min-width: 280px;">
                     <i class="bi bi-search news-admin-search__icon"></i>
@@ -59,65 +61,174 @@
         </form>
     </section>
 
+    @if (TempData["RaportReorderError"] is string reorderError && !string.IsNullOrWhiteSpace(reorderError))
+    {
+        <div class="alert alert-danger d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-exclamation-triangle mt-1"></i>
+            <span>@reorderError</span>
+        </div>
+    }
+
+    @if (TempData["DokumentPZCreateSuccess"] is string reorderSuccess && !string.IsNullOrWhiteSpace(reorderSuccess))
+    {
+        <div class="alert alert-success d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-check-circle mt-1"></i>
+            <span>@reorderSuccess</span>
+        </div>
+    }
+
     @if (!Model.Rows.Any())
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-cart-x"></i></div>
-            <h2 class="h4 mb-2">Brak propozycji zamówień</h2>
-            <p class="text-muted mb-0">Żaden produkt nie spadł poniżej punktu ponownego zamówienia dla wybranych filtrów.</p>
+            <h2 class="h4 mb-2">Brak propozycji zamowień</h2>
+            <p class="text-muted mb-0">Zaden produkt nie spadl ponizej punktu ponownego zamowienia dla wybranych filtrow.</p>
         </section>
     }
     else
     {
-        <section class="entity-table-panel">
-            <div class="entity-table-wrap">
-                <table class="table table-hover align-middle mb-0 entity-table">
-                    <thead>
-                        <tr>
-                            <th>Produkt</th>
-                            <th>Magazyn</th>
-                            <th class="text-end">Stan fiz.</th>
-                            <th class="text-end">Rez. aktywne</th>
-                            <th class="text-end">WZ Draft</th>
-                            <th class="text-end">Dostępne</th>
-                            <th class="text-end">MIN</th>
-                            <th class="text-end">ROP</th>
-                            <th class="text-end">ROQ</th>
-                            <th class="text-end">Brak do ROP</th>
-                            <th class="text-end">Proponowane zam.</th>
-                            <th>JM</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var row in Model.Rows)
-                    {
-                        <tr>
-                            <td>
-                                <div class="entity-cell-title">@row.ProduktKod</div>
-                                <div class="entity-cell-subtitle">@row.ProduktNazwa</div>
-                                <div class="entity-cell-subtitle">@row.KategoriaNazwa</div>
-                            </td>
-                            <td>@row.MagazynNazwa</td>
-                            <td class="text-end">@row.StanFizyczny.ToString("0.###")</td>
-                            <td class="text-end">@row.ZarezerwowaneAktywnie.ToString("0.###")</td>
-                            <td class="text-end">@row.ZarezerwowaneWzDraft.ToString("0.###")</td>
-                            <td class="text-end fw-semibold @(row.DostepneDoRezerwacji <= 0 ? "text-danger" : "")">@row.DostepneDoRezerwacji.ToString("0.###")</td>
-                            <td class="text-end">@row.StanMinimalny.ToString("0.###")</td>
-                            <td class="text-end">@row.PunktPonownegoZamowienia.ToString("0.###")</td>
-                            <td class="text-end">@row.IloscPonownegoZamowienia.ToString("0.###")</td>
-                            <td class="text-end">@row.BrakDoRop.ToString("0.###")</td>
-                            <td class="text-end">
-                                <span class="entity-badge @(row.ProponowanaIloscZamowienia > 0 ? "entity-badge--warning" : "entity-badge--muted")">
-                                    @row.ProponowanaIloscZamowienia.ToString("0.###")
-                                </span>
-                            </td>
-                            <td>@row.Jednostka</td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <form method="post" asp-action="UtworzPzDraftZPropozycji">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="searchTerm" value="@searchTerm" />
+            @if (selectedWarehouseId.HasValue)
+            {
+                <input type="hidden" name="idMagazynu" value="@selectedWarehouseId.Value" />
+            }
+
+            <section class="entity-table-panel">
+                <div class="p-3 border-bottom">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-lg-4">
+                            <label class="form-label">Dostawca (dla PZ Draft)</label>
+                            <select class="form-select" name="idDostawcy" required>
+                                <option value="">Wybierz dostawce...</option>
+                                @foreach (var option in Model.Dostawcy)
+                                {
+                                    <option value="@option.Value" selected="@(selectedSupplierId == option.Value)">@option.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-lg-4">
+                            <label class="form-label">Lokacja przyjęcia (dla pozycji PZ)</label>
+                            <select class="form-select" name="idLokacjiPrzyjecia" required>
+                                <option value="">Wybierz lokacje...</option>
+                                @foreach (var option in Model.LokacjePrzyjecia)
+                                {
+                                    <option value="@option.Value" selected="@(selectedReceiptLocationId == option.Value)">@option.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-lg-4">
+                            <div class="d-flex gap-2 justify-content-lg-end">
+                                <button type="button" class="btn btn-outline-secondary" id="select-all-reorder-rows">Zaznacz wszystko</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-file-earmark-plus me-1"></i>Utwórz PZ Draft z wybranych
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        Do jednego PZ Draft wybieraj pozycje z jednego magazynu (najlepiej ustaw filtr magazynu).
+                    </div>
+                </div>
+
+                <div class="entity-table-wrap">
+                    <table class="table table-hover align-middle mb-0 entity-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 42px;"><input type="checkbox" class="form-check-input" id="toggle-all-reorder-rows" /></th>
+                                <th>Produkt</th>
+                                <th>Magazyn</th>
+                                <th class="text-end">Stan fiz.</th>
+                                <th class="text-end">Rez. aktywne</th>
+                                <th class="text-end">WZ Draft</th>
+                                <th class="text-end">Dostepne</th>
+                                <th class="text-end">MIN</th>
+                                <th class="text-end">ROP</th>
+                                <th class="text-end">ROQ</th>
+                                <th class="text-end">Brak do ROP</th>
+                                <th class="text-end">Proponowane zam.</th>
+                                <th>JM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var row in Model.Rows)
+                        {
+                            var rowKey = $"{row.IdMagazynu}:{row.IdProduktu}";
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="form-check-input reorder-row-checkbox" name="selectedRowKeys" value="@rowKey" />
+                                </td>
+                                <td>
+                                    <div class="entity-cell-title">@row.ProduktKod</div>
+                                    <div class="entity-cell-subtitle">@row.ProduktNazwa</div>
+                                    <div class="entity-cell-subtitle">@row.KategoriaNazwa</div>
+                                </td>
+                                <td>@row.MagazynNazwa</td>
+                                <td class="text-end">@row.StanFizyczny.ToString("0.###")</td>
+                                <td class="text-end">@row.ZarezerwowaneAktywnie.ToString("0.###")</td>
+                                <td class="text-end">@row.ZarezerwowaneWzDraft.ToString("0.###")</td>
+                                <td class="text-end fw-semibold @(row.DostepneDoRezerwacji <= 0 ? "text-danger" : "")">@row.DostepneDoRezerwacji.ToString("0.###")</td>
+                                <td class="text-end">@row.StanMinimalny.ToString("0.###")</td>
+                                <td class="text-end">@row.PunktPonownegoZamowienia.ToString("0.###")</td>
+                                <td class="text-end">@row.IloscPonownegoZamowienia.ToString("0.###")</td>
+                                <td class="text-end">@row.BrakDoRop.ToString("0.###")</td>
+                                <td class="text-end">
+                                    <span class="entity-badge @(row.ProponowanaIloscZamowienia > 0 ? "entity-badge--warning" : "entity-badge--muted")">
+                                        @row.ProponowanaIloscZamowienia.ToString("0.###")
+                                    </span>
+                                </td>
+                                <td>@row.Jednostka</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </form>
     }
 </div>
 
+@section Scripts {
+    <script>
+        (function () {
+            const toggle = document.getElementById('toggle-all-reorder-rows');
+            const selectBtn = document.getElementById('select-all-reorder-rows');
+            const checkboxes = Array.from(document.querySelectorAll('.reorder-row-checkbox'));
+
+            function syncSelectButtonLabel() {
+                if (!selectBtn) return;
+                const allSelected = checkboxes.length > 0 && checkboxes.every(cb => cb.checked);
+                selectBtn.textContent = allSelected ? 'Odznacz wszystko' : 'Zaznacz wszystko';
+            }
+
+            function setAll(value) {
+                checkboxes.forEach(cb => cb.checked = value);
+                if (toggle) toggle.checked = value;
+                syncSelectButtonLabel();
+            }
+
+            if (toggle) {
+                toggle.addEventListener('change', function () {
+                    setAll(!!toggle.checked);
+                });
+            }
+
+            if (selectBtn) {
+                selectBtn.addEventListener('click', function () {
+                    const allSelected = checkboxes.length > 0 && checkboxes.every(cb => cb.checked);
+                    setAll(!allSelected);
+                });
+            }
+
+            checkboxes.forEach(cb => cb.addEventListener('change', function () {
+                if (toggle) {
+                    toggle.checked = checkboxes.length > 0 && checkboxes.every(x => x.checked);
+                }
+                syncSelectButtonLabel();
+            }));
+
+            syncSelectButtonLabel();
+        })();
+    </script>
+}
