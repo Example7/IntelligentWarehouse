@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using Data.Data;
+using Interfaces.Magazyn;
+using Interfaces.Magazyn.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +15,12 @@ namespace MobileApi.Controllers;
 public class ClientAppController : ControllerBase
 {
     private readonly DataContext _context;
+    private readonly IRezerwacjaService _rezerwacjaService;
 
-    public ClientAppController(DataContext context)
+    public ClientAppController(DataContext context, IRezerwacjaService rezerwacjaService)
     {
         _context = context;
+        _rezerwacjaService = rezerwacjaService;
     }
 
     [HttpGet("home")]
@@ -24,7 +28,7 @@ public class ClientAppController : ControllerBase
     {
         return Ok(new
         {
-            message = "API klienta dziala.",
+            message = "API klienta działa.",
             serverTimeUtc = DateTime.UtcNow
         });
     }
@@ -56,7 +60,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Brak powiazanego klienta dla zalogowanego uzytkownika.",
+                message = "Brak powiązanego klienta dla zalogowanego użytkownika.",
                 userId
             });
         }
@@ -77,7 +81,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Brak powiazanego klienta dla zalogowanego uzytkownika.",
+                message = "Brak powiązanego klienta dla zalogowanego użytkownika.",
                 userId
             });
         }
@@ -151,7 +155,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Brak powiazanego klienta dla zalogowanego uzytkownika.",
+                message = "Brak powiązanego klienta dla zalogowanego użytkownika.",
                 userId
             });
         }
@@ -190,7 +194,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Brak powiazanego klienta dla zalogowanego uzytkownika.",
+                message = "Brak powiązanego klienta dla zalogowanego użytkownika.",
                 userId
             });
         }
@@ -229,7 +233,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Nie znaleziono zamowienia klienta.",
+                message = "Nie znaleziono zamówienia klienta.",
                 orderId
             });
         }
@@ -264,6 +268,223 @@ public class ClientAppController : ControllerBase
             .ToListAsync();
 
         return Ok(reservations);
+    }
+
+    [HttpGet("lookups/warehouses")]
+    public async Task<ActionResult<List<ClientWarehouseLookupDto>>> GetWarehouseLookups()
+    {
+        var warehouses = await _context.Magazyn
+            .AsNoTracking()
+            .Where(w => w.CzyAktywny)
+            .OrderBy(w => w.Nazwa)
+            .Select(w => new ClientWarehouseLookupDto
+            {
+                WarehouseId = w.IdMagazynu,
+                Name = w.Nazwa
+            })
+            .ToListAsync();
+
+        return Ok(warehouses);
+    }
+
+    [HttpGet("lookups/products")]
+    public async Task<ActionResult<List<ClientProductLookupDto>>> GetReservableProducts([FromQuery] string? q, [FromQuery] int? warehouseId, [FromQuery] int take = 20)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var customerId = await GetCustomerIdForUserAsync(userId);
+        if (customerId is null)
+        {
+            return NotFound(new
+            {
+                message = "Brak powiązanego klienta dla zalogowanego użytkownika.",
+                userId
+            });
+        }
+
+        take = Math.Clamp(take, 5, 50);
+        var term = q?.Trim();
+
+        // Prefer products already seen on the customer's WZ documents; fallback to active catalog search.
+        var customerProductsQuery = _context.DokumentWZ
+            .AsNoTracking()
+            .Where(d => d.IdKlienta == customerId)
+            .SelectMany(d => d.Pozycje.Select(p => p.Produkt))
+            .Where(p => p.CzyAktywny)
+            .Distinct();
+
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            customerProductsQuery = customerProductsQuery.Where(p =>
+                EF.Functions.Like(p.Kod, $"%{term}%") ||
+                EF.Functions.Like(p.Nazwa, $"%{term}%"));
+        }
+
+        var customerProducts = await customerProductsQuery
+            .OrderBy(p => p.Nazwa)
+            .ThenBy(p => p.Kod)
+            .Take(take)
+            .Select(p => new ClientProductLookupDto
+            {
+                ProductId = p.IdProduktu,
+                Code = p.Kod,
+                Name = p.Nazwa,
+                DefaultUom = p.DomyslnaJednostka.Nazwa,
+                AvailableQuantity = warehouseId == null
+                    ? null
+                    : (
+                        (_context.StanMagazynowy
+                            .Where(s => s.IdProduktu == p.IdProduktu && s.Lokacja.IdMagazynu == warehouseId.Value)
+                            .Select(s => (decimal?)s.Ilosc)
+                            .Sum() ?? 0m)
+                        -
+                        (_context.PozycjaRezerwacji
+                            .Where(pr =>
+                                pr.IdProduktu == p.IdProduktu &&
+                                pr.Rezerwacja.IdMagazynu == warehouseId.Value &&
+                                pr.Rezerwacja.Status == "Active")
+                            .Select(pr => (decimal?)pr.Ilosc)
+                            .Sum() ?? 0m)
+                        -
+                        (_context.PozycjaWZ
+                            .Where(pw =>
+                                pw.IdProduktu == p.IdProduktu &&
+                                pw.Dokument.IdMagazynu == warehouseId.Value &&
+                                pw.Dokument.Status == "Draft")
+                            .Select(pw => (decimal?)pw.Ilosc)
+                            .Sum() ?? 0m)
+                    )
+            })
+            .ToListAsync();
+
+        var fallbackQuery = _context.Produkt
+            .AsNoTracking()
+            .Where(p => p.CzyAktywny);
+
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            fallbackQuery = fallbackQuery.Where(p =>
+                EF.Functions.Like(p.Kod, $"%{term}%") ||
+                EF.Functions.Like(p.Nazwa, $"%{term}%"));
+        }
+
+        var fallback = await fallbackQuery
+            .OrderBy(p => p.Nazwa)
+            .ThenBy(p => p.Kod)
+            .Take(take)
+            .Select(p => new ClientProductLookupDto
+            {
+                ProductId = p.IdProduktu,
+                Code = p.Kod,
+                Name = p.Nazwa,
+                DefaultUom = p.DomyslnaJednostka.Nazwa,
+                AvailableQuantity = warehouseId == null
+                    ? null
+                    : (
+                        (_context.StanMagazynowy
+                            .Where(s => s.IdProduktu == p.IdProduktu && s.Lokacja.IdMagazynu == warehouseId.Value)
+                            .Select(s => (decimal?)s.Ilosc)
+                            .Sum() ?? 0m)
+                        -
+                        (_context.PozycjaRezerwacji
+                            .Where(pr =>
+                                pr.IdProduktu == p.IdProduktu &&
+                                pr.Rezerwacja.IdMagazynu == warehouseId.Value &&
+                                pr.Rezerwacja.Status == "Active")
+                            .Select(pr => (decimal?)pr.Ilosc)
+                            .Sum() ?? 0m)
+                        -
+                        (_context.PozycjaWZ
+                            .Where(pw =>
+                                pw.IdProduktu == p.IdProduktu &&
+                                pw.Dokument.IdMagazynu == warehouseId.Value &&
+                                pw.Dokument.Status == "Draft")
+                            .Select(pw => (decimal?)pw.Ilosc)
+                            .Sum() ?? 0m)
+                    )
+            })
+            .ToListAsync();
+
+        if (customerProducts.Count == 0)
+        {
+            return Ok(fallback);
+        }
+
+        var merged = customerProducts
+            .Concat(fallback.Where(p => customerProducts.All(cp => cp.ProductId != p.ProductId)))
+            .Take(take)
+            .ToList();
+
+        return Ok(merged);
+    }
+
+    [HttpPost("reservations")]
+    public async Task<ActionResult<ClientCreateReservationResponseDto>> CreateReservation([FromBody] ClientCreateReservationRequestDto request)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var customerId = await GetCustomerIdForUserAsync(userId);
+        if (customerId is null)
+        {
+            return NotFound(new
+            {
+                message = "Brak powiązanego klienta dla zalogowanego użytkownika.",
+                userId
+            });
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var effectiveExpiresAtUtc = request.ExpiresAtUtc ?? DateTime.UtcNow.AddHours(24);
+
+        var result = await _rezerwacjaService.CreateClientDraftAsync(new RezerwacjaCreateClientCommandDto
+        {
+            UserId = userId,
+            WarehouseId = request.WarehouseId,
+            ExpiresAtUtc = effectiveExpiresAtUtc,
+            Note = request.Note,
+            Items = request.Items.Select(i => new RezerwacjaCreateClientItemCommandDto
+            {
+                ProductId = i.ProductId,
+                LocationId = i.LocationId,
+                Quantity = i.Quantity
+            }).ToList()
+        });
+
+        if (!result.Success || result.ReservationId is null || result.Number is null || result.Status is null || result.CreatedAtUtc is null)
+        {
+            return BadRequest(new { message = result.Message ?? "Nie udało się utworzyć rezerwacji." });
+        }
+
+        var activationResult = await _rezerwacjaService.ActivateAsync(result.ReservationId.Value);
+        var autoActivationSucceeded = activationResult.Success;
+        var finalStatus = autoActivationSucceeded ? "Active" : result.Status;
+        var autoActivationMessage = autoActivationSucceeded
+            ? "Rezerwacja została automatycznie potwierdzona."
+            : (string.IsNullOrWhiteSpace(activationResult.Message)
+                ? "Rezerwacja została utworzona i oczekuje na potwierdzenie magazynu."
+                : activationResult.Message);
+
+        return CreatedAtAction(nameof(GetReservationDetails), new { reservationId = result.ReservationId.Value }, new ClientCreateReservationResponseDto
+        {
+            ReservationId = result.ReservationId.Value,
+            Number = result.Number,
+            Status = finalStatus!,
+            CreatedAtUtc = result.CreatedAtUtc.Value,
+            ExpiresAtUtc = effectiveExpiresAtUtc,
+            AutoActivationAttempted = true,
+            AutoActivationSucceeded = autoActivationSucceeded,
+            AutoActivationMessage = autoActivationMessage
+        });
     }
 
     [HttpGet("reservations/{reservationId:int}")]
@@ -331,7 +552,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Brak powiazanego klienta dla zalogowanego uzytkownika.",
+                message = "Brak powiązanego klienta dla zalogowanego użytkownika.",
                 userId
             });
         }
@@ -376,7 +597,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Brak powiazanego klienta dla zalogowanego uzytkownika.",
+                message = "Brak powiązanego klienta dla zalogowanego użytkownika.",
                 userId
             });
         }
@@ -389,7 +610,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Nie znaleziono zamowienia klienta.",
+                message = "Nie znaleziono zamówienia klienta.",
                 orderId
             });
         }
@@ -427,7 +648,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Brak powiazanego klienta dla zalogowanego uzytkownika.",
+                message = "Brak powiązanego klienta dla zalogowanego użytkownika.",
                 userId
             });
         }
@@ -451,7 +672,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Nie znaleziono zalacznika klienta.",
+                message = "Nie znaleziono załącznika klienta.",
                 attachmentId
             });
         }
@@ -466,7 +687,7 @@ public class ClientAppController : ControllerBase
         {
             return NotFound(new
             {
-                message = "Plik zalacznika nie istnieje na dysku.",
+                message = "Plik załącznika nie istnieje na dysku.",
                 attachmentId,
                 path
             });

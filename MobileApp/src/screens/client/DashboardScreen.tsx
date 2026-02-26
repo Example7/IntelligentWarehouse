@@ -1,9 +1,11 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
+import { View } from "react-native";
 
 import { mobileApi } from "../../lib/api";
-import { formatDateTime, statusTone } from "../../lib/format";
+import { formatDateTime, statusLabel, statusTone } from "../../lib/format";
 import {
+  ActionButton,
   Card,
   EmptyBlock,
   ErrorBlock,
@@ -21,11 +23,13 @@ export function DashboardScreen({
   token,
   onOpenOrder,
   onOpenReservation,
+  onOpenCatalog,
 }: {
   apiBaseUrl: string;
   token: string;
   onOpenOrder?: (orderId: number) => void;
   onOpenReservation?: (reservationId: number) => void;
+  onOpenCatalog?: () => void;
 }) {
   const [data, setData] = useState<ClientDashboardDto | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +57,19 @@ export function DashboardScreen({
       <Card>
         <SectionTitle
           title="Dashboard klienta"
-          subtitle="Podsumowanie aktywnosci"
+          subtitle="Podsumowanie aktywności"
         />
+        {onOpenCatalog ? (
+          <InlineRow style={{ marginBottom: 10 }}>
+            <View style={{ flex: 1 }}>
+              <ActionButton
+                label="Przejdź do katalogu produktów"
+                variant="secondary"
+                onPress={onOpenCatalog}
+              />
+            </View>
+          </InlineRow>
+        ) : null}
         <InlineRow>
           <MetricCard
             label="Aktywne WZ"
@@ -82,7 +97,10 @@ export function DashboardScreen({
               title={item.number}
               subtitle={`${item.warehouseName} • ${formatDateTime(item.issuedAtUtc)}`}
               right={
-                <Pill label={item.status} tone={statusTone(item.status)} />
+                <Pill
+                  label={statusLabel(item.status, "wz")}
+                  tone={statusTone(item.status)}
+                />
               }
               onPress={
                 onOpenOrder ? () => onOpenOrder(item.orderId) : undefined
@@ -90,7 +108,7 @@ export function DashboardScreen({
             />
           ))
         ) : (
-          <EmptyBlock title="Brak zamowień" />
+          <EmptyBlock title="Brak zamówień" />
         )}
       </Card>
 
@@ -103,7 +121,10 @@ export function DashboardScreen({
               title={item.number}
               subtitle={`${item.warehouseName} • ${formatDateTime(item.createdAtUtc)}`}
               right={
-                <Pill label={item.status} tone={statusTone(item.status)} />
+                <Pill
+                  label={statusLabel(item.status, "reservation")}
+                  tone={statusTone(item.status)}
+                />
               }
               onPress={
                 onOpenReservation

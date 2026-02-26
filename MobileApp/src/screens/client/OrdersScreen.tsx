@@ -4,7 +4,12 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Modal, Portal } from "react-native-paper";
 
 import { mobileApi } from "../../lib/api";
-import { formatDateTime, formatNumber, statusTone } from "../../lib/format";
+import {
+  formatDateTime,
+  formatNumber,
+  statusLabel,
+  statusTone,
+} from "../../lib/format";
 import {
   ActionButton,
   Card,
@@ -91,7 +96,7 @@ export function OrdersScreen({
         ) : error && !items ? (
           <ErrorBlock message={error} />
         ) : items && items.length === 0 ? (
-          <EmptyBlock title="Brak dokumentow WZ" />
+          <EmptyBlock title="Brak dokumentów WZ" />
         ) : (
           items?.map((item) => (
             <ListItem
@@ -100,7 +105,10 @@ export function OrdersScreen({
               subtitle={`${item.warehouseName} • ${formatDateTime(item.issuedAtUtc)} • ${item.itemsCount} poz.`}
               right={
                 <View style={{ alignItems: "flex-end" }}>
-                  <Pill label={item.status} tone={statusTone(item.status)} />
+                  <Pill
+                    label={statusLabel(item.status, "wz")}
+                    tone={statusTone(item.status)}
+                  />
                   <Text style={styles.metricText}>
                     {formatNumber(item.totalQuantity)}
                   </Text>
@@ -115,7 +123,7 @@ export function OrdersScreen({
         )}
         <View style={{ marginTop: 10 }}>
           <ActionButton
-            label="Odswiez liste"
+            label="Odśwież listę"
             onPress={() => void loadList()}
             variant="ghost"
           />
@@ -132,7 +140,7 @@ export function OrdersScreen({
           <Card>
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderText}>
-                <Text style={styles.modalTitle}>Szczegoly WZ</Text>
+                <Text style={styles.modalTitle}>Szczegóły WZ</Text>
                 <Text
                   numberOfLines={1}
                   ellipsizeMode="middle"
@@ -157,7 +165,7 @@ export function OrdersScreen({
                 <InlineRow style={{ marginBottom: 10 }}>
                   <View style={styles.pillWrap}>
                     <Pill
-                      label={details.status}
+                      label={statusLabel(details.status, "wz")}
                       tone={statusTone(details.status)}
                     />
                   </View>
@@ -183,7 +191,7 @@ export function OrdersScreen({
                   <ListItem
                     key={row.itemId}
                     title={`${row.lineNo}. ${row.productCode} — ${row.productName}`}
-                    subtitle={`Ilosc: ${formatNumber(row.quantity)} • Lokacja: ${row.locationCode ?? "-"}`}
+                    subtitle={`Ilość: ${formatNumber(row.quantity)} • Lokacja: ${row.locationCode ?? "-"}`}
                   />
                 ))}
               </ScrollView>

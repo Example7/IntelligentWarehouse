@@ -92,6 +92,43 @@ export interface ClientReservationDetailsDto {
   items: ClientReservationItemDto[];
 }
 
+export interface ClientWarehouseLookupDto {
+  warehouseId: number;
+  name: string;
+}
+
+export interface ClientProductLookupDto {
+  productId: number;
+  code: string;
+  name: string;
+  defaultUom?: string | null;
+  availableQuantity?: number | null;
+}
+
+export interface ClientCreateReservationItemRequestDto {
+  productId: number;
+  locationId?: number | null;
+  quantity: number;
+}
+
+export interface ClientCreateReservationRequestDto {
+  warehouseId: number;
+  expiresAtUtc?: string | null;
+  note?: string | null;
+  items: ClientCreateReservationItemRequestDto[];
+}
+
+export interface ClientCreateReservationResponseDto {
+  reservationId: number;
+  number: string;
+  status: string;
+  createdAtUtc: string;
+  expiresAtUtc?: string | null;
+  autoActivationAttempted?: boolean;
+  autoActivationSucceeded?: boolean;
+  autoActivationMessage?: string | null;
+}
+
 export interface ClientNotificationDto {
   notificationId: number;
   severity: string;

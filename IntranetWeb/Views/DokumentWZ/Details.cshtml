@@ -5,7 +5,7 @@
     var d = Model.Dokument;
     var isPosted = string.Equals(d.Status, "Posted", StringComparison.OrdinalIgnoreCase);
     var isDraft = string.Equals(d.Status, "Draft", StringComparison.OrdinalIgnoreCase);
-    var statusClass = isPosted ? "entity-badge--success" : isDraft ? "entity-badge--warning" : "entity-badge--muted";
+    var statusClass = StatusPresentationHelper.BadgeClass(d.Status);
     var canEdit = isDraft;
 }
 
@@ -20,7 +20,7 @@
         </div>
         <div class="news-admin-header__stats">
             <div class="news-admin-stat"><span class="news-admin-stat__label">Pozycje</span><strong class="news-admin-stat__value">@Model.LiczbaPozycji</strong></div>
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@d.Status</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Status</span><strong class="news-admin-stat__value">@StatusPresentationHelper.WzLabel(d.Status)</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@d.Id</strong></div>
         </div>
     </section>
@@ -28,6 +28,10 @@
     @if (TempData["DokumentWZEditBlocked"] is string blocked && !string.IsNullOrWhiteSpace(blocked))
     {
         <div class="alert alert-warning mt-3"><i class="bi bi-exclamation-triangle me-1"></i>@blocked</div>
+    }
+    @if (TempData["DokumentWZCreateSuccess"] is string createdOk && !string.IsNullOrWhiteSpace(createdOk))
+    {
+        <div class="alert alert-success mt-3"><i class="bi bi-check-circle me-1"></i>@createdOk</div>
     }
     @if (TempData["DokumentWZPostSuccess"] is string ok && !string.IsNullOrWhiteSpace(ok))
     {
@@ -71,7 +75,7 @@
 
         <div class="news-details-grid">
             <div class="news-details-item"><div class="news-details-item__label">Numer</div><div class="news-details-item__value entity-mono">@d.Numer</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value"><span class="entity-badge @statusClass">@d.Status</span></div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value"><span class="entity-badge @statusClass">@StatusPresentationHelper.WzLabel(d.Status)</span></div></div>
             <div class="news-details-item"><div class="news-details-item__label">Magazyn</div><div class="news-details-item__value">@(d.Magazyn?.Nazwa ?? "-")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Klient</div><div class="news-details-item__value">@(d.Klient?.Nazwa ?? "-")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Data wydania</div><div class="news-details-item__value">@d.DataWydaniaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>

@@ -40,12 +40,12 @@
         <section class="entity-table-panel"><div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Numer</th><th>Magazyn</th><th>Status</th><th>Utworzono</th><th>Wygasa</th><th>Utworzył</th><th>Notatka</th><th class="text-end">Akcje</th></tr></thead><tbody>
         @foreach (var item in items.OrderByDescending(x => x.UtworzonoUtc).ThenByDescending(x => x.Id))
         {
-            var statusClass = string.Equals(item.Status, "Active", StringComparison.OrdinalIgnoreCase) ? "entity-badge--success" : string.Equals(item.Status, "Draft", StringComparison.OrdinalIgnoreCase) ? "entity-badge--warning" : string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase) ? "entity-badge--info" : "entity-badge--muted";
+            var statusClass = StatusPresentationHelper.BadgeClass(item.Status);
             var canEdit = !string.Equals(item.Status, "Completed", StringComparison.OrdinalIgnoreCase) && !string.Equals(item.Status, "Cancelled", StringComparison.OrdinalIgnoreCase) && !string.Equals(item.Status, "Released", StringComparison.OrdinalIgnoreCase);
             <tr>
                 <td><div class="entity-cell-title">@item.Numer</div></td>
                 <td>@(item.Magazyn?.Nazwa ?? "-")</td>
-                <td><span class="entity-badge @statusClass">@item.Status</span></td>
+                <td><span class="entity-badge @statusClass">@StatusPresentationHelper.ReservationLabel(item.Status)</span></td>
                 <td>@item.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                 <td>@(item.WygasaUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
                 <td>@(item.Utworzyl?.Email ?? "-")</td>

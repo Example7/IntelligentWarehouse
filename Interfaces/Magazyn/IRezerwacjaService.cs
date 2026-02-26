@@ -9,6 +9,7 @@ namespace Interfaces.Magazyn
         Task<RezerwacjaDeleteDto?> GetDeleteDataAsync(int id);
         Task<RezerwacjaStatusChangeResultDto> ActivateAsync(int id);
         Task<RezerwacjaStatusChangeResultDto> ReleaseAsync(int id);
+        Task<RezerwacjaCreateClientResultDto> CreateClientDraftAsync(RezerwacjaCreateClientCommandDto command, CancellationToken cancellationToken = default);
         Task<int> ReleaseExpiredAsync(DateTime utcNow, CancellationToken cancellationToken = default);
     }
 }

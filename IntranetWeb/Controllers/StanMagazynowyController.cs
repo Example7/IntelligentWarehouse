@@ -76,6 +76,7 @@ namespace IntranetWeb.Controllers
         }
 
         // GET: StanMagazynowy/Edit/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -95,6 +96,7 @@ namespace IntranetWeb.Controllers
         // POST: StanMagazynowy/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = AppRoles.AdminOnly)]
         public async Task<IActionResult> Edit(int id, StanMagazynowyFormDto model)
         {
             var stanMagazynowy = model.StanMagazynowy;

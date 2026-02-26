@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Stany magazynowe";
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm ?? string.Empty;
     var totalsByUom = Model.SumaWgJednostki;
@@ -121,7 +122,10 @@
                             <td>@jm</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla stanu @item.IdStanu">
-                                    <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdStanu" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                    @if (isAdmin)
+                                    {
+                                        <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdStanu" title="Edytuj"><i class="bi bi-pencil"></i></a>
+                                    }
                                     <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdStanu" title="Szczegóły"><i class="bi bi-eye"></i></a>
                                     <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdStanu" title="Usuń"><i class="bi bi-trash"></i></a>
                                 </div>

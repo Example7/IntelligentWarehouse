@@ -59,9 +59,28 @@ namespace Services.Magazyn
                     })
                     .ToListAsync();
 
-                aktywneRezerwacjePoKluczu = activeReservations.ToDictionary(
-                    x => StanMagazynowyIndexDto.BuildKey(x.IdProduktu, x.IdLokacji),
-                    x => x.Qty);
+                var draftWzAllocations = await _context.PozycjaWZ
+                    .AsNoTracking()
+                    .Where(p =>
+                        p.IdLokacji.HasValue &&
+                        productIds.Contains(p.IdProduktu) &&
+                        locationIds.Contains(p.IdLokacji.Value) &&
+                        p.Dokument.Status == "Draft")
+                    .GroupBy(p => new { p.IdProduktu, IdLokacji = p.IdLokacji!.Value })
+                    .Select(g => new
+                    {
+                        g.Key.IdProduktu,
+                        g.Key.IdLokacji,
+                        Qty = g.Sum(x => x.Ilosc)
+                    })
+                    .ToListAsync();
+
+                aktywneRezerwacjePoKluczu = activeReservations
+                    .Concat(draftWzAllocations)
+                    .GroupBy(x => new { x.IdProduktu, x.IdLokacji })
+                    .ToDictionary(
+                        g => StanMagazynowyIndexDto.BuildKey(g.Key.IdProduktu, g.Key.IdLokacji),
+                        g => g.Sum(x => x.Qty));
             }
 
             var sumaWgJednostki = items

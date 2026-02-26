@@ -1,10 +1,15 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Modal, Portal } from "react-native-paper";
 
 import { mobileApi } from "../../lib/api";
-import { formatDateTime, formatNumber, statusTone } from "../../lib/format";
+import {
+  formatDateTime,
+  formatNumber,
+  statusLabel,
+  statusTone,
+} from "../../lib/format";
 import {
   ActionButton,
   Card,
@@ -28,11 +33,13 @@ export function ReservationsScreen({
   token,
   openRequest,
   onOpenRequestHandled,
+  onOpenCatalog,
 }: {
   apiBaseUrl: string;
   token: string;
   openRequest?: { reservationId: number; nonce: number } | null;
   onOpenRequestHandled?: () => void;
+  onOpenCatalog?: () => void;
 }) {
   const [items, setItems] = useState<ClientReservationListItemDto[] | null>(
     null,
@@ -45,6 +52,10 @@ export function ReservationsScreen({
   >(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successBanner, setSuccessBanner] = useState<{
+    message: string;
+    reservationId: number;
+  } | null>(null);
 
   async function loadList() {
     setError(null);
@@ -87,7 +98,12 @@ export function ReservationsScreen({
 
   useEffect(() => {
     if (!openRequest?.reservationId) return;
+    void loadList();
     void showDetails(openRequest.reservationId);
+    setSuccessBanner({
+      message: `Utworzono rezerwację i odświeżono listę.`,
+      reservationId: openRequest.reservationId,
+    });
     onOpenRequestHandled?.();
   }, [openRequest?.nonce]);
 
@@ -96,26 +112,45 @@ export function ReservationsScreen({
       <Card>
         <SectionTitle
           title="Rezerwacje"
-          subtitle="Lista i podgląd szczegółów"
+          subtitle="Lista, statusy i podgląd szczegółów"
         />
-        <View style={{ marginBottom: 10 }}>
+        <View style={{ marginBottom: 10, gap: 8 }}>
           <ActionButton
-            label="Złóż rezerwację (w przygotowaniu)"
+            label="Nowa rezerwacja (Prod.)"
             variant="secondary"
-            onPress={() =>
-              Alert.alert(
-                "Brak funkcji w API",
-                "MobileApi udostępnia teraz tylko podgląd rezerwacji (GET). Aby składać rezerwacje z aplikacji, trzeba dodać endpoint POST /api/client/reservations.",
-              )
-            }
+            onPress={() => onOpenCatalog?.()}
           />
         </View>
+
+        {successBanner ? (
+          <View style={styles.successBanner}>
+            <View style={styles.successBannerIconCircle}>
+              <Text style={styles.successBannerIconText}>✓</Text>
+            </View>
+            <Text style={styles.successBannerText}>
+              {successBanner.message}
+            </Text>
+            <ActionButton
+              label="Szczegóły"
+              variant="ghost"
+              onPress={() => {
+                const id = successBanner.reservationId;
+                setSuccessBanner(null);
+                void showDetails(id);
+              }}
+            />
+          </View>
+        ) : null}
+
         {!items && !error ? (
           <LoadingBlock label="Pobieranie rezerwacji..." />
         ) : error && !items ? (
           <ErrorBlock message={error} />
         ) : items && items.length === 0 ? (
-          <EmptyBlock title="Brak rezerwacji" />
+          <EmptyBlock
+            title="Brak rezerwacji"
+            subtitle="Utwórz pierwszą rezerwację w zakładce Prod."
+          />
         ) : (
           items?.map((item) => (
             <ListItem
@@ -124,7 +159,10 @@ export function ReservationsScreen({
               subtitle={`${item.warehouseName} • ${formatDateTime(item.createdAtUtc)} • ${item.itemsCount} poz.`}
               right={
                 <View style={{ alignItems: "flex-end" }}>
-                  <Pill label={item.status} tone={statusTone(item.status)} />
+                  <Pill
+                    label={statusLabel(item.status, "reservation")}
+                    tone={statusTone(item.status)}
+                  />
                   {selectedReservationId === item.reservationId ? (
                     <Text style={styles.openHint}>Otwarte</Text>
                   ) : null}
@@ -146,7 +184,7 @@ export function ReservationsScreen({
           <Card>
             <View style={styles.modalHeader}>
               <View style={styles.modalHeaderText}>
-                <Text style={styles.modalTitle}>Szczegoly rezerwacji</Text>
+                <Text style={styles.modalTitle}>Szczegóły rezerwacji</Text>
                 <Text
                   numberOfLines={1}
                   ellipsizeMode="middle"
@@ -165,13 +203,13 @@ export function ReservationsScreen({
               </View>
             </View>
             {detailsLoading && !details ? (
-              <LoadingBlock label="Pobieranie szczegolow..." />
+              <LoadingBlock label="Pobieranie szczegółów..." />
             ) : details ? (
               <ScrollView style={{ maxHeight: 420 }}>
                 <InlineRow style={{ marginBottom: 10 }}>
                   <View style={styles.pillWrap}>
                     <Pill
-                      label={details.status}
+                      label={statusLabel(details.status, "reservation")}
                       tone={statusTone(details.status)}
                     />
                   </View>
@@ -195,13 +233,13 @@ export function ReservationsScreen({
                 {details.items.map((row) => (
                   <ListItem
                     key={row.itemId}
-                    title={`${row.lineNo}. ${row.productCode} — ${row.productName}`}
-                    subtitle={`Ilosc: ${formatNumber(row.quantity)} • Lokacja: ${row.locationCode ?? "-"}`}
+                    title={`${row.lineNo}. ${row.productCode} - ${row.productName}`}
+                    subtitle={`Ilość: ${formatNumber(row.quantity)} • Lokacja: ${row.locationCode ?? "-"}`}
                   />
                 ))}
               </ScrollView>
             ) : (
-              <EmptyBlock title="Brak danych szczegolowych" />
+              <EmptyBlock title="Brak danych szczegółowych" />
             )}
           </Card>
         </Modal>
@@ -254,4 +292,38 @@ const styles = StyleSheet.create({
     maxWidth: 560,
   },
   modalShell: { justifyContent: "center" },
+  successBanner: {
+    backgroundColor: "rgba(21,51,90,.62)",
+    borderWidth: 1,
+    borderColor: "rgba(56,189,248,.35)",
+    borderRadius: 14,
+    padding: 10,
+    marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  successBannerText: {
+    color: colors.text,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "600",
+    flex: 1,
+  },
+  successBannerIconCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 999,
+    backgroundColor: "rgba(56,189,248,.18)",
+    borderWidth: 1,
+    borderColor: "rgba(56,189,248,.45)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  successBannerIconText: {
+    color: colors.accent,
+    fontWeight: "900",
+    fontSize: 12,
+    lineHeight: 14,
+  },
 });

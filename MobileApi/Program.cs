@@ -8,6 +8,7 @@ using MobileApi.Configuration;
 using MobileApi.Services;
 using Services.Dashboard;
 using Interfaces.Dashboard;
+using Services.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddScoped<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddWarehouseAppServices();
 
 builder.Services.AddCors(options =>
 {
@@ -95,7 +97,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("MobileDev");
 app.UseAuthentication();
 app.UseAuthorization();
