@@ -184,6 +184,10 @@
                        asp-controller="Raport" asp-action="RuchyMagazynowe">
                         <i class="bi bi-file-earmark-spreadsheet me-2"></i> Raporty ruchów
                     </a>
+                    <a class="nav-link rounded-3 sidebar-link @(IsActiveAction("Raport", "PropozycjeZamowien") ? "active" : "")"
+                       asp-controller="Raport" asp-action="PropozycjeZamowien">
+                        <i class="bi bi-cart-check me-2"></i> Propozycje zamówień
+                    </a>
 
                     <hr class="my-2" />
                 }

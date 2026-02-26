@@ -8,6 +8,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using Services.Abstrakcja;
+using System.Data;
 using System.Globalization;
 
 namespace Services.Magazyn
@@ -19,6 +20,85 @@ namespace Services.Magazyn
         public RaportMagazynowyService(DataContext context) : base(context)
         {
             QuestPDF.Settings.License = LicenseType.Community;
+        }
+
+        public async Task<RaportPropozycjeZamowienDto> GetRaportPropozycjiZamowienAsync(string? searchTerm, int? idMagazynu)
+        {
+            var magazyny = await _context.Magazyn
+                .AsNoTracking()
+                .OrderBy(m => m.Nazwa)
+                .Select(m => new RaportMagazynSelectOptionDto
+                {
+                    Value = m.IdMagazynu,
+                    Text = m.Nazwa
+                })
+                .ToListAsync();
+
+            var rows = new List<RaportPropozycjeZamowienRowDto>();
+            var connection = _context.Database.GetDbConnection();
+            var shouldClose = connection.State != ConnectionState.Open;
+
+            if (shouldClose)
+            {
+                await connection.OpenAsync();
+            }
+
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = "dbo.usp_GenerateReorderSuggestions";
+                command.CommandType = CommandType.StoredProcedure;
+
+                var warehouseParam = command.CreateParameter();
+                warehouseParam.ParameterName = "@WarehouseId";
+                warehouseParam.Value = idMagazynu.HasValue ? idMagazynu.Value : DBNull.Value;
+                command.Parameters.Add(warehouseParam);
+
+                var searchParam = command.CreateParameter();
+                searchParam.ParameterName = "@SearchTerm";
+                searchParam.Value = string.IsNullOrWhiteSpace(searchTerm) ? DBNull.Value : searchTerm!.Trim();
+                command.Parameters.Add(searchParam);
+
+                await using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    rows.Add(new RaportPropozycjeZamowienRowDto
+                    {
+                        IdProduktu = reader.GetInt32(reader.GetOrdinal("ProductId")),
+                        ProduktKod = reader.GetString(reader.GetOrdinal("SKU")),
+                        ProduktNazwa = reader.GetString(reader.GetOrdinal("ProductName")),
+                        KategoriaNazwa = reader["CategoryName"] as string ?? "-",
+                        Jednostka = reader["UomCode"] as string ?? "j.m.",
+                        IdMagazynu = reader.GetInt32(reader.GetOrdinal("WarehouseId")),
+                        MagazynNazwa = reader.GetString(reader.GetOrdinal("WarehouseName")),
+                        StanFizyczny = reader.GetDecimal(reader.GetOrdinal("PhysicalQty")),
+                        ZarezerwowaneAktywnie = reader.GetDecimal(reader.GetOrdinal("ReservedActiveQty")),
+                        ZarezerwowaneWzDraft = reader.GetDecimal(reader.GetOrdinal("ReservedDraftWzQty")),
+                        DostepneDoRezerwacji = reader.GetDecimal(reader.GetOrdinal("AvailableQty")),
+                        StanMinimalny = reader.GetDecimal(reader.GetOrdinal("MinStock")),
+                        PunktPonownegoZamowienia = reader.GetDecimal(reader.GetOrdinal("ReorderPoint")),
+                        IloscPonownegoZamowienia = reader.GetDecimal(reader.GetOrdinal("ReorderQty")),
+                        ProponowanaIloscZamowienia = reader.GetDecimal(reader.GetOrdinal("SuggestedOrderQty")),
+                        BrakDoRop = reader.GetDecimal(reader.GetOrdinal("ShortageToRop"))
+                    });
+                }
+            }
+            finally
+            {
+                if (shouldClose)
+                {
+                    await connection.CloseAsync();
+                }
+            }
+
+            return new RaportPropozycjeZamowienDto
+            {
+                SearchTerm = searchTerm,
+                IdMagazynu = idMagazynu,
+                WygenerowanoUtc = DateTime.UtcNow,
+                Magazyny = magazyny,
+                Rows = rows
+            };
         }
 
         public async Task<RaportStanyMagazynoweDto> GetRaportStanowAsync(string? searchTerm, int? idMagazynu)

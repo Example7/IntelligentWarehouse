@@ -28,6 +28,12 @@ namespace IntranetWeb.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> PropozycjeZamowien(string? searchTerm, int? idMagazynu)
+        {
+            var model = await _raportMagazynowyService.GetRaportPropozycjiZamowienAsync(searchTerm, idMagazynu);
+            return View(model);
+        }
+
         public async Task<IActionResult> EksportStanowExcel(string? searchTerm, int? idMagazynu)
         {
             var bytes = await _raportMagazynowyService.ExportRaportStanowExcelAsync(searchTerm, idMagazynu);

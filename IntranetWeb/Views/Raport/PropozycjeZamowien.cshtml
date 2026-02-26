@@ -1,0 +1,123 @@
+@model Interfaces.Magazyn.Dtos.RaportPropozycjeZamowienDto
+
+@{
+    ViewData["Title"] = "Propozycje zamówień (ROP/ROQ)";
+    var searchTerm = Model.SearchTerm ?? string.Empty;
+    var selectedWarehouseId = Model.IdMagazynu;
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-cart-check"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Propozycje zamówień (ROP/ROQ)</h1>
+                <p class="news-admin-header__subheading mb-0">Raport generowany procedurą SQL na podstawie stanów, rezerwacji i WZ Draft.</p>
+            </div>
+        </div>
+        <div class="news-admin-header__stats">
+            <div class="news-admin-stat">
+                <span class="news-admin-stat__label">Pozycji</span>
+                <strong class="news-admin-stat__value">@Model.Rows.Count</strong>
+            </div>
+            <div class="news-admin-stat">
+                <span class="news-admin-stat__label">Wygenerowano</span>
+                <strong class="news-admin-stat__value">@Model.WygenerowanoUtc.ToLocalTime().ToString("HH:mm:ss")</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-admin-toolbar">
+        <form method="get" class="news-admin-search w-100" role="search" aria-label="Filtry raportu propozycji zamówień">
+            <div class="d-flex flex-wrap gap-2 w-100">
+                <div class="news-admin-search__input-wrap flex-grow-1" style="min-width: 280px;">
+                    <i class="bi bi-search news-admin-search__icon"></i>
+                    <input class="form-control news-admin-search__input"
+                           name="searchTerm"
+                           value="@searchTerm"
+                           placeholder="Szukaj po SKU, nazwie produktu, kategorii..." />
+                </div>
+
+                <select class="form-select" name="idMagazynu" style="max-width: 280px;">
+                    <option value="">Wszystkie magazyny</option>
+                    @foreach (var option in Model.Magazyny)
+                    {
+                        <option value="@option.Value" selected="@(selectedWarehouseId == option.Value)">
+                            @option.Text
+                        </option>
+                    }
+                </select>
+
+                <button class="btn btn-primary" type="submit">Filtruj</button>
+                @if (!string.IsNullOrWhiteSpace(searchTerm) || selectedWarehouseId.HasValue)
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("PropozycjeZamowien")" title="Wyczyść filtry">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </div>
+        </form>
+    </section>
+
+    @if (!Model.Rows.Any())
+    {
+        <section class="news-admin-empty">
+            <div class="news-admin-empty__icon"><i class="bi bi-cart-x"></i></div>
+            <h2 class="h4 mb-2">Brak propozycji zamówień</h2>
+            <p class="text-muted mb-0">Żaden produkt nie spadł poniżej punktu ponownego zamówienia dla wybranych filtrów.</p>
+        </section>
+    }
+    else
+    {
+        <section class="entity-table-panel">
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Produkt</th>
+                            <th>Magazyn</th>
+                            <th class="text-end">Stan fiz.</th>
+                            <th class="text-end">Rez. aktywne</th>
+                            <th class="text-end">WZ Draft</th>
+                            <th class="text-end">Dostępne</th>
+                            <th class="text-end">MIN</th>
+                            <th class="text-end">ROP</th>
+                            <th class="text-end">ROQ</th>
+                            <th class="text-end">Brak do ROP</th>
+                            <th class="text-end">Proponowane zam.</th>
+                            <th>JM</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td>
+                                <div class="entity-cell-title">@row.ProduktKod</div>
+                                <div class="entity-cell-subtitle">@row.ProduktNazwa</div>
+                                <div class="entity-cell-subtitle">@row.KategoriaNazwa</div>
+                            </td>
+                            <td>@row.MagazynNazwa</td>
+                            <td class="text-end">@row.StanFizyczny.ToString("0.###")</td>
+                            <td class="text-end">@row.ZarezerwowaneAktywnie.ToString("0.###")</td>
+                            <td class="text-end">@row.ZarezerwowaneWzDraft.ToString("0.###")</td>
+                            <td class="text-end fw-semibold @(row.DostepneDoRezerwacji <= 0 ? "text-danger" : "")">@row.DostepneDoRezerwacji.ToString("0.###")</td>
+                            <td class="text-end">@row.StanMinimalny.ToString("0.###")</td>
+                            <td class="text-end">@row.PunktPonownegoZamowienia.ToString("0.###")</td>
+                            <td class="text-end">@row.IloscPonownegoZamowienia.ToString("0.###")</td>
+                            <td class="text-end">@row.BrakDoRop.ToString("0.###")</td>
+                            <td class="text-end">
+                                <span class="entity-badge @(row.ProponowanaIloscZamowienia > 0 ? "entity-badge--warning" : "entity-badge--muted")">
+                                    @row.ProponowanaIloscZamowienia.ToString("0.###")
+                                </span>
+                            </td>
+                            <td>@row.Jednostka</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
+
