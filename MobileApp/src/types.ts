@@ -16,6 +16,16 @@ export interface CurrentUserDto {
   roles: string[];
 }
 
+export interface ChangePasswordRequestDto {
+  currentPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}
+
+export interface ChangePasswordResponseDto {
+  message: string;
+}
+
 export interface ClientOrderListItemDto {
   orderId: number;
   number: string;
@@ -172,6 +182,7 @@ export interface MobilePageListItemDto {
   id: number;
   slug: string;
   title: string;
+  content: string;
   position: number;
 }
 

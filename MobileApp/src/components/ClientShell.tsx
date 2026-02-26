@@ -361,7 +361,6 @@ export function ClientShell({
             token={session.accessToken}
             openRequest={reservationOpenRequest}
             onOpenRequestHandled={() => setReservationOpenRequest(null)}
-            onOpenCatalog={openProductsCatalog}
           />
         );
       case "alerty":

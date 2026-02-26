@@ -222,26 +222,28 @@ export function ProductsScreen({
         </View>
       ) : null}
 
-      <InlineRow style={{ alignItems: "flex-end", marginBottom: 8 }}>
-        <View style={{ flex: 1.2 }}>
-          <Text style={styles.label}>Ilość do dodania</Text>
-          <PaperTextInput
-            mode="outlined"
-            dense
-            value={quantityText}
-            onChangeText={setQuantityText}
-            keyboardType="decimal-pad"
-            placeholder="1"
-            textColor={colors.text}
-            outlineColor={colors.line}
-            activeOutlineColor={colors.accent}
-            style={styles.input}
-          />
-        </View>
-        <View style={{ flex: 1 }}>
-          <ActionButton label="Dodaj" onPress={addSelectedToCart} />
-        </View>
-      </InlineRow>
+      <View style={styles.addToCartBlock}>
+        <Text style={styles.label}>Ilość do dodania</Text>
+        <InlineRow style={styles.addToCartRow}>
+          <View style={styles.quantitySlot}>
+            <PaperTextInput
+              mode="outlined"
+              dense
+              value={quantityText}
+              onChangeText={setQuantityText}
+              keyboardType="decimal-pad"
+              placeholder="1"
+              textColor={colors.text}
+              outlineColor={colors.line}
+              activeOutlineColor={colors.accent}
+              style={styles.quantityInput}
+            />
+          </View>
+          <View style={styles.addButtonSlot}>
+            <ActionButton label="Dodaj" onPress={addSelectedToCart} />
+          </View>
+        </InlineRow>
+      </View>
 
       {productsLoading ? (
         <LoadingBlock label="Pobieranie produktów..." />
@@ -311,5 +313,24 @@ const styles = StyleSheet.create({
   },
   choiceButtonSlot: {
     width: "100%",
+  },
+  addToCartBlock: {
+    marginBottom: 8,
+  },
+  addToCartRow: {
+    alignItems: "center",
+  },
+  quantitySlot: {
+    flex: 1.15,
+  },
+  addButtonSlot: {
+    flex: 1,
+    marginTop: -2,
+  },
+  quantityInput: {
+    backgroundColor: "rgba(22,35,61,.45)",
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 0,
   },
 });

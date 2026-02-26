@@ -1,5 +1,7 @@
 import type {
   ClientAttachmentDto,
+  ChangePasswordRequestDto,
+  ChangePasswordResponseDto,
   ClientDashboardDto,
   ClientCreateReservationRequestDto,
   ClientCreateReservationResponseDto,
@@ -94,6 +96,17 @@ export const mobileApi = {
   },
   me(baseUrl: string, token: string) {
     return request<CurrentUserDto>(baseUrl, "/api/auth/me", { token });
+  },
+  changePassword(
+    baseUrl: string,
+    token: string,
+    body: ChangePasswordRequestDto,
+  ) {
+    return request<ChangePasswordResponseDto>(baseUrl, "/api/auth/change-password", {
+      method: "POST",
+      token,
+      body,
+    });
   },
   getDashboard(baseUrl: string, token: string) {
     return request<ClientDashboardDto>(baseUrl, "/api/client/dashboard", {

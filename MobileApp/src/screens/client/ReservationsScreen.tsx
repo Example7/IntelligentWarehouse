@@ -33,14 +33,13 @@ export function ReservationsScreen({
   token,
   openRequest,
   onOpenRequestHandled,
-  onOpenCatalog,
 }: {
   apiBaseUrl: string;
   token: string;
   openRequest?: { reservationId: number; nonce: number } | null;
   onOpenRequestHandled?: () => void;
-  onOpenCatalog?: () => void;
 }) {
+  const LIST_PAGE_SIZE = 10;
   const [items, setItems] = useState<ClientReservationListItemDto[] | null>(
     null,
   );
@@ -56,9 +55,11 @@ export function ReservationsScreen({
     message: string;
     reservationId: number;
   } | null>(null);
+  const [visibleCount, setVisibleCount] = useState(LIST_PAGE_SIZE);
 
   async function loadList() {
     setError(null);
+    setVisibleCount(LIST_PAGE_SIZE);
     try {
       setItems(await mobileApi.getReservations(apiBaseUrl, token));
     } catch (e) {
@@ -114,14 +115,6 @@ export function ReservationsScreen({
           title="Rezerwacje"
           subtitle="Lista, statusy i podgląd szczegółów"
         />
-        <View style={{ marginBottom: 10, gap: 8 }}>
-          <ActionButton
-            label="Nowa rezerwacja (Prod.)"
-            variant="secondary"
-            onPress={() => onOpenCatalog?.()}
-          />
-        </View>
-
         {successBanner ? (
           <View style={styles.successBanner}>
             <View style={styles.successBannerIconCircle}>
@@ -152,7 +145,7 @@ export function ReservationsScreen({
             subtitle="Utwórz pierwszą rezerwację w zakładce Prod."
           />
         ) : (
-          items?.map((item) => (
+          items?.slice(0, visibleCount).map((item) => (
             <ListItem
               key={item.reservationId}
               title={item.number}
@@ -172,6 +165,26 @@ export function ReservationsScreen({
             />
           ))
         )}
+        {items && items.length > visibleCount ? (
+          <View style={{ marginTop: 10 }}>
+            <ActionButton
+              label={`Pokaż więcej (${Math.min(visibleCount, items.length)}/${items.length})`}
+              onPress={() =>
+                setVisibleCount((prev) =>
+                  Math.min(prev + LIST_PAGE_SIZE, items.length),
+                )
+              }
+              variant="secondary"
+            />
+          </View>
+        ) : null}
+        <View style={{ marginTop: 10 }}>
+          <ActionButton
+            label="Odśwież listę"
+            onPress={() => void loadList()}
+            variant="ghost"
+          />
+        </View>
       </Card>
 
       <Portal>

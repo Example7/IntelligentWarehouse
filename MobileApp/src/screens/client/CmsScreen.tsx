@@ -2,9 +2,22 @@ import * as React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import {
+  ActionButton,
+  Card,
+  EmptyBlock,
+  ErrorBlock,
+  ListItem,
+  LoadingBlock,
+  SectionTitle,
+  colors,
+} from "../../components/ui";
 import { mobileApi } from "../../lib/api";
-import { ActionButton, Card, EmptyBlock, ErrorBlock, ListItem, LoadingBlock, SectionTitle, colors } from "../../components/ui";
-import type { MobileNewsItemDto, MobilePageDetailsDto, MobilePageListItemDto } from "../../types";
+import type {
+  MobileNewsItemDto,
+  MobilePageDetailsDto,
+  MobilePageListItemDto,
+} from "../../types";
 
 export function CmsScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   const [news, setNews] = useState<MobileNewsItemDto[] | null>(null);
@@ -20,18 +33,30 @@ export function CmsScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
     });
     return {
       contactPages: contacts,
-      otherPages: all.filter((p) => !contacts.some((c) => c.id === p.id))
+      otherPages: all.filter((p) => !contacts.some((c) => c.id === p.id)),
     };
   }, [pages]);
+
+  function pageContentPreview(value?: string | null) {
+    const text = (value ?? "").trim();
+    if (!text) return "(brak treści)";
+    const compact = text.replace(/\s+/g, " ");
+    return `${compact.slice(0, 120)}${compact.length > 120 ? "..." : ""}`;
+  }
 
   async function load() {
     setError(null);
     try {
-      const [newsData, pagesData] = await Promise.all([mobileApi.getNews(apiBaseUrl), mobileApi.getPages(apiBaseUrl)]);
+      const [newsData, pagesData] = await Promise.all([
+        mobileApi.getNews(apiBaseUrl),
+        mobileApi.getPages(apiBaseUrl),
+      ]);
       setNews(newsData);
       setPages(pagesData);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Nie udalo sie pobrac informacji.");
+      setError(
+        e instanceof Error ? e.message : "Nie udalo sie pobrac informacji.",
+      );
     }
   }
 
@@ -51,16 +76,27 @@ export function CmsScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
   return (
     <>
       <Card>
-        <SectionTitle title="Informacje" subtitle="Aktualnosci i strony informacyjne" />
+        <SectionTitle
+          title="Informacje"
+          subtitle="Aktualności i strony informacyjne"
+        />
         {!news && !pages && !error ? (
           <LoadingBlock label="Pobieranie informacji..." />
         ) : error && !news && !pages ? (
           <ErrorBlock message={error} />
         ) : (
           <>
-            <Text style={styles.subsection}>Aktualnosci</Text>
+            <Text style={styles.subsection}>Aktualności</Text>
             {news?.length ? (
-              news.slice(0, 5).map((item) => <ListItem key={item.id} title={item.title} subtitle={item.content.slice(0, 120)} />)
+              news
+                .slice(0, 5)
+                .map((item) => (
+                  <ListItem
+                    key={item.id}
+                    title={item.title}
+                    subtitle={pageContentPreview(item.content)}
+                  />
+                ))
             ) : (
               <EmptyBlock title="Brak aktualnosci" />
             )}
@@ -68,23 +104,40 @@ export function CmsScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
             <Text style={styles.subsection}>Kontakt</Text>
             {contactPages.length ? (
               contactPages.map((item) => (
-                <ListItem key={item.id} title={item.title} subtitle={`Strona kontaktowa: ${item.slug}`} onPress={() => void loadPage(item.slug)} />
+                <ListItem
+                  key={item.id}
+                  title={item.title}
+                  subtitle={pageContentPreview(item.content)}
+                  onPress={() => void loadPage(item.slug)}
+                />
               ))
             ) : (
-              <EmptyBlock title="Brak strony kontaktowej" subtitle="Dodaj strone CMS ze slugiem np. kontakt." />
+              <EmptyBlock
+                title="Brak strony kontaktowej"
+                subtitle="Dodaj strone CMS ze slugiem np. kontakt."
+              />
             )}
 
             <Text style={styles.subsection}>Pozostale informacje</Text>
             {otherPages.length ? (
               otherPages.map((item) => (
-                <ListItem key={item.id} title={item.title} subtitle={`slug: ${item.slug}`} onPress={() => void loadPage(item.slug)} />
+                <ListItem
+                  key={item.id}
+                  title={item.title}
+                  subtitle={pageContentPreview(item.content)}
+                  onPress={() => void loadPage(item.slug)}
+                />
               ))
             ) : (
               <EmptyBlock title="Brak stron informacyjnych" />
             )}
 
             <View style={{ marginTop: 10 }}>
-              <ActionButton label="Odswiez informacje" onPress={() => void load()} variant="ghost" />
+              <ActionButton
+                label="Odswiez informacje"
+                onPress={() => void load()}
+                variant="ghost"
+              />
             </View>
           </>
         )}
@@ -93,9 +146,15 @@ export function CmsScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
       {page ? (
         <Card>
           <SectionTitle title={page.title} subtitle={page.slug} />
-          <Text style={styles.cmsContent}>{page.content || "(pusta tresc)"}</Text>
+          <Text style={styles.cmsContent}>
+            {page.content || "(pusta tresc)"}
+          </Text>
           <View style={{ marginTop: 10 }}>
-            <ActionButton label="Zamknij strone" onPress={() => setPage(null)} variant="ghost" />
+            <ActionButton
+              label="Zamknij strone"
+              onPress={() => setPage(null)}
+              variant="ghost"
+            />
           </View>
         </Card>
       ) : null}
@@ -104,7 +163,13 @@ export function CmsScreen({ apiBaseUrl }: { apiBaseUrl: string }) {
 }
 
 const styles = StyleSheet.create({
-  subsection: { color: colors.text, fontWeight: "800", fontSize: 13, marginTop: 12, marginBottom: 6 },
+  subsection: {
+    color: colors.text,
+    fontWeight: "800",
+    fontSize: 13,
+    marginTop: 12,
+    marginBottom: 6,
+  },
   cmsContent: {
     color: colors.text,
     lineHeight: 20,
@@ -112,6 +177,6 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     borderRadius: 10,
     backgroundColor: "rgba(22,35,61,.4)",
-    padding: 10
-  }
+    padding: 10,
+  },
 });

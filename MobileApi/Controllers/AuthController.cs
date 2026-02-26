@@ -95,6 +95,58 @@ public class AuthController : ControllerBase
         });
     }
 
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<ActionResult<ChangePasswordResponseDto>> ChangePassword([FromBody] ChangePasswordRequestDto request)
+    {
+        if (string.IsNullOrWhiteSpace(request.CurrentPassword) ||
+            string.IsNullOrWhiteSpace(request.NewPassword) ||
+            string.IsNullOrWhiteSpace(request.ConfirmNewPassword))
+        {
+            return BadRequest("Wszystkie pola hasła są wymagane.");
+        }
+
+        if (!string.Equals(request.NewPassword, request.ConfirmNewPassword, StringComparison.Ordinal))
+        {
+            return BadRequest("Nowe hasło i potwierdzenie muszą być takie same.");
+        }
+
+        if (request.NewPassword.Length < 8)
+        {
+            return BadRequest("Nowe hasło musi mieć co najmniej 8 znaków.");
+        }
+
+        if (string.Equals(request.CurrentPassword, request.NewPassword, StringComparison.Ordinal))
+        {
+            return BadRequest("Nowe hasło musi być inne niż obecne.");
+        }
+
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdValue, out var userId) || userId <= 0)
+        {
+            return Unauthorized("Nie można ustalić użytkownika.");
+        }
+
+        var user = await _context.Uzytkownik.FirstOrDefaultAsync(u => u.IdUzytkownika == userId && u.CzyAktywny);
+        if (user is null)
+        {
+            return Unauthorized("Użytkownik nie istnieje lub jest nieaktywny.");
+        }
+
+        if (!VerifyPassword(user, request.CurrentPassword))
+        {
+            return BadRequest("Obecne hasło jest nieprawidłowe.");
+        }
+
+        user.HashHasla = HashPassword(user, request.NewPassword);
+        await _context.SaveChangesAsync();
+
+        return Ok(new ChangePasswordResponseDto
+        {
+            Message = "Hasło zostało zmienione."
+        });
+    }
+
     private static bool VerifyPassword(Uzytkownik user, string providedPassword)
     {
         var identityHasher = new PasswordHasher<Uzytkownik>();
@@ -107,5 +159,11 @@ public class AuthController : ControllerBase
         {
             return false;
         }
+    }
+
+    private static string HashPassword(Uzytkownik user, string password)
+    {
+        var identityHasher = new PasswordHasher<Uzytkownik>();
+        return identityHasher.HashPassword(user, password);
     }
 }

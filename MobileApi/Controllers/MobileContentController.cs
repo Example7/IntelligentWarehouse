@@ -51,6 +51,7 @@ public class MobileContentController : ControllerBase
                 Id = x.IdStrony,
                 Slug = x.TytulLinku,
                 Title = x.Nazwa,
+                Content = x.Tresc,
                 Position = x.Pozycja
             })
             .ToListAsync();

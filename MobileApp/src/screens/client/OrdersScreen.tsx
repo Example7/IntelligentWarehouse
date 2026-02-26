@@ -38,14 +38,17 @@ export function OrdersScreen({
   openRequest?: { orderId: number; nonce: number } | null;
   onOpenRequestHandled?: () => void;
 }) {
+  const LIST_PAGE_SIZE = 10;
   const [items, setItems] = useState<ClientOrderListItemDto[] | null>(null);
   const [details, setDetails] = useState<ClientOrderDetailsDto | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(LIST_PAGE_SIZE);
 
   async function loadList() {
     setError(null);
+    setVisibleCount(LIST_PAGE_SIZE);
     try {
       setItems(await mobileApi.getOrders(apiBaseUrl, token));
     } catch (e) {
@@ -98,7 +101,7 @@ export function OrdersScreen({
         ) : items && items.length === 0 ? (
           <EmptyBlock title="Brak dokumentów WZ" />
         ) : (
-          items?.map((item) => (
+          items?.slice(0, visibleCount).map((item) => (
             <ListItem
               key={item.orderId}
               title={item.number}
@@ -121,6 +124,19 @@ export function OrdersScreen({
             />
           ))
         )}
+        {items && items.length > visibleCount ? (
+          <View style={{ marginTop: 10 }}>
+            <ActionButton
+              label={`Pokaż więcej (${Math.min(visibleCount, items.length)}/${items.length})`}
+              onPress={() =>
+                setVisibleCount((prev) =>
+                  Math.min(prev + LIST_PAGE_SIZE, items.length),
+                )
+              }
+              variant="secondary"
+            />
+          </View>
+        ) : null}
         <View style={{ marginTop: 10 }}>
           <ActionButton
             label="Odśwież listę"
