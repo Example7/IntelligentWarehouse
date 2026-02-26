@@ -11,7 +11,7 @@ namespace MobileApi.Controllers;
 
 [ApiController]
 [Route("api/client")]
-[Authorize(Roles = "Client")]
+[Authorize(Roles = "Client,Klient")]
 public class ClientAppController : ControllerBase
 {
     private readonly DataContext _context;
@@ -557,32 +557,118 @@ public class ClientAppController : ControllerBase
             });
         }
 
-        var customerProductIds = _context.DokumentWZ
-            .Where(d => d.IdKlienta == customerId)
-            .SelectMany(d => d.Pozycje.Select(p => p.IdProduktu))
-            .Distinct();
-
-        var notifications = await _context.Alert
+        var reservationNotifications = await _context.Rezerwacja
             .AsNoTracking()
-            .Where(a => customerProductIds.Contains(a.IdProduktu))
-            .OrderByDescending(a => a.UtworzonoUtc)
-            .ThenByDescending(a => a.Id)
+            .Where(r => r.IdUtworzyl == userId)
+            .OrderByDescending(r => r.UtworzonoUtc)
+            .ThenByDescending(r => r.Id)
             .Take(take)
-            .Select(a => new ClientNotificationDto
+            .Select(r => new
             {
-                NotificationId = a.Id,
-                Severity = a.Waga,
-                Message = a.Tresc,
-                CreatedAtUtc = a.UtworzonoUtc,
-                IsAcknowledged = a.CzyPotwierdzony,
-                ProductCode = a.Produkt.Kod,
-                ProductName = a.Produkt.Nazwa,
-                WarehouseName = a.Magazyn.Nazwa
+                r.Id,
+                r.Numer,
+                r.Status,
+                r.UtworzonoUtc,
+                r.WygasaUtc,
+                WarehouseName = r.Magazyn.Nazwa
             })
             .ToListAsync();
 
-        return Ok(notifications);
+        var orderNotifications = await _context.DokumentWZ
+            .AsNoTracking()
+            .Where(d => d.IdKlienta == customerId)
+            .OrderByDescending(d => d.ZaksiegowanoUtc ?? d.DataWydaniaUtc)
+            .ThenByDescending(d => d.Id)
+            .Take(take)
+            .Select(d => new
+            {
+                d.Id,
+                d.Numer,
+                d.Status,
+                d.DataWydaniaUtc,
+                d.ZaksiegowanoUtc,
+                WarehouseName = d.Magazyn.Nazwa
+            })
+            .ToListAsync();
+
+        var notifications = new List<ClientNotificationDto>(take * 2);
+
+        notifications.AddRange(reservationNotifications.Select(r =>
+        {
+            var (severity, message) = BuildReservationNotification(r.Status, r.WygasaUtc);
+            return new ClientNotificationDto
+            {
+                NotificationId = 1_000_000_000L + r.Id,
+                Severity = severity,
+                Title = $"Rezerwacja {r.Numer}",
+                Message = message,
+                Status = r.Status,
+                DocumentType = "Reservation",
+                DocumentNumber = r.Numer,
+                CreatedAtUtc = r.UtworzonoUtc,
+                IsAcknowledged = IsReservationStatusFinal(r.Status),
+                WarehouseName = r.WarehouseName
+            };
+        }));
+
+        notifications.AddRange(orderNotifications.Select(d =>
+        {
+            var (severity, message) = BuildOrderNotification(d.Status);
+            return new ClientNotificationDto
+            {
+                NotificationId = 2_000_000_000L + d.Id,
+                Severity = severity,
+                Title = $"WZ {d.Numer}",
+                Message = message,
+                Status = d.Status,
+                DocumentType = "WZ",
+                DocumentNumber = d.Numer,
+                CreatedAtUtc = d.ZaksiegowanoUtc ?? d.DataWydaniaUtc,
+                IsAcknowledged = IsOrderStatusFinal(d.Status),
+                WarehouseName = d.WarehouseName
+            };
+        }));
+
+        return Ok(notifications
+            .OrderByDescending(n => n.CreatedAtUtc)
+            .ThenByDescending(n => n.NotificationId)
+            .Take(take)
+            .ToList());
     }
+
+    private static (string Severity, string Message) BuildReservationNotification(string? status, DateTime? expiresAtUtc)
+    {
+        return (status ?? string.Empty).Trim() switch
+        {
+            "Active" or "Accepted" => ("GOOD", "Rezerwacja została potwierdzona przez magazyn."),
+            "Released" or "ConvertedToWz" or "Completed" => ("GOOD", "Rezerwacja została przekazana do realizacji (WZ)."),
+            "Rejected" => ("DANGER", "Rezerwacja została odrzucona. Sprawdź szczegóły lub skontaktuj się z obsługą."),
+            "Cancelled" => ("WARN", "Rezerwacja została anulowana."),
+            "Expired" => ("WARN", "Rezerwacja wygasła przed potwierdzeniem."),
+            "Draft" => ("WARN", expiresAtUtc.HasValue
+                ? $"Rezerwacja oczekuje na potwierdzenie magazynu (ważna do {expiresAtUtc.Value:yyyy-MM-dd HH:mm})."
+                : "Rezerwacja oczekuje na potwierdzenie magazynu."),
+            _ => ("INFO", "Aktualizacja statusu rezerwacji.")
+        };
+    }
+
+    private static (string Severity, string Message) BuildOrderNotification(string? status)
+    {
+        return (status ?? string.Empty).Trim() switch
+        {
+            "Posted" => ("GOOD", "Dokument WZ został zaksięgowany."),
+            "Issued" => ("GOOD", "Towar został wydany."),
+            "Draft" => ("INFO", "Dokument WZ został utworzony i oczekuje na finalizację."),
+            "Cancelled" => ("WARN", "Dokument WZ został anulowany."),
+            _ => ("INFO", "Aktualizacja dokumentu WZ.")
+        };
+    }
+
+    private static bool IsReservationStatusFinal(string? status) =>
+        (status ?? string.Empty).Trim() is "Released" or "ConvertedToWz" or "Completed" or "Rejected" or "Cancelled" or "Expired";
+
+    private static bool IsOrderStatusFinal(string? status) =>
+        (status ?? string.Empty).Trim() is "Posted" or "Cancelled";
 
     [HttpGet("orders/{orderId:int}/attachments")]
     public async Task<ActionResult<List<ClientAttachmentDto>>> GetOrderAttachments(int orderId)

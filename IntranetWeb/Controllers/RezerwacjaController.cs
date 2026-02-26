@@ -1,4 +1,4 @@
-using Data.Data;
+﻿using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using IntranetWeb.Controllers.Abstrakcja;
@@ -18,7 +18,7 @@ namespace IntranetWeb.Controllers
         private static readonly string[] DozwoloneStatusyCreate = ["Draft"];
         private static readonly string[] DozwoloneStatusyEdit = ["Draft", "Active", "Completed", "Cancelled"];
 
-        public RezerwacjaController(DataContext context, IRezerwacjaService rezerwacjaService) : base(context)
+        public RezerwacjaController(DataContext context, IRezerwacjaService rezerwacjaService, IAlertService alertService) : base(context)
         {
             _rezerwacjaService = rezerwacjaService;
         }

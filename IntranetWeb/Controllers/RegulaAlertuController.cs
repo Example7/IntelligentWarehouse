@@ -30,6 +30,53 @@ namespace IntranetWeb.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> SuggestThreshold(int? idProduktu, string? typ)
+        {
+            if (!idProduktu.HasValue || string.IsNullOrWhiteSpace(typ))
+            {
+                return Json(new { success = false });
+            }
+
+            var produkt = await _context.Produkt
+                .AsNoTracking()
+                .Where(p => p.IdProduktu == idProduktu.Value)
+                .Select(p => new
+                {
+                    p.StanMinimalny,
+                    p.PunktPonownegoZamowienia
+                })
+                .FirstOrDefaultAsync();
+
+            if (produkt == null)
+            {
+                return Json(new { success = false });
+            }
+
+            decimal? suggested = null;
+            var normalizedType = typ.Trim();
+
+            if (string.Equals(normalizedType, "LowStock", StringComparison.OrdinalIgnoreCase))
+            {
+                suggested = produkt.StanMinimalny;
+            }
+            else if (string.Equals(normalizedType, "ReorderPoint", StringComparison.OrdinalIgnoreCase))
+            {
+                suggested = produkt.PunktPonownegoZamowienia ?? produkt.StanMinimalny;
+            }
+            else if (string.Equals(normalizedType, "NoStock", StringComparison.OrdinalIgnoreCase))
+            {
+                suggested = 0m;
+            }
+
+            if (!suggested.HasValue)
+            {
+                return Json(new { success = false });
+            }
+
+            return Json(new { success = true, threshold = suggested.Value });
+        }
+
         // GET: RegulaAlertu/Details/5
         public async Task<IActionResult> Details(int? id)
         {

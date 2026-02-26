@@ -1,4 +1,4 @@
-using Data.Data;
+﻿using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using IntranetWeb.Controllers.Abstrakcja;
@@ -21,7 +21,8 @@ namespace IntranetWeb.Controllers
         public DokumentWZController(
             DataContext context,
             IDokumentWZService dokumentWzService,
-            IWydrukDokumentuService wydrukDokumentuService) : base(context)
+            IWydrukDokumentuService wydrukDokumentuService,
+            IAlertService alertService) : base(context)
         {
             _dokumentWzService = dokumentWzService;
             _wydrukDokumentuService = wydrukDokumentuService;
@@ -76,7 +77,7 @@ namespace IntranetWeb.Controllers
 
             if (await CzyNumerDokumentuWzJuzIstniejeAsync(dokumentWZ.Numer, dokumentWZ.Id))
             {
-                ModelState.AddModelError(nameof(DokumentWZ.Numer), $"Dokument WZ o numerze '{dokumentWZ.Numer}' juz istnieje.");
+                ModelState.AddModelError(nameof(DokumentWZ.Numer), $"Dokument WZ o numerze '{dokumentWZ.Numer}' już istnieje.");
             }
 
             if (ModelState.IsValid)
@@ -179,7 +180,7 @@ namespace IntranetWeb.Controllers
                 }
                 catch (DbUpdateException)
                 {
-                    ModelState.AddModelError(nameof(DokumentWZ.Numer), $"Dokument WZ o numerze '{dokumentWZ.Numer}' juz istnieje.");
+                    ModelState.AddModelError(nameof(DokumentWZ.Numer), $"Dokument WZ o numerze '{dokumentWZ.Numer}' już istnieje.");
                     return await ReturnEditViewWithLookupsAsync(dokumentWZ);
                 }
 
@@ -325,4 +326,3 @@ namespace IntranetWeb.Controllers
         }
     }
 }
-

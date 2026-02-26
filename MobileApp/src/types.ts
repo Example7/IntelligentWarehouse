@@ -143,10 +143,14 @@ export interface ClientNotificationDto {
   notificationId: number;
   severity: string;
   message: string;
+  title: string;
+  status?: string | null;
+  documentType?: string | null;
+  documentNumber?: string | null;
   createdAtUtc: string;
   isAcknowledged: boolean;
-  productCode: string;
-  productName: string;
+  productCode?: string | null;
+  productName?: string | null;
   warehouseName: string;
 }
 

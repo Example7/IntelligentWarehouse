@@ -1,4 +1,4 @@
-@model Interfaces.Magazyn.Dtos.AlertIndexDto
+﻿@model Interfaces.Magazyn.Dtos.AlertIndexDto
 
 @{
     ViewData["Title"] = "Alerty";
@@ -24,6 +24,21 @@
         </div>
     </section>
 
+    @if (TempData["AlertGenerateSuccess"] is string generateSuccess && !string.IsNullOrWhiteSpace(generateSuccess))
+    {
+        <div class="alert alert-success d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-check-circle mt-1"></i>
+            <span>@generateSuccess</span>
+        </div>
+    }
+    @if (TempData["AlertGenerateInfo"] is string generateInfo && !string.IsNullOrWhiteSpace(generateInfo))
+    {
+        <div class="alert alert-info d-flex align-items-start gap-2" role="alert">
+            <i class="bi bi-info-circle mt-1"></i>
+            <span>@generateInfo</span>
+        </div>
+    }
+
     <section class="news-admin-toolbar">
         <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie alertów">
             <label for="alertSearchTerm" class="visually-hidden">Szukaj alertów</label>
@@ -38,7 +53,14 @@
                 <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
             }
         </form>
-        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj alert</a>
+        <div class="d-flex gap-2 flex-wrap">
+            <form method="post" asp-action="GenerujZRegul" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="searchTerm" value="@searchTerm" />
+                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i> Generuj z reguł</button>
+            </form>
+            <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj alert</a>
+        </div>
     </section>
 
     @if (!items.Any())
@@ -57,6 +79,11 @@
                 }
             </p>
             <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <form method="post" asp-action="GenerujZRegul" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="searchTerm" value="@searchTerm" />
+                    <button type="submit" class="btn btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i> Generuj z reguł</button>
+                </form>
                 <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj alert</a>
                 @if (!string.IsNullOrWhiteSpace(searchTerm))
                 {

@@ -1,4 +1,4 @@
-using Data.Data;
+﻿using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using IntranetWeb.Controllers.Abstrakcja;
@@ -18,7 +18,11 @@ namespace IntranetWeb.Controllers
         private static readonly string[] DozwoloneStatusyCreate = ["Draft"];
         private static readonly string[] DozwoloneStatusyEdit = ["Draft", "Cancelled"];
 
-        public DokumentPZController(DataContext context, IDokumentPZService dokumentPzService, IWydrukDokumentuService wydrukDokumentuService) : base(context)
+        public DokumentPZController(
+            DataContext context,
+            IDokumentPZService dokumentPzService,
+            IWydrukDokumentuService wydrukDokumentuService,
+            IAlertService alertService) : base(context)
         {
             _dokumentPzService = dokumentPzService;
             _wydrukDokumentuService = wydrukDokumentuService;
@@ -73,7 +77,7 @@ namespace IntranetWeb.Controllers
 
             if (await CzyNumerDokumentuPzJuzIstniejeAsync(dokumentPZ.Numer, dokumentPZ.Id))
             {
-                ModelState.AddModelError(nameof(DokumentPZ.Numer), $"Dokument PZ o numerze '{dokumentPZ.Numer}' juz istnieje.");
+                ModelState.AddModelError(nameof(DokumentPZ.Numer), $"Dokument PZ o numerze '{dokumentPZ.Numer}' już istnieje.");
             }
 
             if (ModelState.IsValid)
@@ -113,7 +117,7 @@ namespace IntranetWeb.Controllers
 
             if (!string.Equals(dokumentPZ.Status, "Draft", StringComparison.OrdinalIgnoreCase))
             {
-                TempData["DokumentPZEditBlocked"] = "Edycja jest dostępna tylko dla dokumentow PZ w statusie Draft.";
+                TempData["DokumentPZEditBlocked"] = "Edycja jest dostępna tylko dla dokumentów PZ w statusie Draft.";
                 return RedirectToAction(nameof(Details), new { id = dokumentPZ.Id });
             }
 

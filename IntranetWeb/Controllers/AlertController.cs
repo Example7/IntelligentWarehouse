@@ -1,5 +1,4 @@
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Data.Data;
@@ -30,6 +29,23 @@ namespace IntranetWeb.Controllers
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerujZRegul(string? searchTerm)
+        {
+            var result = await _alertService.GenerujAlertyZRegulAsync();
+
+            TempData["AlertGenerateSuccess"] =
+                $"Przetworzono reguł: {result.LiczbaPrzetworzonychRegul}, sprawdzono pozycji: {result.LiczbaSprawdzonychPozycji}, utworzono alertów: {result.LiczbaNowychAlertow}, auto-potwierdzono: {result.LiczbaAutoPotwierdzonychAlertow}, pominięto duplikatów: {result.LiczbaPominietychDuplikatow}.";
+
+            if (result.LiczbaPominietychNieobslugiwanychRegul > 0)
+            {
+                TempData["AlertGenerateInfo"] =
+                    $"Pominięto nieobsługiwane typy reguł: {result.LiczbaPominietychNieobslugiwanychRegul} (np. Custom).";
+            }
+
+            return RedirectToAction(nameof(Index), new { searchTerm });
+        }
         // GET: Alert/Details/5
         public async Task<IActionResult> Details(long? id)
         {
@@ -215,7 +231,7 @@ namespace IntranetWeb.Controllers
                 .Select(r => new
                 {
                     r.Id,
-                    Label = $"{r.Typ} | {r.Magazyn.Nazwa} | {(r.Produkt != null ? r.Produkt.Kod : "og�lna")}" 
+                    Label = $"{r.Typ} | {r.Magazyn.Nazwa} | {(r.Produkt != null ? r.Produkt.Kod : "ogólna")}"
                 })
                 .ToList();
             ViewData["IdReguly"] = new SelectList(reguly, "Id", "Label", model.IdReguly);
@@ -256,5 +272,3 @@ namespace IntranetWeb.Controllers
         }
     }
 }
-
-

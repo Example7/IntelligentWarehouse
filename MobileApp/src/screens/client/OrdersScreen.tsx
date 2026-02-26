@@ -1,7 +1,7 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { Modal, Portal } from "react-native-paper";
+import { Chip, Modal, Portal, TextInput as PaperTextInput } from "react-native-paper";
 
 import { mobileApi } from "../../lib/api";
 import {
@@ -45,6 +45,8 @@ export function OrdersScreen({
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(LIST_PAGE_SIZE);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   async function loadList() {
     setError(null);
@@ -90,10 +92,58 @@ export function OrdersScreen({
     onOpenRequestHandled?.();
   }, [openRequest?.nonce]);
 
+  const availableStatuses = useMemo(
+    () => Array.from(new Set((items ?? []).map((x) => x.status))).filter(Boolean),
+    [items],
+  );
+
+  const filteredItems = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return (items ?? []).filter((item) => {
+      if (statusFilter !== "all" && item.status !== statusFilter) return false;
+      if (!term) return true;
+      return (
+        item.number.toLowerCase().includes(term) ||
+        item.warehouseName.toLowerCase().includes(term) ||
+        statusLabel(item.status, "wz").toLowerCase().includes(term)
+      );
+    });
+  }, [items, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    setVisibleCount(LIST_PAGE_SIZE);
+  }, [searchTerm, statusFilter, items]);
+
   return (
     <>
       <Card>
         <Text style={styles.sectionTitle}>Dokumenty WZ klienta</Text>
+        <PaperTextInput
+          mode="outlined"
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          placeholder="Szukaj po numerze, magazynie lub statusie"
+          style={styles.filterInput}
+          outlineStyle={styles.filterInputOutline}
+          textColor={colors.text}
+          placeholderTextColor={colors.muted}
+          theme={{ colors: { primary: colors.accent, onSurfaceVariant: colors.muted } }}
+          left={<PaperTextInput.Icon icon="magnify" color={colors.muted} />}
+        />
+        {availableStatuses.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+            <View style={styles.filterChipsRow}>
+              <Chip compact selected={statusFilter === "all"} onPress={() => setStatusFilter("all")}>
+                Wszystkie
+              </Chip>
+              {availableStatuses.map((status) => (
+                <Chip key={status} compact selected={statusFilter === status} onPress={() => setStatusFilter(status)}>
+                  {statusLabel(status, "wz")}
+                </Chip>
+              ))}
+            </View>
+          </ScrollView>
+        ) : null}
         {!items && !error ? (
           <LoadingBlock label="Pobieranie WZ..." />
         ) : error && !items ? (
@@ -101,7 +151,7 @@ export function OrdersScreen({
         ) : items && items.length === 0 ? (
           <EmptyBlock title="Brak dokumentów WZ" />
         ) : (
-          items?.slice(0, visibleCount).map((item) => (
+          filteredItems.slice(0, visibleCount).map((item) => (
             <ListItem
               key={item.orderId}
               title={item.number}
@@ -124,13 +174,13 @@ export function OrdersScreen({
             />
           ))
         )}
-        {items && items.length > visibleCount ? (
+        {items && filteredItems.length > visibleCount ? (
           <View style={{ marginTop: 10 }}>
             <ActionButton
-              label={`Pokaż więcej (${Math.min(visibleCount, items.length)}/${items.length})`}
+              label={`Pokaż więcej (${Math.min(visibleCount, filteredItems.length)}/${filteredItems.length})`}
               onPress={() =>
                 setVisibleCount((prev) =>
-                  Math.min(prev + LIST_PAGE_SIZE, items.length),
+                  Math.min(prev + LIST_PAGE_SIZE, filteredItems.length),
                 )
               }
               variant="secondary"
@@ -228,6 +278,19 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginBottom: 10,
   },
+  filterInput: {
+    backgroundColor: colors.cardAlt,
+    marginBottom: 10,
+  },
+  filterInputOutline: {
+    borderRadius: 12,
+    borderColor: colors.line,
+  },
+  filterChipsRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingBottom: 2,
+  },
   metricText: { color: colors.muted, fontSize: 11, marginTop: 4 },
   openHint: {
     color: colors.accent,
@@ -273,3 +336,5 @@ const styles = StyleSheet.create({
   },
   modalShell: { justifyContent: "center" },
 });
+
+

@@ -1,7 +1,7 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { Modal, Portal } from "react-native-paper";
+import { Chip, Modal, Portal, TextInput as PaperTextInput } from "react-native-paper";
 
 import { mobileApi } from "../../lib/api";
 import {
@@ -56,6 +56,8 @@ export function ReservationsScreen({
     reservationId: number;
   } | null>(null);
   const [visibleCount, setVisibleCount] = useState(LIST_PAGE_SIZE);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   async function loadList() {
     setError(null);
@@ -108,6 +110,28 @@ export function ReservationsScreen({
     onOpenRequestHandled?.();
   }, [openRequest?.nonce]);
 
+  const availableStatuses = useMemo(
+    () => Array.from(new Set((items ?? []).map((x) => x.status))).filter(Boolean),
+    [items],
+  );
+
+  const filteredItems = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return (items ?? []).filter((item) => {
+      if (statusFilter !== "all" && item.status !== statusFilter) return false;
+      if (!term) return true;
+      return (
+        item.number.toLowerCase().includes(term) ||
+        item.warehouseName.toLowerCase().includes(term) ||
+        statusLabel(item.status, "reservation").toLowerCase().includes(term)
+      );
+    });
+  }, [items, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    setVisibleCount(LIST_PAGE_SIZE);
+  }, [searchTerm, statusFilter, items]);
+
   return (
     <>
       <Card>
@@ -115,6 +139,32 @@ export function ReservationsScreen({
           title="Rezerwacje"
           subtitle="Lista, statusy i podgląd szczegółów"
         />
+        <PaperTextInput
+          mode="outlined"
+          value={searchTerm}
+          onChangeText={setSearchTerm}
+          placeholder="Szukaj po numerze, magazynie lub statusie"
+          style={styles.filterInput}
+          outlineStyle={styles.filterInputOutline}
+          textColor={colors.text}
+          placeholderTextColor={colors.muted}
+          theme={{ colors: { primary: colors.accent, onSurfaceVariant: colors.muted } }}
+          left={<PaperTextInput.Icon icon="magnify" color={colors.muted} />}
+        />
+        {availableStatuses.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+            <View style={styles.filterChipsRow}>
+              <Chip compact selected={statusFilter === "all"} onPress={() => setStatusFilter("all")}>
+                Wszystkie
+              </Chip>
+              {availableStatuses.map((status) => (
+                <Chip key={status} compact selected={statusFilter === status} onPress={() => setStatusFilter(status)}>
+                  {statusLabel(status, "reservation")}
+                </Chip>
+              ))}
+            </View>
+          </ScrollView>
+        ) : null}
         {successBanner ? (
           <View style={styles.successBanner}>
             <View style={styles.successBannerIconCircle}>
@@ -145,7 +195,7 @@ export function ReservationsScreen({
             subtitle="Utwórz pierwszą rezerwację w zakładce Prod."
           />
         ) : (
-          items?.slice(0, visibleCount).map((item) => (
+          filteredItems.slice(0, visibleCount).map((item) => (
             <ListItem
               key={item.reservationId}
               title={item.number}
@@ -165,13 +215,13 @@ export function ReservationsScreen({
             />
           ))
         )}
-        {items && items.length > visibleCount ? (
+        {items && filteredItems.length > visibleCount ? (
           <View style={{ marginTop: 10 }}>
             <ActionButton
-              label={`Pokaż więcej (${Math.min(visibleCount, items.length)}/${items.length})`}
+              label={`Pokaż więcej (${Math.min(visibleCount, filteredItems.length)}/${filteredItems.length})`}
               onPress={() =>
                 setVisibleCount((prev) =>
-                  Math.min(prev + LIST_PAGE_SIZE, items.length),
+                  Math.min(prev + LIST_PAGE_SIZE, filteredItems.length),
                 )
               }
               variant="secondary"
@@ -262,6 +312,19 @@ export function ReservationsScreen({
 }
 
 const styles = StyleSheet.create({
+  filterInput: {
+    backgroundColor: colors.cardAlt,
+    marginBottom: 10,
+  },
+  filterInputOutline: {
+    borderRadius: 12,
+    borderColor: colors.line,
+  },
+  filterChipsRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingBottom: 2,
+  },
   subsection: {
     color: colors.text,
     fontWeight: "800",
@@ -340,3 +403,6 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
 });
+
+
+

@@ -277,20 +277,20 @@ export function ClientShell({
     setSelectedWarehouseId(nextWarehouseId);
   }
 
-  const hasClientRole = session.roles.some((r) => r.toLowerCase() === "client");
+  const hasClientRole = session.roles.some((r) => r.toLowerCase() === "klient");
   if (!hasClientRole) {
     return (
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Card>
           <SectionTitle
-            title="Konto bez roli Client"
+            title="Konto bez roli Klient"
             subtitle="Logowanie poprawne, ale brak autoryzacji kanału klienta."
           />
           <DataRow label="Login" value={session.login} />
           <DataRow label="Email" value={session.email} />
           <DataRow label="Role" value={session.roles.join(", ")} />
           <Text style={styles.hint}>
-            MobileApi wymaga roli Client i powiązania klienta biznesowego
+            MobileApi wymaga roli Klient i powiązania klienta biznesowego
             (Customers.UserId) z zalogowanym użytkownikiem.
           </Text>
           <View style={{ marginTop: 12 }}>
@@ -406,7 +406,7 @@ export function ClientShell({
           </Text>
         </View>
         <View style={styles.headerRight}>
-          <Pill label="Client" tone="good" />
+          <Pill label="Klient" tone="good" />
           <IconButton
             icon="logout"
             size={20}
@@ -584,7 +584,8 @@ export function ClientShell({
         </Modal>
       </Portal>
 
-      <Portal>
+      {clearCartConfirmOpen ? (
+        <Portal>
         <Dialog
           visible={clearCartConfirmOpen}
           onDismiss={() => setClearCartConfirmOpen(false)}
@@ -635,7 +636,8 @@ export function ClientShell({
             </View>
           </Dialog.Actions>
         </Dialog>
-      </Portal>
+        </Portal>
+      ) : null}
 
       {!cartOpen ? (
         <View pointerEvents="box-none" style={styles.fabLayer}>

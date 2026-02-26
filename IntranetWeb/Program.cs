@@ -33,6 +33,7 @@ builder.Services.AddCmsAppServices();
 builder.Services.AddDashboardAppServices();
 builder.Services.AddWarehouseAppServices();
 builder.Services.AddHostedService<ExpiredReservationsReleaseHostedService>();
+builder.Services.AddHostedService<AlertRulesRefreshHostedService>();
 
 var app = builder.Build();
 

@@ -62,4 +62,37 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        (function () {
+            const productSelect = document.getElementById('IdProduktu');
+            const ruleTypeSelect = document.getElementById('Typ');
+            const thresholdInput = document.getElementById('Prog');
+            if (!productSelect || !ruleTypeSelect || !thresholdInput) return;
+
+            async function applySuggestedThreshold() {
+                const productId = productSelect.value;
+                const ruleType = ruleTypeSelect.value;
+                if (!productId || !ruleType) return;
+
+                const url = new URL('@Url.Action("SuggestThreshold", "RegulaAlertu")', window.location.origin);
+                url.searchParams.set('idProduktu', productId);
+                url.searchParams.set('typ', ruleType);
+
+                try {
+                    const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    if (!response.ok) return;
+                    const data = await response.json();
+                    if (!data || !data.success || data.threshold === undefined || data.threshold === null) return;
+
+                    const next = Number(data.threshold);
+                    thresholdInput.value = Number.isFinite(next) ? next.toFixed(3) : data.threshold;
+                } catch {
+                    // no-op: suggestion is UX helper only
+                }
+            }
+
+            productSelect.addEventListener('change', applySuggestedThreshold);
+            ruleTypeSelect.addEventListener('change', applySuggestedThreshold);
+        })();
+    </script>
 }
