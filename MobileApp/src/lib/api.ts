@@ -5,6 +5,8 @@ import type {
   ClientDashboardDto,
   ClientCreateReservationRequestDto,
   ClientCreateReservationResponseDto,
+  RegisterClientRequestDto,
+  RegisterClientResponseDto,
   ClientNotificationDto,
   ClientOrderDetailsDto,
   ClientOrderListItemDto,
@@ -105,6 +107,12 @@ export const mobileApi = {
     return request<ChangePasswordResponseDto>(baseUrl, "/api/auth/change-password", {
       method: "POST",
       token,
+      body,
+    });
+  },
+  registerClient(baseUrl: string, body: RegisterClientRequestDto) {
+    return request<RegisterClientResponseDto>(baseUrl, "/api/auth/register-client", {
+      method: "POST",
       body,
     });
   },

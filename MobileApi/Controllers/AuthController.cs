@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using MobileApi.Models.Auth;
 using MobileApi.Services;
 
@@ -72,6 +73,106 @@ public class AuthController : ControllerBase
             Email = user.Email,
             Roles = roles
         });
+    }
+
+    [HttpPost("register-client")]
+    [AllowAnonymous]
+    public async Task<ActionResult<RegisterClientResponseDto>> RegisterClient([FromBody] RegisterClientRequestDto request)
+    {
+        var name = (request.Name ?? string.Empty).Trim();
+        var login = (request.Login ?? string.Empty).Trim();
+        var email = (request.Email ?? string.Empty).Trim();
+        var phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+        var address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return BadRequest("Nazwa klienta jest wymagana.");
+        }
+
+        if (string.IsNullOrWhiteSpace(login))
+        {
+            return BadRequest("Login jest wymagany.");
+        }
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return BadRequest("Email jest wymagany.");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest("Hasło jest wymagane.");
+        }
+
+        if (!string.Equals(request.Password, request.ConfirmPassword, StringComparison.Ordinal))
+        {
+            return BadRequest("Hasło i potwierdzenie hasła muszą być takie same.");
+        }
+
+        if (request.Password.Length < 8)
+        {
+            return BadRequest("Hasło musi mieć co najmniej 8 znaków.");
+        }
+
+        if (await _context.Uzytkownik.AsNoTracking().AnyAsync(x => x.Login == login))
+        {
+            return Conflict($"Login '{login}' jest już zajęty.");
+        }
+
+        if (await _context.Uzytkownik.AsNoTracking().AnyAsync(x => x.Email == email))
+        {
+            return Conflict($"Email '{email}' jest już zajęty.");
+        }
+
+        await using IDbContextTransaction tx = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var user = new Uzytkownik
+            {
+                Login = login,
+                Email = email,
+                CzyAktywny = true
+            };
+
+            user.HashHasla = HashPassword(user, request.Password);
+            _context.Uzytkownik.Add(user);
+            await _context.SaveChangesAsync();
+
+            var klientRole = await EnsureClientRoleAsync();
+            _context.UzytkownikRola.Add(new UzytkownikRola
+            {
+                IdUzytkownika = user.IdUzytkownika,
+                IdRoli = klientRole.IdRoli
+            });
+
+            var klient = new Klient
+            {
+                Nazwa = name,
+                Email = email,
+                Telefon = phone,
+                Adres = address,
+                IdUzytkownika = user.IdUzytkownika,
+                CzyAktywny = true,
+                UtworzonoUtc = DateTime.UtcNow
+            };
+
+            _context.Klient.Add(klient);
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+
+            return Ok(new RegisterClientResponseDto
+            {
+                UserId = user.IdUzytkownika,
+                CustomerId = klient.IdKlienta,
+                Message = "Konto zostało utworzone."
+            });
+        }
+        catch (DbUpdateException)
+        {
+            await tx.RollbackAsync();
+            return BadRequest("Nie udało się utworzyć konta. Sprawdź dane i spróbuj ponownie.");
+        }
     }
 
     [HttpGet("me")]
@@ -165,5 +266,21 @@ public class AuthController : ControllerBase
     {
         var identityHasher = new PasswordHasher<Uzytkownik>();
         return identityHasher.HashPassword(user, password);
+    }
+
+    private async Task<Rola> EnsureClientRoleAsync()
+    {
+        var existingRole = await _context.Rola
+            .FirstOrDefaultAsync(r => r.Nazwa == "Klient" || r.Nazwa == "Client");
+
+        if (existingRole != null)
+        {
+            return existingRole;
+        }
+
+        var role = new Rola { Nazwa = "Klient" };
+        _context.Rola.Add(role);
+        await _context.SaveChangesAsync();
+        return role;
     }
 }

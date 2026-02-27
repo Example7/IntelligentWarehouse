@@ -22,8 +22,6 @@
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate autocomplete="off">
-            <input type="text" name="fakeUsername" class="d-none" tabindex="-1" autocomplete="username" aria-hidden="true" />
-            <input type="password" name="fakePassword" class="d-none" tabindex="-1" autocomplete="current-password" aria-hidden="true" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
 
             <div class="news-form-grid">
@@ -55,56 +53,6 @@
                 </div>
             </div>
 
-            @if (User.IsInRole("Admin"))
-            {
-                <div class="client-account-create-block mt-3">
-                    <div class="form-check news-form-check">
-                        <input class="form-check-input" asp-for="UtworzKontoMobilne" id="toggleMobileAccountCreate" />
-                        <label class="form-check-label news-form-label mb-0" asp-for="UtworzKontoMobilne"></label>
-                        <span asp-validation-for="UtworzKontoMobilne" class="text-danger small d-block mt-1"></span>
-                    </div>
-
-                    <div id="mobileAccountFields" class="client-account-create-fields @(Model.UtworzKontoMobilne ? string.Empty : "d-none")">
-                        <div class="client-account-create-info">
-                            <div class="client-account-create-info__icon"><i class="bi bi-phone"></i></div>
-                            <div>
-                                <div class="client-account-create-info__title">Konto mobilne klienta</div>
-                                <div class="client-account-create-info__text">Po zapisaniu klienta system utworzy konto i przypisze rolę klienta.</div>
-                            </div>
-                        </div>
-
-                        <div class="news-form-grid">
-                            <div class="news-form-field">
-                                <label asp-for="LoginMobilny" class="form-label news-form-label"></label>
-                                <input asp-for="LoginMobilny" class="form-control news-form-control" autocomplete="off" />
-                                <span asp-validation-for="LoginMobilny" class="text-danger small"></span>
-                            </div>
-                            <div class="news-form-field">
-                                <label asp-for="EmailMobilny" class="form-label news-form-label"></label>
-                                <input asp-for="EmailMobilny" class="form-control news-form-control" autocomplete="off" />
-                                <span asp-validation-for="EmailMobilny" class="text-danger small"></span>
-                            </div>
-                            <div class="news-form-field">
-                                <label asp-for="HasloMobilne" class="form-label news-form-label"></label>
-                                <input asp-for="HasloMobilne" class="form-control news-form-control" autocomplete="new-password" />
-                                <span asp-validation-for="HasloMobilne" class="text-danger small"></span>
-                            </div>
-                            <div class="news-form-field">
-                                <label asp-for="PotwierdzHasloMobilne" class="form-label news-form-label"></label>
-                                <input asp-for="PotwierdzHasloMobilne" class="form-control news-form-control" autocomplete="new-password" />
-                                <span asp-validation-for="PotwierdzHasloMobilne" class="text-danger small"></span>
-                            </div>
-                            <div class="news-form-field news-form-field--full">
-                                <div class="form-check news-form-check">
-                                    <input asp-for="CzyAktywneKontoMobilne" class="form-check-input" />
-                                    <label asp-for="CzyAktywneKontoMobilne" class="form-check-label news-form-label mb-0"></label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz klienta</button>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
@@ -115,20 +63,4 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-    <script>
-        (function () {
-            const toggle = document.getElementById('toggleMobileAccountCreate');
-            const fields = document.getElementById('mobileAccountFields');
-            if (!toggle || !fields) {
-                return;
-            }
-
-            const sync = () => {
-                fields.classList.toggle('d-none', !toggle.checked);
-            };
-
-            toggle.addEventListener('change', sync);
-            sync();
-        })();
-    </script>
 }

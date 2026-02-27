@@ -33,7 +33,7 @@
                 <a asp-action="Edit" asp-route-id="@klient.IdKlienta" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
                 @if (isAdmin)
                 {
-                <a asp-action="Delete" asp-route-id="@klient.IdKlienta" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                    <a asp-action="Delete" asp-route-id="@klient.IdKlienta" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 }
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
@@ -69,75 +69,12 @@
                     <div class="news-details-item__value">@(Model.RoleKontaMobilnego.Any() ? string.Join(", ", Model.RoleKontaMobilnego) : "-")</div>
                 </div>
             </div>
-            <div class="client-account-feedback">
-                <div class="client-account-note client-account-note--info">Konto mobilne jest już przypisane do tego klienta.</div>
-
-                @if (!Model.CzyKontoMobilneMaRoleKlienta || Model.CzyKontoMobilneMaRolePracownicze)
-                {
-                    <div class="client-account-note client-account-note--warning">
-                        To konto nie jest poprawnym kontem klienta (role: @(Model.RoleKontaMobilnego.Any() ? string.Join(", ", Model.RoleKontaMobilnego) : "brak")).
-                        Zalecane: odłączyć konto i utworzyć dedykowane konto klienta.
-                    </div>
-                }
-
-                <div class="client-account-actions">
-                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#unlinkMobileAccountModal">
-                        <i class="bi bi-person-dash me-1"></i> Odłącz konto mobilne
-                    </button>
-                </div>
-            </div>
         }
         else
         {
-            <form asp-action="UtworzKontoMobilne" method="post" novalidate class="news-editor-form client-account-create-form" autocomplete="off">
-                @Html.AntiForgeryToken()
-                <input type="text" name="fakeUsername" class="d-none" tabindex="-1" autocomplete="username" aria-hidden="true" />
-                <input type="password" name="fakePassword" class="d-none" tabindex="-1" autocomplete="current-password" aria-hidden="true" />
-                <input asp-for="KontoMobilne.KlientId" type="hidden" value="@klient.IdKlienta" />
-
-                <div class="client-account-create-info">
-                    <div class="client-account-create-info__icon"><i class="bi bi-phone"></i></div>
-                    <div>
-                        <div class="client-account-create-info__title">Brak konta mobilnego</div>
-                        <div class="client-account-create-info__text">Utwórz konto, aby klient mógł logować się w MobileApp i składać rezerwacje.</div>
-                    </div>
-                </div>
-
-                <div asp-validation-summary="ModelOnly" class="news-form-validation text-danger"></div>
-
-                <div class="news-form-grid">
-                    <div class="news-form-field">
-                        <label asp-for="KontoMobilne.Login" class="form-label"></label>
-                        <input asp-for="KontoMobilne.Login" class="form-control news-form-control" autocomplete="off" />
-                        <span asp-validation-for="KontoMobilne.Login" class="text-danger"></span>
-                    </div>
-                    <div class="news-form-field">
-                        <label asp-for="KontoMobilne.Email" class="form-label"></label>
-                        <input asp-for="KontoMobilne.Email" class="form-control news-form-control" autocomplete="off" />
-                        <span asp-validation-for="KontoMobilne.Email" class="text-danger"></span>
-                    </div>
-                    <div class="news-form-field">
-                        <label asp-for="KontoMobilne.Password" class="form-label"></label>
-                        <input asp-for="KontoMobilne.Password" class="form-control news-form-control" autocomplete="new-password" />
-                        <span asp-validation-for="KontoMobilne.Password" class="text-danger"></span>
-                    </div>
-                    <div class="news-form-field">
-                        <label asp-for="KontoMobilne.ConfirmPassword" class="form-label"></label>
-                        <input asp-for="KontoMobilne.ConfirmPassword" class="form-control news-form-control" autocomplete="new-password" />
-                        <span asp-validation-for="KontoMobilne.ConfirmPassword" class="text-danger"></span>
-                    </div>
-                    <div class="news-form-field news-form-field--full">
-                        <div class="form-check news-form-check">
-                            <input asp-for="KontoMobilne.IsActive" class="form-check-input" />
-                            <label asp-for="KontoMobilne.IsActive" class="form-check-label"></label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="news-form-actions">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-person-plus me-1"></i> Utwórz konto mobilne</button>
-                </div>
-            </form>
+            <div class="client-account-feedback">
+                <div class="client-account-note client-account-note--warning">Brak konta mobilnego. Klient musi zarejestrować konto w MobileApp.</div>
+            </div>
         }
     </section>
 
@@ -227,38 +164,3 @@
         </div>
     </section>
 </div>
-
-@if (klient.IdUzytkownika.HasValue && klient.Uzytkownik != null)
-{
-    <div class="modal fade" id="unlinkMobileAccountModal" tabindex="-1" aria-labelledby="unlinkMobileAccountModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="unlinkMobileAccountModalLabel">Potwierdź odłączenie konta</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="mb-2">Na pewno odłączyć konto mobilne od tego klienta?</p>
-                    <div class="small text-muted">
-                        Konto: <strong>@klient.Uzytkownik.Login</strong> (@klient.Uzytkownik.Email)
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Anuluj</button>
-                    <form asp-action="OdlaczKontoMobilne" method="post" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@klient.IdKlienta" />
-                        <button type="submit" class="btn btn-danger">
-                            <i class="bi bi-person-dash me-1"></i> Odłącz konto
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
-@section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-}
-

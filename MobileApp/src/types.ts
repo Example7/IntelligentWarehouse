@@ -26,6 +26,22 @@ export interface ChangePasswordResponseDto {
   message: string;
 }
 
+export interface RegisterClientRequestDto {
+  name: string;
+  login: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  phone?: string | null;
+  address?: string | null;
+}
+
+export interface RegisterClientResponseDto {
+  userId: number;
+  customerId: number;
+  message: string;
+}
+
 export interface ClientOrderListItemDto {
   orderId: number;
   number: string;
