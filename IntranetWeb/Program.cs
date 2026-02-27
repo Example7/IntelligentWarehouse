@@ -1,12 +1,16 @@
 using Data.Data;
+using Data.Auditing;
 using Microsoft.EntityFrameworkCore;
 using IntranetWeb.HostedServices;
+using IntranetWeb.Security;
 using Services.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditActorProvider, HttpContextAuditActorProvider>();
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DataContext") ?? throw new InvalidOperationException("Connection string 'DataContext' not found.")));
 

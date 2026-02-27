@@ -100,7 +100,17 @@ namespace IntranetWeb.Controllers
             {
                 try
                 {
-                    _context.Update(magazyn);
+                    var existing = await _context.Magazyn
+                        .FirstOrDefaultAsync(x => x.IdMagazynu == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existing.Nazwa = magazyn.Nazwa;
+                    existing.Adres = magazyn.Adres;
+                    existing.CzyAktywny = magazyn.CzyAktywny;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

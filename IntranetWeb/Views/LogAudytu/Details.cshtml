@@ -1,8 +1,149 @@
 @model Interfaces.Magazyn.Dtos.LogAudytuDetailsDto
+@using System.Text.Json
+
+@functions {
+    private static string? ResolveControllerName(string? entityName)
+    {
+        if (string.IsNullOrWhiteSpace(entityName))
+        {
+            return null;
+        }
+
+        return entityName.Trim() switch
+        {
+            "Aktualnosc" => "Aktualnosc",
+            "Alert" => "Alert",
+            "DokumentMM" => "DokumentMM",
+            "DokumentPZ" => "DokumentPZ",
+            "DokumentWZ" => "DokumentWZ",
+            "Dostawca" => "Dostawca",
+            "Inwentaryzacja" => "Inwentaryzacja",
+            "JednostkaMiary" => "JednostkaMiary",
+            "Kategoria" => "Kategoria",
+            "Klient" => "Klient",
+            "KodProduktu" => "KodProduktu",
+            "Lokacja" => "Lokacja",
+            "Magazyn" => "Magazyn",
+            "Partia" => "Partia",
+            "PlikMedia" => "PlikMedia",
+            "PozycjaInwentaryzacji" => "PozycjaInwentaryzacji",
+            "PozycjaMM" => "PozycjaMM",
+            "PozycjaPZ" => "PozycjaPZ",
+            "PozycjaRezerwacji" => "PozycjaRezerwacji",
+            "PozycjaWZ" => "PozycjaWZ",
+            "Produkt" => "Produkt",
+            "ProduktJednostka" => "ProduktJednostka",
+            "RegulaAlertu" => "RegulaAlertu",
+            "Rezerwacja" => "Rezerwacja",
+            "Rola" => "Rola",
+            "RuchMagazynowy" => "RuchMagazynowy",
+            "StanMagazynowy" => "StanMagazynowy",
+            "Strona" => "Strona",
+            "SzablonWydruku" => "SzablonWydruku",
+            "UstawienieAplikacji" => "UstawienieAplikacji",
+            "Uzytkownik" => "Uzytkownik",
+            "UzytkownikRola" => "UzytkownikRola",
+            "ZalacznikDokumentu" => "ZalacznikDokumentu",
+            _ => null
+        };
+    }
+
+    private static string ResolveEntityDisplayName(string? entityName)
+    {
+        if (string.IsNullOrWhiteSpace(entityName))
+        {
+            return "-";
+        }
+
+        return entityName.Trim() switch
+        {
+            "Aktualnosc" => "Aktualność",
+            "Alert" => "Alert",
+            "DokumentMM" => "Dokument MM",
+            "DokumentPZ" => "Dokument PZ",
+            "DokumentWZ" => "Dokument WZ",
+            "Dostawca" => "Dostawca",
+            "Inwentaryzacja" => "Inwentaryzacja",
+            "JednostkaMiary" => "Jednostka miary",
+            "Kategoria" => "Kategoria",
+            "Klient" => "Klient",
+            "KodProduktu" => "Kod produktu",
+            "Lokacja" => "Lokacja",
+            "Magazyn" => "Magazyn",
+            "Partia" => "Partia",
+            "PlikMedia" => "Plik media",
+            "PozycjaInwentaryzacji" => "Pozycja inwentaryzacji",
+            "PozycjaMM" => "Pozycja MM",
+            "PozycjaPZ" => "Pozycja PZ",
+            "PozycjaRezerwacji" => "Pozycja rezerwacji",
+            "PozycjaWZ" => "Pozycja WZ",
+            "Produkt" => "Produkt",
+            "ProduktJednostka" => "Produkt - jednostka",
+            "RegulaAlertu" => "Reguła alertu",
+            "Rezerwacja" => "Rezerwacja",
+            "Rola" => "Rola",
+            "RuchMagazynowy" => "Ruch magazynowy",
+            "StanMagazynowy" => "Stan magazynowy",
+            "Strona" => "Strona",
+            "SzablonWydruku" => "Szablon wydruku",
+            "UstawienieAplikacji" => "Ustawienie aplikacji",
+            "Uzytkownik" => "Użytkownik",
+            "UzytkownikRola" => "Użytkownik - rola",
+            "ZalacznikDokumentu" => "Załącznik dokumentu",
+            _ => entityName.Trim()
+        };
+    }
+
+    private static string? ParseSingleEntityRouteId(string? entityId)
+    {
+        if (string.IsNullOrWhiteSpace(entityId))
+        {
+            return null;
+        }
+
+        var parts = entityId.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length != 1)
+        {
+            return null;
+        }
+
+        var separatorIndex = parts[0].IndexOf('=');
+        if (separatorIndex < 0)
+        {
+            return parts[0].Trim();
+        }
+
+        if (separatorIndex == parts[0].Length - 1)
+        {
+            return null;
+        }
+
+        return parts[0][(separatorIndex + 1)..].Trim();
+    }
+
+    private static string PrettyJson(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(doc, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch
+        {
+            return json;
+        }
+    }
+}
 
 @{
     ViewData["Title"] = "Szczegóły wpisu audytu";
     var log = Model.Log;
+    var changes = Model.Changes ?? new List<Interfaces.Magazyn.Dtos.LogAudytuChangeDto>();
     var actionClass = string.Equals(log.Akcja, "DELETE", StringComparison.OrdinalIgnoreCase)
         ? "entity-badge--danger"
         : string.Equals(log.Akcja, "UPDATE", StringComparison.OrdinalIgnoreCase)
@@ -10,6 +151,13 @@
             : string.Equals(log.Akcja, "CREATE", StringComparison.OrdinalIgnoreCase)
                 ? "entity-badge--success"
                 : "entity-badge--muted";
+    var isSessionEvent = string.Equals(log.Akcja, "LOGIN", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(log.Akcja, "LOGOUT", StringComparison.OrdinalIgnoreCase);
+    var entityController = ResolveControllerName(log.Encja);
+    var entityRouteId = ParseSingleEntityRouteId(log.IdEncji);
+    var entityDetailsUrl = !string.IsNullOrWhiteSpace(entityController) && !string.IsNullOrWhiteSpace(entityRouteId)
+        ? Url.Action("Details", entityController, new { id = entityRouteId })
+        : null;
 }
 
 <div class="news-admin-page">
@@ -18,58 +166,157 @@
             <span class="news-admin-header__icon"><i class="bi bi-journal-text"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szczegóły wpisu audytu</h1>
-                <p class="news-admin-header__subheading mb-0">Podgląd akcji, encji, czasu wykonania i danych przed/po zmianie.</p>
+                <p class="news-admin-header__subheading mb-0">Podgląd akcji, encji i zmian danych.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
             <div class="news-admin-stat"><span class="news-admin-stat__label">ID</span><strong class="news-admin-stat__value">@log.Id</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Akcja</span><strong class="news-admin-stat__value">@log.Akcja</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Encja</span><strong class="news-admin-stat__value">@ResolveEntityDisplayName(log.Encja)</strong></div>
         </div>
     </section>
 
     <section class="news-details-panel">
         <div class="news-details-panel__header">
-            <h2 class="news-details-panel__title">@log.Encja</h2>
+            <h2 class="news-details-panel__title">Metadane operacji</h2>
             <div class="news-details-panel__actions">
-                <a asp-action="Edit" asp-route-id="@log.Id" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@log.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
 
         <div class="news-details-grid">
             <div class="news-details-item"><div class="news-details-item__label">Akcja</div><div class="news-details-item__value"><span class="entity-badge @actionClass">@log.Akcja</span></div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Encja</div><div class="news-details-item__value">@log.Encja</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">ID encji</div><div class="news-details-item__value entity-mono">@(string.IsNullOrWhiteSpace(log.IdEncji) ? "-" : log.IdEncji)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Encja</div><div class="news-details-item__value">@ResolveEntityDisplayName(log.Encja)</div></div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">ID encji</div>
+                <div class="news-details-item__value">
+                    <div class="entity-mono">@(string.IsNullOrWhiteSpace(log.IdEncji) ? "-" : log.IdEncji)</div>
+                    @if (!string.IsNullOrWhiteSpace(entityDetailsUrl))
+                    {
+                        <div class="mt-2">
+                            <a class="btn btn-sm btn-outline-info" href="@entityDetailsUrl"><i class="bi bi-box-arrow-up-right me-1"></i> Szczegóły encji</a>
+                        </div>
+                    }
+                </div>
+            </div>
             <div class="news-details-item"><div class="news-details-item__label">Użytkownik</div><div class="news-details-item__value">@(log.Uzytkownik?.Email ?? "System")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">UserId</div><div class="news-details-item__value">@(log.UserId?.ToString() ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">ID użytkownika</div><div class="news-details-item__value">@(log.UserId?.ToString() ?? "-")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Kiedy</div><div class="news-details-item__value">@log.KiedyUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
-            <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">Stare JSON</div>
-                <div class="news-details-item__value news-details-item__value--content">
-                    @if (string.IsNullOrWhiteSpace(log.StareJson))
-                    {
-                        <span class="text-muted">Brak danych.</span>
-                    }
-                    else
-                    {
-                        <pre class="mb-0 entity-json-block">@log.StareJson</pre>
-                    }
-                </div>
-            </div>
-            <div class="news-details-item news-details-item--full">
-                <div class="news-details-item__label">Nowe JSON</div>
-                <div class="news-details-item__value news-details-item__value--content">
-                    @if (string.IsNullOrWhiteSpace(log.NoweJson))
-                    {
-                        <span class="text-muted">Brak danych.</span>
-                    }
-                    else
-                    {
-                        <pre class="mb-0 entity-json-block">@log.NoweJson</pre>
-                    }
-                </div>
-            </div>
         </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">Zmiany w polach</h2>
+        </div>
+
+        @if (!changes.Any())
+        {
+            <div class="news-details-item">
+                <div class="news-details-item__value py-3">
+                    @if (isSessionEvent)
+                    {
+                        <span class="text-muted">To zdarzenie sesji użytkownika (logowanie/wylogowanie) bez zmiany encji.</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Brak różnic między wartościami przed i po zmianie.</span>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="entity-table-wrap">
+                <table class="table table-hover align-middle mb-0 entity-table">
+                    <thead>
+                        <tr>
+                            <th>Pole</th>
+                            <th>Przed</th>
+                            <th>Po</th>
+                            <th>Typ zmiany</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var row in changes)
+                    {
+                        var oldRaw = string.IsNullOrWhiteSpace(row.OldValue) ? "-" : row.OldValue;
+                        var newRaw = string.IsNullOrWhiteSpace(row.NewValue) ? "-" : row.NewValue;
+                        var oldDisplay = string.IsNullOrWhiteSpace(row.OldDisplayValue) ? null : row.OldDisplayValue;
+                        var newDisplay = string.IsNullOrWhiteSpace(row.NewDisplayValue) ? null : row.NewDisplayValue;
+                        <tr>
+                            <td>
+                                <div class="entity-cell-title">@row.FieldLabel</div>
+                                @if (!string.Equals(row.FieldLabel, row.FieldKey, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    <div class="entity-cell-subtitle entity-mono">@row.FieldKey</div>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(oldDisplay))
+                                {
+                                    <div class="entity-cell-title">@oldDisplay</div>
+                                    <div class="entity-cell-subtitle entity-mono">@oldRaw</div>
+                                }
+                                else
+                                {
+                                    <span class="entity-mono">@oldRaw</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(newDisplay))
+                                {
+                                    <div class="entity-cell-title">@newDisplay</div>
+                                    <div class="entity-cell-subtitle entity-mono">@newRaw</div>
+                                }
+                                else
+                                {
+                                    <span class="entity-mono">@newRaw</span>
+                                }
+                            </td>
+                            <td>@row.ChangeType</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">Dane techniczne (opcjonalnie)</h2>
+        </div>
+        <details class="px-3 pb-3">
+            <summary class="btn btn-sm btn-outline-secondary mt-2">Pokaż JSON techniczny</summary>
+            <div class="news-details-grid mt-3">
+                <div class="news-details-item news-details-item--full">
+                    <div class="news-details-item__label">Stare JSON</div>
+                    <div class="news-details-item__value news-details-item__value--content">
+                        @if (string.IsNullOrWhiteSpace(log.StareJson))
+                        {
+                            <span class="text-muted">Brak danych.</span>
+                        }
+                        else
+                        {
+                            <pre class="mb-0 entity-json-block">@PrettyJson(log.StareJson)</pre>
+                        }
+                    </div>
+                </div>
+                <div class="news-details-item news-details-item--full">
+                    <div class="news-details-item__label">Nowe JSON</div>
+                    <div class="news-details-item__value news-details-item__value--content">
+                        @if (string.IsNullOrWhiteSpace(log.NoweJson))
+                        {
+                            <span class="text-muted">Brak danych.</span>
+                        }
+                        else
+                        {
+                            <pre class="mb-0 entity-json-block">@PrettyJson(log.NoweJson)</pre>
+                        }
+                    </div>
+                </div>
+            </div>
+        </details>
     </section>
 </div>

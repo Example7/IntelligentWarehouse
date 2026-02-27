@@ -1,13 +1,24 @@
-﻿using MagazynEntity = global::Data.Data.Magazyn.Magazyn;
+﻿using Data.Auditing;
+using MagazynEntity = global::Data.Data.Magazyn.Magazyn;
 using Data.Data.CMS;
 using Data.Data.Magazyn;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata;
+using System.Text.Json;
 
 namespace Data.Data
 {
     public class DataContext : DbContext
     {
-        public DataContext(DbContextOptions<DataContext> options) : base(options) { }
+        private static readonly JsonSerializerOptions AuditJsonOptions = new(JsonSerializerDefaults.Web);
+        private readonly IAuditActorProvider? _auditActorProvider;
+        private bool _isWritingAuditLog;
+
+        public DataContext(DbContextOptions<DataContext> options, IAuditActorProvider? auditActorProvider = null) : base(options)
+        {
+            _auditActorProvider = auditActorProvider;
+        }
 
         public DbSet<Aktualnosc> Aktualnosc { get; set; } = default!;
         public DbSet<Strona> Strona { get; set; } = default!;
@@ -49,6 +60,307 @@ namespace Data.Data
         public DbSet<UstawienieAplikacji> UstawienieAplikacji { get; set; } = default!;
         public DbSet<RegulaAlertu> RegulaAlertu { get; set; } = default!;
         public DbSet<Alert> Alert { get; set; } = default!;
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            if (_isWritingAuditLog)
+            {
+                return base.SaveChanges(acceptAllChangesOnSuccess);
+            }
+
+            var pendingLogs = PreparePendingAuditEntries();
+            var result = base.SaveChanges(acceptAllChangesOnSuccess);
+            PersistAuditEntries(pendingLogs, acceptAllChangesOnSuccess);
+            return result;
+        }
+
+        public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            if (_isWritingAuditLog)
+            {
+                return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            }
+
+            var pendingLogs = PreparePendingAuditEntries();
+            var result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            await PersistAuditEntriesAsync(pendingLogs, acceptAllChangesOnSuccess, cancellationToken);
+            return result;
+        }
+
+        private sealed class PendingAuditEntry
+        {
+            public required EntityEntry Entry { get; init; }
+            public required string Action { get; init; }
+            public required string EntityName { get; init; }
+            public int? UserId { get; init; }
+            public string? EntityId { get; set; }
+            public Dictionary<string, object?> OldValues { get; } = new(StringComparer.Ordinal);
+            public Dictionary<string, object?> NewValues { get; } = new(StringComparer.Ordinal);
+        }
+
+        private List<PendingAuditEntry> PreparePendingAuditEntries()
+        {
+            ChangeTracker.DetectChanges();
+
+            var userId = _auditActorProvider?.GetCurrentUserId();
+            var entries = ChangeTracker.Entries()
+                .Where(e =>
+                    e.Entity is not global::Data.Data.Magazyn.LogAudytu &&
+                    e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+                .ToList();
+
+            var pendingEntries = new List<PendingAuditEntry>();
+
+            foreach (var entry in entries)
+            {
+                var pending = new PendingAuditEntry
+                {
+                    Entry = entry,
+                    Action = MapAuditAction(entry.State),
+                    EntityName = entry.Metadata.ClrType.Name,
+                    UserId = userId,
+                    EntityId = entry.State == EntityState.Deleted ? ResolveEntityId(entry, useOriginalValues: true) : null
+                };
+
+                PropertyValues? databaseValues = null;
+                var databaseValuesAttempted = false;
+
+                foreach (var property in entry.Properties)
+                {
+                    if (!ShouldAuditProperty(property.Metadata))
+                    {
+                        continue;
+                    }
+
+                    if (entry.State == EntityState.Added)
+                    {
+                        if (property.IsTemporary)
+                        {
+                            continue;
+                        }
+
+                        pending.NewValues[property.Metadata.Name] = SanitizeAuditValue(property.CurrentValue);
+                        continue;
+                    }
+
+                    if (entry.State == EntityState.Deleted)
+                    {
+                        pending.OldValues[property.Metadata.Name] = SanitizeAuditValue(property.OriginalValue);
+                        continue;
+                    }
+
+                    if (!property.IsModified)
+                    {
+                        continue;
+                    }
+
+                    object? oldValue;
+                    if (entry.State == EntityState.Modified)
+                    {
+                        if (!databaseValuesAttempted)
+                        {
+                            try
+                            {
+                                databaseValues = entry.GetDatabaseValues();
+                            }
+                            catch
+                            {
+                                databaseValues = null;
+                            }
+                            databaseValuesAttempted = true;
+                        }
+
+                        oldValue = databaseValues?[property.Metadata.Name] ?? property.OriginalValue;
+                    }
+                    else
+                    {
+                        oldValue = property.OriginalValue;
+                    }
+
+                    var newValue = property.CurrentValue;
+                    if (Equals(oldValue, newValue))
+                    {
+                        continue;
+                    }
+
+                    pending.OldValues[property.Metadata.Name] = SanitizeAuditValue(oldValue);
+                    pending.NewValues[property.Metadata.Name] = SanitizeAuditValue(newValue);
+                }
+
+                if (pending.OldValues.Count == 0 && pending.NewValues.Count == 0)
+                {
+                    continue;
+                }
+
+                pendingEntries.Add(pending);
+            }
+
+            return pendingEntries;
+        }
+
+        private void PersistAuditEntries(List<PendingAuditEntry> pendingEntries, bool acceptAllChangesOnSuccess)
+        {
+            if (pendingEntries.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                _isWritingAuditLog = true;
+
+                foreach (var pending in pendingEntries)
+                {
+                    pending.EntityId ??= ResolveEntityId(pending.Entry, useOriginalValues: false);
+                    RefreshCreatedEntryValues(pending);
+                    LogAudytu.Add(BuildLogEntry(pending));
+                }
+
+                base.SaveChanges(acceptAllChangesOnSuccess);
+            }
+            finally
+            {
+                _isWritingAuditLog = false;
+            }
+        }
+
+        private async Task PersistAuditEntriesAsync(List<PendingAuditEntry> pendingEntries, bool acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+        {
+            if (pendingEntries.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                _isWritingAuditLog = true;
+
+                foreach (var pending in pendingEntries)
+                {
+                    pending.EntityId ??= ResolveEntityId(pending.Entry, useOriginalValues: false);
+                    RefreshCreatedEntryValues(pending);
+                    LogAudytu.Add(BuildLogEntry(pending));
+                }
+
+                await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+            }
+            finally
+            {
+                _isWritingAuditLog = false;
+            }
+        }
+
+        private static LogAudytu BuildLogEntry(PendingAuditEntry pending)
+        {
+            return new LogAudytu
+            {
+                UserId = pending.UserId,
+                Akcja = pending.Action,
+                Encja = pending.EntityName,
+                IdEncji = pending.EntityId,
+                KiedyUtc = DateTime.UtcNow,
+                StareJson = pending.OldValues.Count == 0 ? null : JsonSerializer.Serialize(pending.OldValues, AuditJsonOptions),
+                NoweJson = pending.NewValues.Count == 0 ? null : JsonSerializer.Serialize(pending.NewValues, AuditJsonOptions)
+            };
+        }
+
+        private static void RefreshCreatedEntryValues(PendingAuditEntry pending)
+        {
+            if (!string.Equals(pending.Action, "CREATE", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            var key = pending.Entry.Metadata.FindPrimaryKey();
+            if (key == null || key.Properties.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var keyProperty in key.Properties)
+            {
+                var propertyEntry = pending.Entry.Property(keyProperty.Name);
+                pending.NewValues[keyProperty.Name] = SanitizeAuditValue(propertyEntry.CurrentValue);
+            }
+        }
+
+        private static string MapAuditAction(EntityState state)
+        {
+            return state switch
+            {
+                EntityState.Added => "CREATE",
+                EntityState.Modified => "UPDATE",
+                EntityState.Deleted => "DELETE",
+                _ => "UNKNOWN"
+            };
+        }
+
+        private static bool ShouldAuditProperty(IProperty property)
+        {
+            if (property.IsShadowProperty())
+            {
+                return false;
+            }
+
+            if (property.IsConcurrencyToken)
+            {
+                return false;
+            }
+
+            var name = property.Name;
+            if (name.Contains("Password", StringComparison.OrdinalIgnoreCase) ||
+                name.Contains("Haslo", StringComparison.OrdinalIgnoreCase) ||
+                name.Contains("Token", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static object? SanitizeAuditValue(object? value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (value is DateTime dt)
+            {
+                return dt.Kind == DateTimeKind.Utc ? dt : dt.ToUniversalTime();
+            }
+
+            if (value is DateTimeOffset dto)
+            {
+                return dto.ToUniversalTime();
+            }
+
+            if (value is byte[] bytes)
+            {
+                return Convert.ToBase64String(bytes);
+            }
+
+            return value;
+        }
+
+        private static string? ResolveEntityId(EntityEntry entry, bool useOriginalValues)
+        {
+            var key = entry.Metadata.FindPrimaryKey();
+            if (key == null || key.Properties.Count == 0)
+            {
+                return null;
+            }
+
+            var parts = new List<string>(key.Properties.Count);
+            foreach (var keyProperty in key.Properties)
+            {
+                var propertyEntry = entry.Property(keyProperty.Name);
+                var value = useOriginalValues ? propertyEntry.OriginalValue : propertyEntry.CurrentValue;
+                parts.Add($"{keyProperty.Name}={value}");
+            }
+
+            return string.Join("|", parts);
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -453,3 +765,5 @@ namespace Data.Data
         }
     }
 }
+
+

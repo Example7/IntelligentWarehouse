@@ -63,7 +63,7 @@ namespace IntranetWeb.Controllers
         {
             if (await CzyKodLokacjiIstniejeAsync(lokacja.IdMagazynu, lokacja.Kod))
             {
-                ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
+                ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' już istnieje w wybranym magazynie.");
             }
 
             if (ModelState.IsValid)
@@ -76,7 +76,7 @@ namespace IntranetWeb.Controllers
                 }
                 catch (DbUpdateException)
                 {
-                    ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
+                    ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' już istnieje w wybranym magazynie.");
                 }
             }
             ViewData["IdMagazynu"] = new SelectList(_context.Set<Magazyn>(), "IdMagazynu", "Nazwa", lokacja.IdMagazynu);
@@ -114,14 +114,25 @@ namespace IntranetWeb.Controllers
 
             if (await CzyKodLokacjiIstniejeAsync(lokacja.IdMagazynu, lokacja.Kod, lokacja.IdLokacji))
             {
-                ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
+                ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' już istnieje w wybranym magazynie.");
             }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(lokacja);
+                    var existing = await _context.Lokacja
+                        .FirstOrDefaultAsync(x => x.IdLokacji == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existing.IdMagazynu = lokacja.IdMagazynu;
+                    existing.Kod = lokacja.Kod;
+                    existing.Opis = lokacja.Opis;
+                    existing.CzyAktywna = lokacja.CzyAktywna;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -132,12 +143,12 @@ namespace IntranetWeb.Controllers
                     }
                     else
                     {
-                        ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
+                        ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' już istnieje w wybranym magazynie.");
                     }
                 }
                 catch (DbUpdateException)
                 {
-                    ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' juz istnieje w wybranym magazynie.");
+                    ModelState.AddModelError(nameof(Lokacja.Kod), $"Lokacja o kodzie '{lokacja.Kod}' już istnieje w wybranym magazynie.");
                 }
 
                 if (ModelState.IsValid)
@@ -187,7 +198,7 @@ namespace IntranetWeb.Controllers
             var blockers = await PobierzBlokeryUsuwaniaAsync(id);
             if (blockers.MaPowiazania)
             {
-                await UzupelnijDaneUsuwaniaAsync(id, blockers, "Nie mozna usunac lokacji, poniewaz ma powiazane rekordy.");
+                await UzupelnijDaneUsuwaniaAsync(id, blockers, "Nie można usunąć lokacji, ponieważ ma powiązane rekordy.");
                 return View("Delete", lokacja);
             }
 
@@ -200,7 +211,7 @@ namespace IntranetWeb.Controllers
             catch (DbUpdateException)
             {
                 blockers = await PobierzBlokeryUsuwaniaAsync(id);
-                await UzupelnijDaneUsuwaniaAsync(id, blockers, "Nie mozna usunac lokacji. Najpierw usun lub przenies powiazane rekordy.");
+                await UzupelnijDaneUsuwaniaAsync(id, blockers, "Nie można usunąć lokacji. Najpierw usuń lub przenieś powiązane rekordy.");
                 return View("Delete", lokacja);
             }
         }
@@ -286,5 +297,3 @@ namespace IntranetWeb.Controllers
         }
     }
 }
-
-

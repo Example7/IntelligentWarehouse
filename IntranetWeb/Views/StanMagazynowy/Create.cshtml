@@ -3,6 +3,8 @@
 @{
     ViewData["Title"] = "Dodaj stan magazynowy";
     var currentJm = Model.CurrentProductUom ?? "j.m.";
+    var duplicateEditId = ViewData["DuplicateStateEditId"] as int?;
+    var duplicateProductLabel = ViewData["DuplicateStateProductLabel"]?.ToString();
 }
 
 <div class="news-admin-page">
@@ -23,7 +25,21 @@
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            @if (!duplicateEditId.HasValue)
+            {
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+            }
+            @if (duplicateEditId.HasValue)
+            {
+                <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2" role="alert">
+                    <div>
+                        Dla produktu <strong>@(string.IsNullOrWhiteSpace(duplicateProductLabel) ? "wybranego produktu" : duplicateProductLabel)</strong> istnieje już rekord stanu w tej lokacji.
+                    </div>
+                    <a asp-action="Edit" asp-route-id="@duplicateEditId.Value" class="btn btn-sm btn-outline-dark">
+                        <i class="bi bi-pencil-square me-1"></i> Przejdź do edycji
+                    </a>
+                </div>
+            }
             <div class="news-form-grid">
                 <div class="news-form-field">
                     <label asp-for="StanMagazynowy.IdProduktu" class="form-label news-form-label"></label>

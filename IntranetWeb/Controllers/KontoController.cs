@@ -95,6 +95,14 @@ public class KontoController : Controller
                 ExpiresUtc = DateTimeOffset.UtcNow.AddHours(model.RememberMe ? 24 : 8)
             });
 
+        await AddSecurityAuditAsync(
+            userId: user.IdUzytkownika,
+            action: "LOGIN",
+            entityName: nameof(Uzytkownik),
+            entityId: user.IdUzytkownika.ToString(),
+            oldJson: null,
+            newJson: $"{{\"RememberMe\":{model.RememberMe.ToString().ToLowerInvariant()}}}");
+
         return RedirectToLocal(model.ReturnUrl);
     }
 
@@ -103,6 +111,17 @@ public class KontoController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Wyloguj()
     {
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = int.TryParse(userIdValue, out var parsedUserId) ? parsedUserId : (int?)null;
+
+        await AddSecurityAuditAsync(
+            userId: userId,
+            action: "LOGOUT",
+            entityName: nameof(Uzytkownik),
+            entityId: userId?.ToString(),
+            oldJson: null,
+            newJson: null);
+
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction(nameof(Login));
     }
@@ -224,5 +243,21 @@ public class KontoController : Controller
         {
             return false;
         }
+    }
+
+    private async Task AddSecurityAuditAsync(int? userId, string action, string entityName, string? entityId, string? oldJson, string? newJson)
+    {
+        _context.LogAudytu.Add(new LogAudytu
+        {
+            UserId = userId,
+            Akcja = action,
+            Encja = entityName,
+            IdEncji = entityId,
+            KiedyUtc = DateTime.UtcNow,
+            StareJson = oldJson,
+            NoweJson = newJson
+        });
+
+        await _context.SaveChangesAsync();
     }
 }

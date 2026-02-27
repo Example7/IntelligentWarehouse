@@ -96,7 +96,17 @@ namespace IntranetWeb.Controllers
             {
                 try
                 {
-                    _context.Update(jednostkaMiary);
+                    var existing = await _context.JednostkaMiary
+                        .FirstOrDefaultAsync(x => x.IdJednostki == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existing.Kod = jednostkaMiary.Kod;
+                    existing.Nazwa = jednostkaMiary.Nazwa;
+                    existing.CzyAktywna = jednostkaMiary.CzyAktywna;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

@@ -46,6 +46,7 @@ namespace Data.Data.Magazyn
         public Uzytkownik Utworzyl { get; set; } = null!;
 
         [Column("PostedAt")]
+        [Display(Name = "Zaksięgowano")]
         public DateTime? ZaksiegowanoUtc { get; set; }
 
         [MaxLength(500)]

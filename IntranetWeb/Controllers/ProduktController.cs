@@ -110,7 +110,25 @@ namespace IntranetWeb.Controllers
             {
                 try
                 {
-                    _context.Update(produkt);
+                    var existing = await _context.Produkt
+                        .FirstOrDefaultAsync(x => x.IdProduktu == id);
+                    if (existing == null)
+                    {
+                        return NotFound();
+                    }
+
+                    _context.Entry(existing).Property(x => x.RowVersion).OriginalValue = produkt.RowVersion;
+
+                    existing.Kod = produkt.Kod;
+                    existing.Nazwa = produkt.Nazwa;
+                    existing.Opis = produkt.Opis;
+                    existing.IdKategorii = produkt.IdKategorii;
+                    existing.IdDomyslnejJednostki = produkt.IdDomyslnejJednostki;
+                    existing.StanMinimalny = produkt.StanMinimalny;
+                    existing.PunktPonownegoZamowienia = produkt.PunktPonownegoZamowienia;
+                    existing.IloscPonownegoZamowienia = produkt.IloscPonownegoZamowienia;
+                    existing.CzyAktywny = produkt.CzyAktywny;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

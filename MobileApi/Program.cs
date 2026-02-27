@@ -1,16 +1,20 @@
 using System.Text;
+using Data.Auditing;
 using Data.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MobileApi.Configuration;
+using MobileApi.Security;
 using MobileApi.Services;
 using Services.Dashboard;
 using Interfaces.Dashboard;
 using Services.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditActorProvider, HttpContextAuditActorProvider>();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 

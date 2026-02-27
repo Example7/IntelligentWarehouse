@@ -3,6 +3,7 @@ using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using Interfaces.Magazyn.Dtos;
 using IntranetWeb.Security;
+using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -63,12 +64,32 @@ namespace IntranetWeb.Controllers
         public async Task<IActionResult> Create(StanMagazynowyFormDto model)
         {
             var stanMagazynowy = model.StanMagazynowy;
+            var existingState = await GetExistingStateForPairAsync(stanMagazynowy.IdProduktu, stanMagazynowy.IdLokacji);
+            if (existingState != null)
+            {
+                SetDuplicateStateContext(existingState);
+            }
 
             if (ModelState.IsValid)
             {
-                _context.Add(stanMagazynowy);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    _context.Add(stanMagazynowy);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (DbUpdateException ex) when (IsUniqueStockConstraintViolation(ex))
+                {
+                    existingState ??= await GetExistingStateForPairAsync(stanMagazynowy.IdProduktu, stanMagazynowy.IdLokacji);
+                    if (existingState != null)
+                    {
+                        SetDuplicateStateContext(existingState);
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Stan dla wybranego produktu i lokacji już istnieje. Użyj edycji istniejącego rekordu.");
+                    }
+                }
             }
 
             var formModel = await _stanMagazynowyService.PrepareFormAsync(stanMagazynowy, isEdit: false);
@@ -99,8 +120,8 @@ namespace IntranetWeb.Controllers
         [Authorize(Roles = AppRoles.AdminOnly)]
         public async Task<IActionResult> Edit(int id, StanMagazynowyFormDto model)
         {
-            var stanMagazynowy = model.StanMagazynowy;
-            if (id != stanMagazynowy.IdStanu)
+            var input = model.StanMagazynowy;
+            if (id != input.IdStanu)
             {
                 return NotFound();
             }
@@ -109,23 +130,47 @@ namespace IntranetWeb.Controllers
             {
                 try
                 {
-                    _context.Update(stanMagazynowy);
+                    if (await ExistsDuplicateProductLocationAsync(input.IdProduktu, input.IdLokacji, input.IdStanu))
+                    {
+                        ModelState.AddModelError(string.Empty, "Stan dla wybranego produktu i lokacji już istnieje. Wybierz inną kombinację.");
+                        var invalidModel = await _stanMagazynowyService.PrepareFormAsync(input, isEdit: true);
+                        return View(invalidModel);
+                    }
+
+                    var existingState = await _context.StanMagazynowy
+                        .FirstOrDefaultAsync(x => x.IdStanu == id);
+                    if (existingState == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Update tracked entity to preserve original values for audit and real field-level diffs.
+                    existingState.IdProduktu = input.IdProduktu;
+                    existingState.IdLokacji = input.IdLokacji;
+                    existingState.Ilosc = input.Ilosc;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!StanMagazynowyExists(stanMagazynowy.IdStanu))
+                    if (!StanMagazynowyExists(input.IdStanu))
                     {
                         return NotFound();
                     }
 
                     throw;
                 }
+                catch (DbUpdateException ex) when (IsUniqueStockConstraintViolation(ex))
+                {
+                    ModelState.AddModelError(string.Empty, "Stan dla wybranego produktu i lokacji już istnieje. Wybierz inną kombinację.");
+                    var invalidModel = await _stanMagazynowyService.PrepareFormAsync(input, isEdit: true);
+                    return View(invalidModel);
+                }
 
                 return RedirectToAction(nameof(Index));
             }
 
-            var formModel = await _stanMagazynowyService.PrepareFormAsync(stanMagazynowy, isEdit: true);
+            var formModel = await _stanMagazynowyService.PrepareFormAsync(input, isEdit: true);
             return View(formModel);
         }
 
@@ -169,6 +214,49 @@ namespace IntranetWeb.Controllers
         private bool StanMagazynowyExists(int id)
         {
             return _context.StanMagazynowy.Any(e => e.IdStanu == id);
+        }
+
+        private Task<bool> ExistsDuplicateProductLocationAsync(int idProduktu, int idLokacji, int? excludeId = null)
+        {
+            var query = _context.StanMagazynowy.AsNoTracking()
+                .Where(x => x.IdProduktu == idProduktu && x.IdLokacji == idLokacji);
+
+            if (excludeId.HasValue)
+            {
+                query = query.Where(x => x.IdStanu != excludeId.Value);
+            }
+
+            return query.AnyAsync();
+        }
+
+        private static bool IsUniqueStockConstraintViolation(DbUpdateException ex)
+        {
+            if (ex.InnerException is not SqlException sqlEx)
+            {
+                return false;
+            }
+
+            return (sqlEx.Number == 2601 || sqlEx.Number == 2627) &&
+                   sqlEx.Message.Contains("IX_Stock_ProductId_LocationId", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private async Task<StanMagazynowy?> GetExistingStateForPairAsync(int idProduktu, int idLokacji)
+        {
+            if (idProduktu <= 0 || idLokacji <= 0)
+            {
+                return null;
+            }
+
+            return await _context.StanMagazynowy
+                .AsNoTracking()
+                .Include(x => x.Produkt)
+                .FirstOrDefaultAsync(x => x.IdProduktu == idProduktu && x.IdLokacji == idLokacji);
+        }
+
+        private void SetDuplicateStateContext(StanMagazynowy existingState)
+        {
+            ViewData["DuplicateStateEditId"] = existingState.IdStanu;
+            ViewData["DuplicateStateProductLabel"] = $"{existingState.Produkt.Kod} - {existingState.Produkt.Nazwa}";
         }
     }
 }
