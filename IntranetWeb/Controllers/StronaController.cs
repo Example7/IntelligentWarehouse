@@ -1,4 +1,4 @@
-using Data.Data;
+﻿using Data.Data;
 using Data.Data.CMS;
 using IntranetWeb.Controllers.Abstrakcja;
 using Interfaces.CMS;
@@ -42,9 +42,16 @@ namespace IntranetWeb.Controllers
             return View(dto);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new Strona { TytulLinku = string.Empty, Nazwa = string.Empty, Tresc = string.Empty });
+            var nextPozycja = await GetNextPozycjaAsync();
+            return View(new Strona
+            {
+                TytulLinku = string.Empty,
+                Nazwa = string.Empty,
+                Tresc = string.Empty,
+                Pozycja = nextPozycja
+            });
         }
 
         [HttpPost]
@@ -61,6 +68,7 @@ namespace IntranetWeb.Controllers
 
             try
             {
+                await ShiftPositionsForInsertAsync(strona.Pozycja);
                 _context.Add(strona);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -114,6 +122,7 @@ namespace IntranetWeb.Controllers
             existing.TytulLinku = strona.TytulLinku;
             existing.Nazwa = strona.Nazwa;
             existing.Tresc = strona.Tresc;
+            await ShiftPositionsForMoveAsync(existing.IdStrony, existing.Pozycja, strona.Pozycja);
             existing.Pozycja = strona.Pozycja;
 
             try
@@ -183,7 +192,58 @@ namespace IntranetWeb.Controllers
                 ModelState.AddModelError(nameof(Strona.TytulLinku), $"Strona o tytule odnośnika '{(tytulLinku ?? string.Empty).Trim()}' już istnieje.");
             }
         }
+
+        private async Task<int> GetNextPozycjaAsync()
+        {
+            var lastPozycja = await _context.Strona
+                .AsNoTracking()
+                .Select(x => (int?)x.Pozycja)
+                .MaxAsync();
+
+            return (lastPozycja ?? 0) + 1;
+        }
+
+        private async Task ShiftPositionsForInsertAsync(int targetPozycja)
+        {
+            var pagesToShift = await _context.Strona
+                .Where(x => x.Pozycja >= targetPozycja)
+                .ToListAsync();
+
+            foreach (var page in pagesToShift)
+            {
+                page.Pozycja++;
+            }
+        }
+
+        private async Task ShiftPositionsForMoveAsync(int pageId, int oldPozycja, int newPozycja)
+        {
+            if (oldPozycja == newPozycja)
+            {
+                return;
+            }
+
+            if (newPozycja < oldPozycja)
+            {
+                var pagesToShiftUp = await _context.Strona
+                    .Where(x => x.IdStrony != pageId && x.Pozycja >= newPozycja && x.Pozycja < oldPozycja)
+                    .ToListAsync();
+
+                foreach (var page in pagesToShiftUp)
+                {
+                    page.Pozycja++;
+                }
+
+                return;
+            }
+
+            var pagesToShiftDown = await _context.Strona
+                .Where(x => x.IdStrony != pageId && x.Pozycja > oldPozycja && x.Pozycja <= newPozycja)
+                .ToListAsync();
+
+            foreach (var page in pagesToShiftDown)
+            {
+                page.Pozycja--;
+            }
+        }
     }
 }
-
-

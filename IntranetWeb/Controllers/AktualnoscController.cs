@@ -42,9 +42,16 @@ namespace IntranetWeb.Controllers
             return View(dto);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new Aktualnosc { TytulLinku = string.Empty, Nazwa = string.Empty, Tresc = string.Empty });
+            var nextPozycja = await GetNextPozycjaAsync();
+            return View(new Aktualnosc
+            {
+                TytulLinku = string.Empty,
+                Nazwa = string.Empty,
+                Tresc = string.Empty,
+                Pozycja = nextPozycja
+            });
         }
 
         [HttpPost]
@@ -61,6 +68,7 @@ namespace IntranetWeb.Controllers
 
             try
             {
+                await ShiftPositionsForInsertAsync(aktualnosc.Pozycja);
                 _context.Add(aktualnosc);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -114,6 +122,7 @@ namespace IntranetWeb.Controllers
             existing.TytulLinku = aktualnosc.TytulLinku;
             existing.Nazwa = aktualnosc.Nazwa;
             existing.Tresc = aktualnosc.Tresc;
+            await ShiftPositionsForMoveAsync(existing.IdAktualnosci, existing.Pozycja, aktualnosc.Pozycja);
             existing.Pozycja = aktualnosc.Pozycja;
 
             try
@@ -180,6 +189,58 @@ namespace IntranetWeb.Controllers
             if (await _aktualnoscService.TytulLinkuExistsAsync(tytulLinku, excludeId))
             {
                 ModelState.AddModelError(nameof(Aktualnosc.TytulLinku), $"Aktualność o tytule odnośnika '{(tytulLinku ?? string.Empty).Trim()}' już istnieje.");
+            }
+        }
+        private async Task<int> GetNextPozycjaAsync()
+        {
+            var lastPozycja = await _context.Aktualnosc
+                .AsNoTracking()
+                .Select(x => (int?)x.Pozycja)
+                .MaxAsync();
+
+            return (lastPozycja ?? 0) + 1;
+        }
+
+        private async Task ShiftPositionsForInsertAsync(int targetPozycja)
+        {
+            var itemsToShift = await _context.Aktualnosc
+                .Where(x => x.Pozycja >= targetPozycja)
+                .ToListAsync();
+
+            foreach (var item in itemsToShift)
+            {
+                item.Pozycja++;
+            }
+        }
+
+        private async Task ShiftPositionsForMoveAsync(int itemId, int oldPozycja, int newPozycja)
+        {
+            if (oldPozycja == newPozycja)
+            {
+                return;
+            }
+
+            if (newPozycja < oldPozycja)
+            {
+                var itemsToShiftUp = await _context.Aktualnosc
+                    .Where(x => x.IdAktualnosci != itemId && x.Pozycja >= newPozycja && x.Pozycja < oldPozycja)
+                    .ToListAsync();
+
+                foreach (var item in itemsToShiftUp)
+                {
+                    item.Pozycja++;
+                }
+
+                return;
+            }
+
+            var itemsToShiftDown = await _context.Aktualnosc
+                .Where(x => x.IdAktualnosci != itemId && x.Pozycja > oldPozycja && x.Pozycja <= newPozycja)
+                .ToListAsync();
+
+            foreach (var item in itemsToShiftDown)
+            {
+                item.Pozycja--;
             }
         }
     }
