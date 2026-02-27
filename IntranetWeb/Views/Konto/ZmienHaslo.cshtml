@@ -1,6 +1,6 @@
-@model IntranetWeb.Models.Auth.ChangePasswordViewModel
+﻿@model IntranetWeb.Models.Auth.ChangePasswordViewModel
 @{
-    ViewData["Title"] = "Zmiana hasła";
+    ViewData["Title"] = "Zmiana hasĹ‚a";
 }
 
 <div class="news-admin-page">
@@ -17,7 +17,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Ustaw nowe hasło</h2>
-            <p class="text-muted mb-0">Nowe hasło zostanie zapisane jako hash (Identity PasswordHasher).</p>
+            <p class="text-muted mb-0">Po zatwierdzeniu nowe hasło będzie obowiązywać przy następnym logowaniu.</p>
         </div>
         <form asp-action="ZmienHaslo" method="post" class="news-editor-form" novalidate>
             @Html.AntiForgeryToken()
@@ -41,7 +41,7 @@
             </div>
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zmień hasło</button>
-                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
+                <a asp-action="Profil" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>
     </section>
@@ -50,3 +50,4 @@
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }
+

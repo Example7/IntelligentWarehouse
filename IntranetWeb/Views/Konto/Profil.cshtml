@@ -1,0 +1,71 @@
+@model IntranetWeb.Models.Auth.ProfileViewModel
+@{
+    ViewData["Title"] = "Profil";
+}
+
+<div class="news-admin-page">
+    <section class="news-admin-header">
+        <div class="news-admin-header__title">
+            <span class="news-admin-header__icon"><i class="bi bi-person-circle"></i></span>
+            <div>
+                <h1 class="news-admin-header__heading mb-1">Profil użytkownika</h1>
+                <p class="news-admin-header__subheading mb-0">Podgląd konta i ustawień bezpieczeństwa.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="news-details-panel">
+        <div class="news-details-panel__header">
+            <h2 class="news-details-panel__title">Dane konta</h2>
+            <div class="news-details-panel__actions">
+                <a asp-action="ZmienHaslo" class="btn btn-primary">
+                    <i class="bi bi-key"></i> Zmień hasło
+                </a>
+            </div>
+        </div>
+
+        <div class="news-details-grid">
+            <div class="news-details-item">
+                <div class="news-details-item__label">ID użytkownika</div>
+                <div class="news-details-item__value">@Model.UserId</div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Status</div>
+                <div class="news-details-item__value">
+                    @if (Model.IsActive)
+                    {
+                        <span class="entity-badge entity-badge--success">Aktywny</span>
+                    }
+                    else
+                    {
+                        <span class="entity-badge entity-badge--danger">Nieaktywny</span>
+                    }
+                </div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">Login</div>
+                <div class="news-details-item__value">@Model.Login</div>
+            </div>
+            <div class="news-details-item">
+                <div class="news-details-item__label">E-mail</div>
+                <div class="news-details-item__value">@Model.Email</div>
+            </div>
+            <div class="news-details-item news-details-item--full">
+                <div class="news-details-item__label">Role</div>
+                <div class="news-details-item__value">
+                    @if (Model.Roles.Count == 0)
+                    {
+                        <span class="entity-badge entity-badge--muted">Brak przypisanych ról</span>
+                    }
+                    else
+                    {
+                        foreach (var role in Model.Roles)
+                        {
+                            <span class="entity-badge entity-badge--info me-1 mb-1">@role</span>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

@@ -18,7 +18,30 @@
 @{
         var currentController = (ViewContext.RouteData.Values["controller"]?.ToString()) ?? "";
         var currentAction = (ViewContext.RouteData.Values["action"]?.ToString()) ?? "";
-        var currentSectionLabel = string.IsNullOrWhiteSpace(currentController) ? "Dashboard" : currentController;
+        var currentSectionLabel = currentController switch
+        {
+            "" or "Home" => "Dashboard",
+            "Aktualnosc" => "Aktualności",
+            "Strona" => "Strony",
+            "PlikMedia" => "Media",
+            "SzablonWydruku" => "Szablony wydruków",
+            "ZalacznikDokumentu" => "Załączniki dokumentów",
+            "DokumentPZ" => "Dokumenty PZ",
+            "DokumentWZ" => "Dokumenty WZ",
+            "DokumentMM" => "Dokumenty MM",
+            "PozycjaPZ" => "Pozycje PZ",
+            "PozycjaWZ" => "Pozycje WZ",
+            "PozycjaMM" => "Pozycje MM",
+            "PozycjaInwentaryzacji" => "Pozycje inwentaryzacji",
+            "PozycjaRezerwacji" => "Pozycje rezerwacji",
+            "JednostkaMiary" => "Jednostki miary",
+            "Uzytkownik" => "Użytkownicy",
+            "UzytkownikRola" => "Role użytkowników",
+            "Rola" => "Role",
+            "Kategoria" => "Kategorie",
+            "Konto" => "Konto",
+            _ => currentController
+        };
         bool IsActive(string c) => string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase);
         bool IsActiveAction(string c, string a) =>
             string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase) &&
@@ -28,6 +51,12 @@
         var isOperator = User?.IsInRole("Operator") ?? false;
         var canUseWarehouse = isAdmin || isMagazynier;
         var canUseWarehouseOrOffice = isAdmin || isMagazynier || isOperator;
+        var roleClaimValues = (User?.FindAll(System.Security.Claims.ClaimTypes.Role) ?? Enumerable.Empty<System.Security.Claims.Claim>())
+            .Select(c => c.Value)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        var currentRoleLabel = roleClaimValues.Count == 0 ? "Brak roli" : string.Join(", ", roleClaimValues);
 }
 
 <body class="has-sidebar intranet-shell">
@@ -56,6 +85,10 @@
                     </span>
                     @if (User?.Identity?.IsAuthenticated == true)
                     {
+                        <span class="app-role-chip d-none d-md-inline-flex" title="Rola użytkownika">
+                            <i class="bi bi-person-badge"></i>
+                            Rola: @currentRoleLabel
+                        </span>
                         <span class="app-context-chip d-none d-lg-inline-flex" title="@User.FindFirst("display_name")?.Value">
                             <i class="bi bi-person-circle"></i>
                             @(User.Identity?.Name ?? "user")
@@ -66,8 +99,8 @@
                     </a>
                     @if (User?.Identity?.IsAuthenticated == true)
                     {
-                        <a class="btn app-icon-btn" asp-controller="Konto" asp-action="ZmienHaslo" title="Zmień hasło" aria-label="Zmień hasło">
-                            <i class="bi bi-key"></i>
+                        <a class="btn app-icon-btn" asp-controller="Konto" asp-action="Profil" title="Profil" aria-label="Profil">
+                            <i class="bi bi-person"></i>
                         </a>
                         <form asp-controller="Konto" asp-action="Wyloguj" method="post" class="d-inline">
                             @Html.AntiForgeryToken()

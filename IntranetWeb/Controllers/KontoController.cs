@@ -109,6 +109,45 @@ public class KontoController : Controller
 
     [Authorize]
     [HttpGet]
+    public async Task<IActionResult> Profil()
+    {
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdValue, out var userId))
+        {
+            return Challenge();
+        }
+
+        var user = await _context.Uzytkownik
+            .AsNoTracking()
+            .Include(x => x.RoleUzytkownika)
+            .ThenInclude(x => x.Rola)
+            .FirstOrDefaultAsync(x => x.IdUzytkownika == userId);
+
+        if (user == null)
+        {
+            return Challenge();
+        }
+
+        var model = new ProfileViewModel
+        {
+            UserId = user.IdUzytkownika,
+            Login = user.Login,
+            Email = user.Email,
+            IsActive = user.CzyAktywny,
+            Roles = user.RoleUzytkownika
+                .Select(x => x.Rola?.Nazwa)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Cast<string>()
+                .OrderBy(x => x)
+                .ToList()
+        };
+
+        return View(model);
+    }
+
+    [Authorize]
+    [HttpGet]
     public IActionResult ZmienHaslo()
     {
         return View(new ChangePasswordViewModel());
@@ -153,7 +192,7 @@ public class KontoController : Controller
         await _context.SaveChangesAsync();
 
         TempData["SuccessMessage"] = "Haslo zostalo zmienione.";
-        return RedirectToAction("Index", "Home");
+        return RedirectToAction(nameof(Profil));
     }
 
     [HttpGet]
