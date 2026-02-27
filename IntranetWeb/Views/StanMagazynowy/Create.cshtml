@@ -65,11 +65,30 @@
                 </div>
                 <div class="news-form-field news-form-field--full">
                     <label asp-for="StanMagazynowy.Ilosc" class="form-label news-form-label"></label>
-                    <input asp-for="StanMagazynowy.Ilosc" type="number" step="0.001" class="form-control news-form-control" />
+                    <input asp-for="StanMagazynowy.Ilosc"
+                           asp-format="{0:0.###}"
+                           type="number"
+                           step="0.001"
+                           min="0"
+                           class="form-control news-form-control"
+                           data-msg-min="Podaj wartość większa lub równa 0."
+                           oninvalid="this.setCustomValidity('Podaj wartość większa lub równa 0.')"
+                           oninput="this.setCustomValidity('')" />
                     <div class="small text-muted mt-1">
                         Jednostka dla wybranego produktu:
                         <span class="entity-badge entity-badge--muted" id="stockUomValue">@currentJm</span>
                     </div>
+                    @if (Model.HasCapacityData)
+                    {
+                        <div class="stock-capacity-info mt-2">
+                            <div class="stock-capacity-info__item">Rezerwacje aktywne: <strong>@Model.AktywneRezerwacjeQty.ToString("0.###")</strong></div>
+                            <div class="stock-capacity-info__item">WZ Draft: <strong>@Model.DraftWzQty.ToString("0.###")</strong></div>
+                            <div class="stock-capacity-info__item">Zajęte razem: <strong>@Model.ZajeteRazemQty.ToString("0.###")</strong></div>
+                            <div class="stock-capacity-info__item @(Model.DostepnePoZapisieQty < 0 ? "stock-capacity-info__item--danger" : string.Empty)">
+                                Dostępne po zapisie: <strong>@Model.DostepnePoZapisieQty.ToString("0.###")</strong>
+                            </div>
+                        </div>
+                    }
                     <span asp-validation-for="StanMagazynowy.Ilosc" class="text-danger small"></span>
                 </div>
             </div>
@@ -85,6 +104,11 @@
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
         (function () {
+            if (window.jQuery && $.validator && $.validator.messages) {
+                $.validator.messages.min = "Podaj wartosc wieksza lub rowna {0}.";
+                $.validator.messages.range = "Podaj wartosc z zakresu od {0} do {1}.";
+            }
+
             const productSelect = document.getElementById("StanMagazynowy_IdProduktu");
             const uomValue = document.getElementById("stockUomValue");
             const uomMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ProductUomMap));

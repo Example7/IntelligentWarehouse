@@ -149,6 +149,7 @@ namespace Services.Magazyn
                 .ToListAsync();
 
             var currentProductUom = produkty.FirstOrDefault(x => x.IdProduktu == stanMagazynowy.IdProduktu)?.Jm ?? "j.m.";
+            var (aktywneRezerwacjeQty, draftWzQty) = await CalculateBlockedQtyAsync(stanMagazynowy.IdProduktu, stanMagazynowy.IdLokacji);
 
             return new StanMagazynowyFormDto
             {
@@ -157,8 +158,38 @@ namespace Services.Magazyn
                 Produkty = produkty.Select(x => new StanMagazynowySelectOptionDto { Value = x.IdProduktu, Text = x.Text }).ToList(),
                 Lokacje = lokacje.Select(x => new StanMagazynowySelectOptionDto { Value = x.IdLokacji, Text = x.Text }).ToList(),
                 ProductUomMap = produkty.ToDictionary(x => x.IdProduktu, x => x.Jm),
-                CurrentProductUom = currentProductUom
+                CurrentProductUom = currentProductUom,
+                AktywneRezerwacjeQty = aktywneRezerwacjeQty,
+                DraftWzQty = draftWzQty
             };
+        }
+
+        private async Task<(decimal ActiveReservationsQty, decimal DraftWzQty)> CalculateBlockedQtyAsync(int idProduktu, int idLokacji)
+        {
+            if (idProduktu <= 0 || idLokacji <= 0)
+            {
+                return (0m, 0m);
+            }
+
+            var activeReservationsQty = await _context.PozycjaRezerwacji
+                .AsNoTracking()
+                .Where(p =>
+                    p.IdProduktu == idProduktu &&
+                    p.IdLokacji == idLokacji &&
+                    p.Rezerwacja.Status == "Active")
+                .Select(p => (decimal?)p.Ilosc)
+                .SumAsync() ?? 0m;
+
+            var draftWzQty = await _context.PozycjaWZ
+                .AsNoTracking()
+                .Where(p =>
+                    p.IdProduktu == idProduktu &&
+                    p.IdLokacji == idLokacji &&
+                    p.Dokument.Status == "Draft")
+                .Select(p => (decimal?)p.Ilosc)
+                .SumAsync() ?? 0m;
+
+            return (activeReservationsQty, draftWzQty);
         }
     }
 }

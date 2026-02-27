@@ -70,6 +70,19 @@ namespace IntranetWeb.Controllers
                 SetDuplicateStateContext(existingState);
             }
 
+            if (stanMagazynowy.Ilosc < 0m)
+            {
+                ModelState.AddModelError(nameof(StanMagazynowy.Ilosc), "Ilość nie może być ujemna.");
+            }
+
+            var blockedQty = await CalculateBlockedQtyAsync(stanMagazynowy.IdProduktu, stanMagazynowy.IdLokacji);
+            if (stanMagazynowy.Ilosc < blockedQty.Total)
+            {
+                ModelState.AddModelError(nameof(StanMagazynowy.Ilosc),
+                    $"Nie można zapisac stanu {stanMagazynowy.Ilosc:0.###}. Zajęte przez procesy: {blockedQty.Total:0.###} " +
+                    $"(rezerwacje aktywne: {blockedQty.ActiveReservations:0.###}, WZ Draft: {blockedQty.DraftWz:0.###}).");
+            }
+
             if (ModelState.IsValid)
             {
                 try
@@ -124,6 +137,19 @@ namespace IntranetWeb.Controllers
             if (id != input.IdStanu)
             {
                 return NotFound();
+            }
+
+            if (input.Ilosc < 0m)
+            {
+                ModelState.AddModelError(nameof(StanMagazynowy.Ilosc), "Ilość nie może być ujemna.");
+            }
+
+            var blockedQty = await CalculateBlockedQtyAsync(input.IdProduktu, input.IdLokacji);
+            if (input.Ilosc < blockedQty.Total)
+            {
+                ModelState.AddModelError(nameof(StanMagazynowy.Ilosc),
+                    $"Nie można zapisac stanu {input.Ilosc:0.###}. Zajęte przez procesy: {blockedQty.Total:0.###} " +
+                    $"(rezerwacje aktywne: {blockedQty.ActiveReservations:0.###}, WZ Draft: {blockedQty.DraftWz:0.###}).");
             }
 
             if (ModelState.IsValid)
@@ -257,6 +283,34 @@ namespace IntranetWeb.Controllers
         {
             ViewData["DuplicateStateEditId"] = existingState.IdStanu;
             ViewData["DuplicateStateProductLabel"] = $"{existingState.Produkt.Kod} - {existingState.Produkt.Nazwa}";
+        }
+
+        private async Task<(decimal ActiveReservations, decimal DraftWz, decimal Total)> CalculateBlockedQtyAsync(int idProduktu, int idLokacji)
+        {
+            if (idProduktu <= 0 || idLokacji <= 0)
+            {
+                return (0m, 0m, 0m);
+            }
+
+            var activeReservations = await _context.PozycjaRezerwacji
+                .AsNoTracking()
+                .Where(p =>
+                    p.IdProduktu == idProduktu &&
+                    p.IdLokacji == idLokacji &&
+                    p.Rezerwacja.Status == "Active")
+                .Select(p => (decimal?)p.Ilosc)
+                .SumAsync() ?? 0m;
+
+            var draftWz = await _context.PozycjaWZ
+                .AsNoTracking()
+                .Where(p =>
+                    p.IdProduktu == idProduktu &&
+                    p.IdLokacji == idLokacji &&
+                    p.Dokument.Status == "Draft")
+                .Select(p => (decimal?)p.Ilosc)
+                .SumAsync() ?? 0m;
+
+            return (activeReservations, draftWz, activeReservations + draftWz);
         }
     }
 }
