@@ -74,7 +74,7 @@ export function statusLabel(
     cancelled: "Anulowana",
     canceled: "Anulowana",
     expired: "Przeterminowana",
-    released: "Zwolniona",
+    released: "Zrealizowana",
   };
 
   const wzLabels: Record<string, string> = {
@@ -116,10 +116,12 @@ export function statusTone(
     normalized === "canceled" ||
     normalized === "draft" ||
     normalized === "rejected" ||
-    normalized === "expired" ||
-    normalized === "released"
+    normalized === "expired"
   ) {
     return "warn";
+  }
+  if (normalized === "released") {
+    return "good";
   }
   return "neutral";
 }

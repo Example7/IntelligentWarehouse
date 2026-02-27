@@ -16,7 +16,7 @@ public static class StatusPresentationHelper
     {
         var normalized = Normalize(status);
 
-        if (normalized is "posted" or "closed" or "completed" or "convertedtowz" or "realized" or "issued" or "accepted" or "confirmed" or "active")
+        if (normalized is "posted" or "closed" or "completed" or "convertedtowz" or "realized" or "issued" or "accepted" or "confirmed" or "active" or "released")
         {
             return "entity-badge--success";
         }
@@ -26,7 +26,7 @@ public static class StatusPresentationHelper
             return "entity-badge--warning";
         }
 
-        if (normalized is "cancelled" or "canceled" or "rejected" or "expired" or "released")
+        if (normalized is "cancelled" or "canceled" or "rejected" or "expired")
         {
             return "entity-badge--muted";
         }
@@ -53,7 +53,7 @@ public static class StatusPresentationHelper
                 "rejected" => "Odrzucona",
                 "cancelled" or "canceled" => "Anulowana",
                 "expired" => "Przeterminowana",
-                "released" => "Zwolniona",
+                "released" => "Zrealizowana",
                 _ => status ?? "-"
             },
             StatusKind.Wz => normalized switch

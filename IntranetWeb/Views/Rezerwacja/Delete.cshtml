@@ -5,11 +5,7 @@
 
     var d = Model.Dokument;
 
-    var statusClass =
-        string.Equals(d.Status, "Active", StringComparison.OrdinalIgnoreCase) ? "entity-badge--success" :
-        string.Equals(d.Status, "Draft", StringComparison.OrdinalIgnoreCase) ? "entity-badge--warning" :
-        string.Equals(d.Status, "Completed", StringComparison.OrdinalIgnoreCase) ? "entity-badge--info" :
-        "entity-badge--muted";
+    var statusClass = StatusPresentationHelper.BadgeClass(d.Status);
 }
 
 <div class="news-admin-page">
@@ -51,7 +47,7 @@
             <div class="news-details-item">
                 <div class="news-details-item__label">Status</div>
                 <div class="news-details-item__value">
-                    <span class="entity-badge @statusClass">@d.Status</span>
+                    <span class="entity-badge @statusClass">@StatusPresentationHelper.ReservationLabel(d.Status)</span>
                 </div>
             </div>
 
