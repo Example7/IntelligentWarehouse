@@ -1,7 +1,7 @@
 @model Data.Data.Magazyn.Uzytkownik
 
 @{
-    ViewData["Title"] = "Edytuj użytkownika";
+    ViewData["Title"] = "Edytuj uzytkownika";
 }
 
 <div class="news-admin-page">
@@ -9,7 +9,7 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-pencil-square"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Edytuj użytkownika</h1>
+                <h1 class="news-admin-header__heading mb-1">Edytuj uzytkownika</h1>
                 <p class="news-admin-header__subheading mb-0">Aktualizacja danych konta systemowego.</p>
             </div>
         </div>
@@ -21,7 +21,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Edycja konta</h2>
-            <p class="text-muted mb-0">Zmień login, hash hasła, e-mail lub status aktywności.</p>
+            <p class="text-muted mb-0">Zmien login, e-mail lub status aktywnosci.</p>
         </div>
         <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="IdUzytkownika" />
@@ -38,11 +38,6 @@
                     <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field news-form-field--full">
-                    <label asp-for="HashHasla" class="form-label news-form-label"></label>
-                    <input asp-for="HashHasla" type="password" class="form-control news-form-control" autocomplete="new-password" />
-                    <span asp-validation-for="HashHasla" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field news-form-field--full">
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" asp-for="CzyAktywny" />
                         <label class="form-check-label news-form-label mb-0" asp-for="CzyAktywny"></label>
@@ -52,7 +47,8 @@
             </div>
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz zmiany</button>
-                <a asp-action="Details" asp-route-id="@Model.IdUzytkownika" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegóły</a>
+                <a asp-action="Details" asp-route-id="@Model.IdUzytkownika" class="btn btn-outline-info"><i class="bi bi-eye"></i> Szczegoly</a>
+                <a asp-action="UstawHaslo" asp-route-id="@Model.IdUzytkownika" class="btn btn-outline-warning"><i class="bi bi-key"></i> Ustaw haslo</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i> Anuluj</a>
             </div>
         </form>

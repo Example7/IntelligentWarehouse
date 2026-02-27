@@ -302,18 +302,6 @@ BEGIN TRY
         INSERT INTO Alerts (AlertRuleId, WarehouseId, ProductId, Severity, [Message], CreatedAt, IsAcknowledged, AcknowledgedByUserId, AcknowledgedAt)
         VALUES (@RuleInvMismatch, @WhMain, @ProdScan, N'CRIT', N'Roznica po inwentaryzacji dla SCN-1000', DATEADD(hour, -4, @NowUtc), 1, @UserAdminId, DATEADD(hour, -3, @NowUtc));
 
-    IF NOT EXISTS (SELECT 1 FROM AppSettings WHERE [Key] = N'Warehouse.DefaultTimezone')
-        INSERT INTO AppSettings ([Key], [Value], [Description], UpdatedAt, UpdatedByUserId)
-        VALUES (N'Warehouse.DefaultTimezone', N'Europe/Warsaw', N'Strefa czasowa dla dat magazynowych', DATEADD(day, -10, @NowUtc), @UserAdminId);
-
-    IF NOT EXISTS (SELECT 1 FROM AppSettings WHERE [Key] = N'Alerts.EmailEnabled')
-        INSERT INTO AppSettings ([Key], [Value], [Description], UpdatedAt, UpdatedByUserId)
-        VALUES (N'Alerts.EmailEnabled', N'true', N'Czy wysylac powiadomienia e-mail o alertach', DATEADD(day, -8, @NowUtc), @UserAdminId);
-
-    IF NOT EXISTS (SELECT 1 FROM AppSettings WHERE [Key] = N'Inventory.CountTolerance')
-        INSERT INTO AppSettings ([Key], [Value], [Description], UpdatedAt, UpdatedByUserId)
-        VALUES (N'Inventory.CountTolerance', N'1', N'Tolerancja roznicy ilosci w inwentaryzacji', DATEADD(day, -7, @NowUtc), @UserAdminId);
-
     IF @UserAdminId IS NOT NULL
        AND NOT EXISTS (SELECT 1 FROM AuditLog WHERE [Action] = N'LOGIN' AND EntityName = N'User' AND EntityId = CONVERT(nvarchar(80), @UserAdminId))
         INSERT INTO AuditLog (UserId, [Action], EntityName, EntityId, [At], OldValuesJson, NewValuesJson)
@@ -323,11 +311,6 @@ BEGIN TRY
        AND NOT EXISTS (SELECT 1 FROM AuditLog WHERE [Action] = N'CREATE' AND EntityName = N'DokumentPZ' AND EntityId = CONVERT(nvarchar(80), @Pz1))
         INSERT INTO AuditLog (UserId, [Action], EntityName, EntityId, [At], OldValuesJson, NewValuesJson)
         VALUES (@UserMag1Id, N'CREATE', N'DokumentPZ', CONVERT(nvarchar(80), @Pz1), DATEADD(day, -5, @NowUtc), NULL, N'{"Numer":"PZ/2026/0001","Status":"Posted"}');
-
-    IF @UserAdminId IS NOT NULL
-       AND NOT EXISTS (SELECT 1 FROM AuditLog WHERE [Action] = N'UPDATE' AND EntityName = N'AppSettings' AND EntityId = N'Alerts.EmailEnabled')
-        INSERT INTO AuditLog (UserId, [Action], EntityName, EntityId, [At], OldValuesJson, NewValuesJson)
-        VALUES (@UserAdminId, N'UPDATE', N'AppSettings', N'Alerts.EmailEnabled', DATEADD(day, -8, @NowUtc), N'{"Value":"false"}', N'{"Value":"true"}');
 
     /* =========================
        8) CMS i pliki (pozostale tabele)

@@ -16,6 +16,7 @@ namespace Data.Data.Magazyn
 
         [Required, MaxLength(200)]
         [Column("PasswordHash")]
+        [Display(Name = "Hasło")]
         public string HashHasla { get; set; } = null!;
 
         [Required, MaxLength(120)]

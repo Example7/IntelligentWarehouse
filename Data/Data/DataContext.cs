@@ -57,7 +57,6 @@ namespace Data.Data
         public DbSet<Partia> Partia { get; set; } = default!;
 
         public DbSet<LogAudytu> LogAudytu { get; set; } = default!;
-        public DbSet<UstawienieAplikacji> UstawienieAplikacji { get; set; } = default!;
         public DbSet<RegulaAlertu> RegulaAlertu { get; set; } = default!;
         public DbSet<Alert> Alert { get; set; } = default!;
 

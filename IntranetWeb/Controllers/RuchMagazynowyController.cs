@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using System.Text.Json;
 
 using IntranetWeb.Controllers.Abstrakcja;
 
@@ -77,8 +79,10 @@ namespace IntranetWeb.Controllers
         // POST: RuchMagazynowy/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdRuchu,Typ,IdProduktu,IdLokacjiZ,IdLokacjiDo,Ilosc,Referencja,Notatka,IdUzytkownika")] RuchMagazynowy ruchMagazynowy)
+        public async Task<IActionResult> Create([Bind("IdRuchu,Typ,IdProduktu,IdLokacjiZ,IdLokacjiDo,Ilosc,Referencja,Notatka")] RuchMagazynowy ruchMagazynowy)
         {
+            ruchMagazynowy.IdUzytkownika = TryGetCurrentUserId();
+
             if (ModelState.IsValid)
             {
                 var result = await _ruchMagazynowyService.CreateAndApplyAsync(ruchMagazynowy);
@@ -248,6 +252,59 @@ namespace IntranetWeb.Controllers
             ViewData["IdLokacjiZ"] = new SelectList(lokacje, "IdLokacji", "Text", selectedLokacjaZId);
             ViewData["IdLokacjiDo"] = new SelectList(lokacje, "IdLokacji", "Text", selectedLokacjaDoId);
             ViewData["IdUzytkownika"] = new SelectList(_context.Set<Uzytkownik>().AsNoTracking().OrderBy(u => u.Email), "IdUzytkownika", "Email", selectedUzytkownikId);
+
+            var pzReferences = _context.DokumentPZ
+                .AsNoTracking()
+                .Where(d => d.Status == "Posted")
+                .OrderByDescending(d => d.ZaksiegowanoUtc ?? d.DataPrzyjeciaUtc)
+                .ThenByDescending(d => d.Id)
+                .Select(d => d.Numer)
+                .Take(200)
+                .ToList();
+
+            var wzReferences = _context.DokumentWZ
+                .AsNoTracking()
+                .Where(d => d.Status == "Posted")
+                .OrderByDescending(d => d.ZaksiegowanoUtc ?? d.DataWydaniaUtc)
+                .ThenByDescending(d => d.Id)
+                .Select(d => d.Numer)
+                .Take(200)
+                .ToList();
+
+            var mmReferences = _context.DokumentMM
+                .AsNoTracking()
+                .Where(d => d.Status == "Posted")
+                .OrderByDescending(d => d.ZaksiegowanoUtc ?? d.DataUtc)
+                .ThenByDescending(d => d.Id)
+                .Select(d => d.Numer)
+                .Take(200)
+                .ToList();
+
+            var inwentaryzacjaReferences = _context.Inwentaryzacja
+                .AsNoTracking()
+                .Where(d => d.Status == "Closed")
+                .OrderByDescending(d => d.KoniecUtc ?? d.StartUtc)
+                .ThenByDescending(d => d.Id)
+                .Select(d => d.Numer)
+                .Take(200)
+                .ToList();
+
+            var referenceOptionsByType = new Dictionary<string, List<string>>
+            {
+                [((int)TypRuchuMagazynowego.Przyjęcie).ToString()] = pzReferences,
+                [((int)TypRuchuMagazynowego.Wydanie).ToString()] = wzReferences,
+                [((int)TypRuchuMagazynowego.Przesunięcie).ToString()] = mmReferences,
+                [((int)TypRuchuMagazynowego.Korekta).ToString()] = new List<string>(),
+                [((int)TypRuchuMagazynowego.Inwentaryzacja).ToString()] = inwentaryzacjaReferences
+            };
+
+            ViewData["ReferenceOptionsByTypeJson"] = JsonSerializer.Serialize(referenceOptionsByType);
+        }
+
+        private int? TryGetCurrentUserId()
+        {
+            var raw = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            return int.TryParse(raw, out var id) ? id : null;
         }
     }
 }

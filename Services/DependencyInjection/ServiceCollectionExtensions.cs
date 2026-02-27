@@ -50,7 +50,6 @@ namespace Services.DependencyInjection
             services.AddScoped<IRegulaAlertuService, RegulaAlertuService>();
             services.AddScoped<IAlertService, AlertService>();
             services.AddScoped<ILogAudytuService, LogAudytuService>();
-            services.AddScoped<IUstawienieAplikacjiService, UstawienieAplikacjiService>();
             services.AddScoped<IUzytkownikService, UzytkownikService>();
             services.AddScoped<IRolaService, RolaService>();
             services.AddScoped<IUzytkownikRolaService, UzytkownikRolaService>();

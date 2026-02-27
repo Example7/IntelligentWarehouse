@@ -3,6 +3,8 @@
         const typeSelect = document.getElementById("Typ");
         const fromSelect = document.getElementById("IdLokacjiZ");
         const toSelect = document.getElementById("IdLokacjiDo");
+        const referenceSelect = document.getElementById("Referencja");
+        const referenceOptionsInput = document.getElementById("referenceOptionsByType");
         const typeHint = document.getElementById("movementTypeHint");
         const fromHint = document.getElementById("movementFromHint");
         const toHint = document.getElementById("movementToHint");
@@ -22,6 +24,49 @@
             el.classList.toggle("is-disabled", disabled);
         };
 
+        const readReferenceOptionsByType = () => {
+            if (!referenceOptionsInput || !referenceOptionsInput.value) {
+                return {};
+            }
+
+            try {
+                return JSON.parse(referenceOptionsInput.value);
+            } catch {
+                return {};
+            }
+        };
+
+        const referenceOptionsByType = readReferenceOptionsByType();
+
+        const updateReferenceOptions = () => {
+            if (!referenceSelect || referenceSelect.tagName !== "SELECT") return;
+
+            const currentType = typeSelect.value;
+            const selectedFromModel = referenceSelect.dataset.selected || "";
+            const options = referenceOptionsByType[currentType] || [];
+            const currentlySelected = referenceSelect.value || selectedFromModel;
+
+            referenceSelect.innerHTML = "";
+
+            const emptyOption = document.createElement("option");
+            emptyOption.value = "";
+            emptyOption.textContent = "(brak)";
+            referenceSelect.appendChild(emptyOption);
+
+            options.forEach((refNo) => {
+                const option = document.createElement("option");
+                option.value = refNo;
+                option.textContent = refNo;
+                referenceSelect.appendChild(option);
+            });
+
+            if (currentlySelected && options.includes(currentlySelected)) {
+                referenceSelect.value = currentlySelected;
+            } else {
+                referenceSelect.value = "";
+            }
+        };
+
         const updateByType = () => {
             const value = typeSelect.value;
 
@@ -35,41 +80,46 @@
             if (!value) {
                 setDisabled(fromSelect, true);
                 setDisabled(toSelect, true);
-                if (typeHint) typeHint.textContent = "Wybierz typ ruchu, aby zobaczyć które pola lokacji są wymagane.";
+                if (typeHint) typeHint.textContent = "Wybierz typ ruchu, aby zobaczyc ktore pola lokacji sa wymagane.";
                 if (fromHint) fromHint.textContent = "Pole zostanie aktywowane po wyborze typu.";
                 if (toHint) toHint.textContent = "Pole zostanie aktywowane po wyborze typu.";
+                updateReferenceOptions();
                 return;
             }
 
             if (value === types.przyjecie) {
                 setDisabled(fromSelect, true);
                 fromSelect.value = "";
-                if (typeHint) typeHint.textContent = "Przyjęcie: wybierz tylko lokacje docelową (Do lokacji).";
-                if (fromHint) fromHint.textContent = "Dla przyjęcia pozostaw brak (towar wchodzi do magazynu).";
-                if (toHint) toHint.textContent = "Wybierz lokacje docelową, do której trafi towar.";
+                if (typeHint) typeHint.textContent = "Przyjecie: wybierz tylko lokacje docelowa (Do lokacji).";
+                if (fromHint) fromHint.textContent = "Dla przyjecia pozostaw brak (towar wchodzi do magazynu).";
+                if (toHint) toHint.textContent = "Wybierz lokacje docelowa, do ktorej trafi towar.";
+                updateReferenceOptions();
                 return;
             }
 
             if (value === types.wydanie) {
                 setDisabled(toSelect, true);
                 toSelect.value = "";
-                if (typeHint) typeHint.textContent = "Wydanie: wybierz tylko lokacje źródłową (Z lokacji).";
-                if (fromHint) fromHint.textContent = "Wybierz lokacje, z której towar jest wydawany.";
+                if (typeHint) typeHint.textContent = "Wydanie: wybierz tylko lokacje zrodlowa (Z lokacji).";
+                if (fromHint) fromHint.textContent = "Wybierz lokacje, z ktorej towar jest wydawany.";
                 if (toHint) toHint.textContent = "Dla wydania pozostaw brak (towar wychodzi z magazynu).";
+                updateReferenceOptions();
                 return;
             }
 
             if (value === types.przesuniecie) {
-                if (typeHint) typeHint.textContent = "Przesunięcie: wybierz lokacje źródłową i docelową (muszą być różne).";
-                if (fromHint) fromHint.textContent = "Lokacja, z której zabierasz towar.";
-                if (toHint) toHint.textContent = "Lokacja, do której przenosisz towar.";
+                if (typeHint) typeHint.textContent = "Przesuniecie: wybierz lokacje zrodlowa i docelowa (musza byc rozne).";
+                if (fromHint) fromHint.textContent = "Lokacja, z ktorej zabierasz towar.";
+                if (toHint) toHint.textContent = "Lokacja, do ktorej przenosisz towar.";
+                updateReferenceOptions();
                 return;
             }
 
             if (value === types.korekta || value === types.inwentaryzacja) {
                 if (typeHint) typeHint.textContent = "Korekta/Inwentaryzacja: wybierz jedna lokacje. 'Do' oznacza korekte na plus, 'Z' korekte na minus.";
-                if (fromHint) fromHint.textContent = "Użyj dla korekty na minus (zmniejszenie stanu).";
-                if (toHint) toHint.textContent = "Użyj dla korekty na plus (zwiekszenie stanu).";
+                if (fromHint) fromHint.textContent = "Uzyj dla korekty na minus (zmniejszenie stanu).";
+                if (toHint) toHint.textContent = "Uzyj dla korekty na plus (zwiekszenie stanu).";
+                updateReferenceOptions();
             }
         };
 

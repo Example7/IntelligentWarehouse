@@ -1,7 +1,7 @@
 ﻿@model Interfaces.CMS.Dtos.ZalacznikDokumentuIndexDto
 
 @{
-    ViewData["Title"] = "Zalaczniki dokumentow";
+    ViewData["Title"] = "Załaczniki dokumentów";
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm;
 
@@ -34,19 +34,19 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-paperclip"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Zalaczniki dokumentow</h1>
-                <p class="news-admin-header__subheading mb-0">Powiazania plikow z dokumentami WMS i metadane zalacznikow.</p>
+                <h1 class="news-admin-header__heading mb-1">Załaczniki dokumentów</h1>
+                <p class="news-admin-header__subheading mb-0">Powiazania plikow z dokumentami WMS i metadane załaczników.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Lacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Typy</span><strong class="news-admin-stat__value">@items.Select(x => x.TypDokumentu).Distinct().Count()</strong></div>
         </div>
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie zalacznikow dokumentow">
-            <label for="attachmentSearchTerm" class="visually-hidden">Szukaj zalacznikow dokumentow</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie załaczników dokumentów">
+            <label for="attachmentSearchTerm" class="visually-hidden">Szukaj załaczników dokumentów</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
                 <input id="attachmentSearchTerm"
@@ -58,19 +58,19 @@
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczysc filtr" aria-label="Wyczysc filtrowanie"><i class="bi bi-x-lg"></i></a>
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr" aria-label="Wyczysc filtrowanie"><i class="bi bi-x-lg"></i></a>
             }
         </form>
-        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj zalacznik</a>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj załącznik</a>
     </section>
 
     @if (!items.Any())
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon" aria-hidden="true"><i class="bi bi-paperclip"></i></div>
-            <h2 class="h4 mb-2">Brak zalacznikow</h2>
-            <p class="text-muted mb-3">Dodaj pierwszy zalacznik powiazany z dokumentem WMS.</p>
-            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj zalacznik</a>
+            <h2 class="h4 mb-2">Brak załaczników</h2>
+            <p class="text-muted mb-3">Dodaj pierwszy załacznik powiazany z dokumentem WMS.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj załacznik</a>
         </section>
     }
     else
@@ -94,9 +94,9 @@
                             <th>ID dok.</th>
                             <th>Plik</th>
                             <th>Typ pliku</th>
-                            <th>Sciezka</th>
+                            <th>Scieżka</th>
                             <th>Wgrano</th>
-                            <th>Wgral</th>
+                            <th>Wgrał</th>
                             <th class="text-end">Akcje</th>
                         </tr>
                     </thead>
@@ -108,17 +108,17 @@
                             <td><div class="entity-cell-title">@item.IdDokumentu</div></td>
                             <td>
                                 <div class="entity-cell-title media-cell-truncate" title="@item.NazwaPliku">@item.NazwaPliku</div>
-                                <div class="entity-cell-subtitle">ID zalacznika: @item.Id</div>
+                                <div class="entity-cell-subtitle">ID załacznika: @item.Id</div>
                             </td>
                             <td><span class="entity-badge entity-badge--muted media-cell-truncate d-inline-flex" title="@item.ContentType">@ShortContentType(item.ContentType)</span></td>
                             <td><span class="entity-mono media-cell-truncate" title="@item.Sciezka">@item.Sciezka</span></td>
                             <td>@item.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                             <td><span class="media-cell-truncate" title="@item.WgralEmail">@(string.IsNullOrWhiteSpace(item.WgralEmail) ? "-" : item.WgralEmail)</span></td>
                             <td class="text-end">
-                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla zalacznika @item.NazwaPliku">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla załacznika @item.NazwaPliku">
                                     <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id" title="Edytuj"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegoly"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usun"><i class="bi bi-trash"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usuń"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

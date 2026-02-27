@@ -40,7 +40,6 @@
             "StanMagazynowy" => "StanMagazynowy",
             "Strona" => "Strona",
             "SzablonWydruku" => "SzablonWydruku",
-            "UstawienieAplikacji" => "UstawienieAplikacji",
             "Uzytkownik" => "Uzytkownik",
             "UzytkownikRola" => "UzytkownikRola",
             "ZalacznikDokumentu" => "ZalacznikDokumentu",
@@ -86,7 +85,6 @@
             "StanMagazynowy" => "Stan magazynowy",
             "Strona" => "Strona",
             "SzablonWydruku" => "Szablon wydruku",
-            "UstawienieAplikacji" => "Ustawienie aplikacji",
             "Uzytkownik" => "Użytkownik",
             "UzytkownikRola" => "Użytkownik - rola",
             "ZalacznikDokumentu" => "Załącznik dokumentu",
@@ -153,9 +151,10 @@
                 : "entity-badge--muted";
     var isSessionEvent = string.Equals(log.Akcja, "LOGIN", StringComparison.OrdinalIgnoreCase)
         || string.Equals(log.Akcja, "LOGOUT", StringComparison.OrdinalIgnoreCase);
+    var isDeleteAction = string.Equals(log.Akcja, "DELETE", StringComparison.OrdinalIgnoreCase);
     var entityController = ResolveControllerName(log.Encja);
     var entityRouteId = ParseSingleEntityRouteId(log.IdEncji);
-    var entityDetailsUrl = !string.IsNullOrWhiteSpace(entityController) && !string.IsNullOrWhiteSpace(entityRouteId)
+    var entityDetailsUrl = !isDeleteAction && !string.IsNullOrWhiteSpace(entityController) && !string.IsNullOrWhiteSpace(entityRouteId)
         ? Url.Action("Details", entityController, new { id = entityRouteId })
         : null;
 }

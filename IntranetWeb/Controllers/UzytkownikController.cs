@@ -126,6 +126,8 @@ namespace IntranetWeb.Controllers
             {
                 try
                 {
+                    var hasher = new PasswordHasher<Uzytkownik>();
+                    uzytkownik.HashHasla = hasher.HashPassword(uzytkownik, uzytkownik.HashHasla);
                     _context.Add(uzytkownik);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -159,7 +161,7 @@ namespace IntranetWeb.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IdUzytkownika,Login,HashHasla,Email,CzyAktywny")] Uzytkownik uzytkownik)
+        public async Task<IActionResult> Edit(int id, [Bind("IdUzytkownika,Login,Email,CzyAktywny")] Uzytkownik uzytkownik)
         {
             if (id != uzytkownik.IdUzytkownika)
             {
@@ -168,7 +170,6 @@ namespace IntranetWeb.Controllers
 
             uzytkownik.Login = (uzytkownik.Login ?? string.Empty).Trim();
             uzytkownik.Email = (uzytkownik.Email ?? string.Empty).Trim();
-            uzytkownik.HashHasla = (uzytkownik.HashHasla ?? string.Empty).Trim();
 
             if (await _context.Uzytkownik.AsNoTracking().AnyAsync(x => x.IdUzytkownika != id && x.Login == uzytkownik.Login))
             {
@@ -191,7 +192,6 @@ namespace IntranetWeb.Controllers
                 {
                     existing.Login = uzytkownik.Login;
                     existing.Email = uzytkownik.Email;
-                    existing.HashHasla = uzytkownik.HashHasla;
                     existing.CzyAktywny = uzytkownik.CzyAktywny;
                     await _context.SaveChangesAsync();
                 }
