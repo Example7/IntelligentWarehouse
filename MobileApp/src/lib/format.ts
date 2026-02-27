@@ -107,7 +107,7 @@ export function statusTone(
     normalized === "issued" ||
     normalized === "accepted" ||
     normalized === "confirmed" ||
-    normalized === "active"
+    normalized === "released"
   ) {
     return "good";
   }
@@ -116,12 +116,10 @@ export function statusTone(
     normalized === "canceled" ||
     normalized === "draft" ||
     normalized === "rejected" ||
-    normalized === "expired"
+    normalized === "expired" ||
+    normalized === "active"
   ) {
     return "warn";
-  }
-  if (normalized === "released") {
-    return "good";
   }
   return "neutral";
 }
