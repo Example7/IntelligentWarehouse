@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { TextInput as PaperTextInput } from "react-native-paper";
 
-import type { Session } from "../../appTypes";
 import {
   ActionButton,
   Card,
@@ -15,20 +14,27 @@ import {
 } from "../../components/ui";
 import { mobileApi } from "../../lib/api";
 import { formatDateTime } from "../../lib/format";
-import type { ClientProfileDto, CurrentUserDto } from "../../types";
+import type { ClientProfileDto } from "../../types";
 
 export function ProfileScreen({
   apiBaseUrl,
   token,
-  session,
 }: {
   apiBaseUrl: string;
   token: string;
-  session: Session;
 }) {
   const [profile, setProfile] = useState<ClientProfileDto | null>(null);
-  const [me, setMe] = useState<CurrentUserDto | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+
+  const [profileBusy, setProfileBusy] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -39,20 +45,60 @@ export function ProfileScreen({
   async function load() {
     setError(null);
     try {
-      const [profileData, meData] = await Promise.all([
-        mobileApi.getProfile(apiBaseUrl, token),
-        mobileApi.me(apiBaseUrl, token),
-      ]);
+      const profileData = await mobileApi.getProfile(apiBaseUrl, token);
       setProfile(profileData);
-      setMe(meData);
+      setName(profileData.name ?? "");
+      setEmail(profileData.email ?? "");
+      setPhone(profileData.phone ?? "");
+      setAddress(profileData.address ?? "");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Nie udało się pobrać profilu.");
+      setError(
+        e instanceof Error ? e.message : "Nie udało się pobrać profilu.",
+      );
     }
   }
 
   useEffect(() => {
     void load();
   }, [apiBaseUrl, token]);
+
+  async function submitProfileUpdate() {
+    setProfileError(null);
+    setProfileSuccess(null);
+
+    if (!name.trim()) {
+      setProfileError("Nazwa jest wymagana.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setProfileError("Email jest wymagany.");
+      return;
+    }
+
+    setProfileBusy(true);
+    try {
+      const updated = await mobileApi.updateProfile(apiBaseUrl, token, {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || null,
+        address: address.trim() || null,
+      });
+
+      setProfile(updated);
+      setName(updated.name ?? "");
+      setEmail(updated.email ?? "");
+      setPhone(updated.phone ?? "");
+      setAddress(updated.address ?? "");
+      setProfileSuccess("Dane profilu zostały zapisane.");
+    } catch (e) {
+      setProfileError(
+        e instanceof Error ? e.message : "Nie udało się zapisać profilu.",
+      );
+    } finally {
+      setProfileBusy(false);
+    }
+  }
 
   async function submitPasswordChange() {
     setPasswordError(null);
@@ -104,43 +150,100 @@ export function ProfileScreen({
   return (
     <>
       <Card>
-        <SectionTitle title="Profil klienta" />
-        <DataRow label="Nazwa" value={profile?.name} />
-        <DataRow label="Email" value={profile?.email} />
-        <DataRow label="Telefon" value={profile?.phone} />
-        <DataRow label="Adres" value={profile?.address} />
-        <DataRow
-          label="Status"
-          value={profile?.isActive ? "Aktywny" : "Nieaktywny"}
+        <SectionTitle
+          title="Profil klienta"
+          subtitle="Edycja danych kontaktowych"
         />
+
+        {profileError ? (
+          <Text style={styles.errorText}>{profileError}</Text>
+        ) : null}
+        {profileSuccess ? (
+          <Text style={styles.successText}>{profileSuccess}</Text>
+        ) : null}
+
+        <Field label="Nazwa">
+          <PaperTextInput
+            mode="outlined"
+            dense
+            value={name}
+            onChangeText={setName}
+            placeholder="Nazwa klienta"
+            textColor={colors.text}
+            outlineColor={colors.line}
+            activeOutlineColor={colors.accent}
+            style={styles.input}
+          />
+        </Field>
+
+        <Field label="Email">
+          <PaperTextInput
+            mode="outlined"
+            dense
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="email-address"
+            placeholder="adres@email.com"
+            textColor={colors.text}
+            outlineColor={colors.line}
+            activeOutlineColor={colors.accent}
+            style={styles.input}
+          />
+        </Field>
+
+        <Field label="Telefon">
+          <PaperTextInput
+            mode="outlined"
+            dense
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            placeholder="Telefon"
+            textColor={colors.text}
+            outlineColor={colors.line}
+            activeOutlineColor={colors.accent}
+            style={styles.input}
+          />
+        </Field>
+
+        <Field label="Adres">
+          <PaperTextInput
+            mode="outlined"
+            dense
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Adres"
+            textColor={colors.text}
+            outlineColor={colors.line}
+            activeOutlineColor={colors.accent}
+            style={styles.input}
+          />
+        </Field>
+
         <DataRow
           label="Utworzono"
           value={formatDateTime(profile?.createdAtUtc)}
         />
-      </Card>
 
-      <Card>
-        <SectionTitle
-          title="Dane konta"
-          subtitle="Dane logowania i uprawnienia konta mobilnego"
-        />
-        <DataRow label="Login" value={me?.login ?? session.login} />
-        <DataRow label="Email logowania" value={me?.email ?? session.email} />
-        <DataRow label="Rola / role" value={(me?.roles ?? session.roles).join(", ")} />
-        <View style={{ marginTop: 10 }}>
+        <View style={styles.actionsRow}>
           <ActionButton
-            label="Odśwież profil"
-            onPress={() => void load()}
+            label={profileBusy ? "Zapisywanie..." : "Zapisz dane"}
+            onPress={() => void submitProfileUpdate()}
+            disabled={profileBusy}
+          />
+          <ActionButton
+            label="Odswież"
             variant="ghost"
+            onPress={() => void load()}
+            disabled={profileBusy}
           />
         </View>
       </Card>
 
       <Card>
-        <SectionTitle
-          title="Bezpieczeństwo"
-          subtitle="Zmiana hasła do konta"
-        />
+        <SectionTitle title="Bezpieczeństwo" subtitle="Zmiana hasła do konta" />
 
         {passwordError ? (
           <Text style={styles.errorText}>{passwordError}</Text>
@@ -194,7 +297,7 @@ export function ProfileScreen({
 
         <View style={{ marginTop: 6 }}>
           <ActionButton
-            label={passwordBusy ? "Zmienianie..." : "Zmień hasło"}
+            label={passwordBusy ? "Zmienianie..." : "Zmien hasło"}
             onPress={() => void submitPasswordChange()}
             disabled={passwordBusy}
           />
@@ -204,12 +307,37 @@ export function ProfileScreen({
   );
 }
 
+function Field({
+  label,
+  children,
+}: React.PropsWithChildren<{ label: string }>) {
+  return (
+    <View style={styles.fieldWrap}>
+      <Text style={styles.label}>{label}</Text>
+      {children}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  label: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+  fieldWrap: {
+    marginBottom: 8,
+  },
   input: {
     backgroundColor: "rgba(22,35,61,.45)",
     borderRadius: 12,
     overflow: "hidden",
-    marginBottom: 10,
+    marginBottom: 6,
+  },
+  actionsRow: {
+    gap: 10,
+    marginTop: 12,
   },
   errorText: {
     color: colors.danger,

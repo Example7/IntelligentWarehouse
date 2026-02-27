@@ -180,6 +180,13 @@ export interface ClientProfileDto {
   createdAtUtc: string;
 }
 
+export interface UpdateClientProfileRequestDto {
+  name: string;
+  email: string;
+  phone?: string | null;
+  address?: string | null;
+}
+
 export interface ClientAttachmentDto {
   attachmentId: number;
   documentType: string;

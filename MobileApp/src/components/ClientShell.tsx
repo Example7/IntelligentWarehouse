@@ -375,7 +375,6 @@ export function ClientShell({
           <ProfileScreen
             apiBaseUrl={apiBaseUrl}
             token={session.accessToken}
-            session={session}
           />
         );
       case "cms":

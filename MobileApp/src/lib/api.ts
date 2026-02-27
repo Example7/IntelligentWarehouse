@@ -12,6 +12,7 @@ import type {
   ClientOrderListItemDto,
   ClientProductLookupDto,
   ClientProfileDto,
+  UpdateClientProfileRequestDto,
   ClientReservationDetailsDto,
   ClientReservationListItemDto,
   ClientWarehouseLookupDto,
@@ -35,7 +36,7 @@ export class ApiError extends Error {
 }
 
 type RequestOptions = {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT";
   token?: string;
   body?: unknown;
 };
@@ -195,6 +196,13 @@ export const mobileApi = {
   },
   getProfile(baseUrl: string, token: string) {
     return request<ClientProfileDto>(baseUrl, "/api/client/profile", { token });
+  },
+  updateProfile(baseUrl: string, token: string, body: UpdateClientProfileRequestDto) {
+    return request<ClientProfileDto>(baseUrl, "/api/client/profile", {
+      method: "PUT",
+      token,
+      body,
+    });
   },
   getNews(baseUrl: string) {
     return request<MobileNewsItemDto[]>(baseUrl, "/api/mobile/content/news");

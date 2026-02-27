@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
 using Data.Data;
 using Interfaces.Magazyn;
 using Interfaces.Magazyn.Dtos;
@@ -66,6 +67,104 @@ public class ClientAppController : ControllerBase
         }
 
         return Ok(profile);
+    }
+
+    [HttpPut("profile")]
+    public async Task<ActionResult<ClientProfileDto>> UpdateProfile([FromBody] UpdateClientProfileRequestDto request)
+    {
+        if (!TryGetCurrentUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var klient = await _context.Klient
+            .Include(k => k.Uzytkownik)
+            .FirstOrDefaultAsync(k => k.IdUzytkownika == userId);
+
+        if (klient is null)
+        {
+            return NotFound(new
+            {
+                message = "Brak powiazanego klienta dla zalogowanego uzytkownika.",
+                userId
+            });
+        }
+
+        var name = (request.Name ?? string.Empty).Trim();
+        var email = (request.Email ?? string.Empty).Trim();
+        var phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone.Trim();
+        var address = string.IsNullOrWhiteSpace(request.Address) ? null : request.Address.Trim();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return BadRequest(new { message = "Nazwa jest wymagana." });
+        }
+
+        if (name.Length > 250)
+        {
+            return BadRequest(new { message = "Nazwa może mieć maksymalnie 250 znakow." });
+        }
+
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return BadRequest(new { message = "Email jest wymagany." });
+        }
+
+        if (email.Length > 120)
+        {
+            return BadRequest(new { message = "Email może mieć maksymalnie 120 znakow." });
+        }
+
+        var emailValidator = new EmailAddressAttribute();
+        if (!emailValidator.IsValid(email))
+        {
+            return BadRequest(new { message = "Podaj poprawny adres e-mail." });
+        }
+
+        if (phone is { Length: > 60 })
+        {
+            return BadRequest(new { message = "Telefon może mieć maksymalnie 60 znakow." });
+        }
+
+        if (address is { Length: > 400 })
+        {
+            return BadRequest(new { message = "Adres może mieć maksymalnie 400 znakow." });
+        }
+
+        if (klient.IdUzytkownika.HasValue)
+        {
+            var existingUserWithEmail = await _context.Uzytkownik
+                .AsNoTracking()
+                .AnyAsync(u => u.IdUzytkownika != klient.IdUzytkownika.Value && u.Email == email);
+
+            if (existingUserWithEmail)
+            {
+                return Conflict(new { message = $"Email '{email}' jest juz zajety." });
+            }
+        }
+
+        klient.Nazwa = name;
+        klient.Email = email;
+        klient.Telefon = phone;
+        klient.Adres = address;
+
+        if (klient.Uzytkownik is not null)
+        {
+            klient.Uzytkownik.Email = email;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new ClientProfileDto
+        {
+            CustomerId = klient.IdKlienta,
+            Name = klient.Nazwa,
+            Email = klient.Email,
+            Phone = klient.Telefon,
+            Address = klient.Adres,
+            IsActive = klient.CzyAktywny,
+            CreatedAtUtc = klient.UtworzonoUtc
+        });
     }
 
     [HttpGet("dashboard")]
