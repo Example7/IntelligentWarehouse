@@ -62,7 +62,7 @@
                 </div>
                 <div class="news-form-field">
                     <label asp-for="CenaJednostkowa" class="form-label news-form-label">Cena jednostkowa</label>
-                    <input asp-for="CenaJednostkowa" class="form-control news-form-control" step="0.01" />
+                    <input asp-for="CenaJednostkowa" class="form-control news-form-control" step="0.01" min="0" />
                     <span asp-validation-for="CenaJednostkowa" class="text-danger small"></span>
                 </div>
             </div>

@@ -233,3 +233,19 @@ Oba kanały kończą się w tym samym modelu dokumentu `WZ` oraz w tej samej log
 - Ukrywanie linków w menu (`sidebar`) zależnie od roli jest elementem UX.
 - Wymuszenie uprawnień realizowane jest po stronie backendu (`[Authorize]`) i to stanowi właściwe zabezpieczenie.
 - Komunikat `Brak dostępu` po wejściu bez uprawnień jest zachowaniem oczekiwanym.
+
+## Ceny (aktualny zakres)
+
+W bieżącym zakresie projektu system **nie posiada centralnego modułu cennika** (brak osobnej encji/ekranu do zarządzania cenami produktów).
+
+Aktualnie ceny są traktowane jako **dane dokumentowe**:
+
+- cena jest podawana na poziomie pozycji dokumentu PZ (`PozycjaPZ.CenaJednostkowa`),
+- wartość pozycji i sumy dokumentu liczone są z danych zapisanych na pozycjach PZ,
+- wydruki i raporty wykorzystują ceny z pozycji dokumentu.
+
+Walidacja operacyjna:
+
+- `CenaJednostkowa` nie może być ujemna,
+- brak ceny (`null`) jest dozwolony tylko na etapie `Draft`; przed ksiegowaniem PZ wszystkie pozycje musza miec uzupelniona cene jednostkowa.
+

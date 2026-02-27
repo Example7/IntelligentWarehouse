@@ -1,4 +1,4 @@
-using Data.Data;
+﻿using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using Interfaces.Magazyn.Dtos;
@@ -128,6 +128,16 @@ namespace Services.Magazyn
             if (pozycje.Any(p => p.Ilosc <= 0))
             {
                 return new DokumentPZPostResultDto { Success = false, ErrorMessage = "Wszystkie pozycje PZ muszą mieć ilość większą od zera." };
+            }
+
+            if (pozycje.Any(p => !p.CenaJednostkowa.HasValue))
+            {
+                return new DokumentPZPostResultDto { Success = false, ErrorMessage = "Przed księgowaniem wszystkie pozycje PZ muszą mieć uzupełnioną cenę jednostkową." };
+            }
+
+            if (pozycje.Any(p => p.CenaJednostkowa!.Value < 0m))
+            {
+                return new DokumentPZPostResultDto { Success = false, ErrorMessage = "Cena jednostkowa na pozycjach PZ nie może być ujemna." };
             }
 
             if (pozycje.Any(p => p.Lokacja == null || p.Lokacja.IdMagazynu != dokument.IdMagazynu))

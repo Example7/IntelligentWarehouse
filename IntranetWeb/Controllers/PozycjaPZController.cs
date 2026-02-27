@@ -287,6 +287,11 @@ namespace IntranetWeb.Controllers
                 ModelState.AddModelError(nameof(PozycjaPZ.Ilosc), "Ilość musi być większa od zera.");
             }
 
+            if (pozycjaPZ.CenaJednostkowa.HasValue && pozycjaPZ.CenaJednostkowa.Value < 0m)
+            {
+                ModelState.AddModelError(nameof(PozycjaPZ.CenaJednostkowa), "Cena jednostkowa nie może być ujemna.");
+            }
+
             var dokument = await _context.DokumentPZ
                 .AsNoTracking()
                 .FirstOrDefaultAsync(d => d.Id == pozycjaPZ.IdDokumentu);
