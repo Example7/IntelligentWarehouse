@@ -110,7 +110,7 @@ export function ClientShell({
       setSelectedWarehouseId((prev) => prev ?? result[0]?.warehouseId ?? null);
     } catch (e) {
       setWarehousesError(
-        e instanceof Error ? e.message : "Nie udało się pobrać magazynów.",
+        e instanceof Error ? e.message : "Nie udało się pobrac magazynow.",
       );
     } finally {
       setWarehousesLoading(false);
@@ -226,7 +226,7 @@ export function ClientShell({
       return;
     }
     if (cartItems.length === 0) {
-      setCartError("Dodaj przynajmniej jedną pozycję do koszyka.");
+      setCartError("Dodaj przynajmniej jedną pozycje do koszyka.");
       return;
     }
 
@@ -258,23 +258,6 @@ export function ClientShell({
     } finally {
       setCartSubmitBusy(false);
     }
-  }
-
-  function handleWarehouseSelection(nextWarehouseId: number) {
-    if (selectedWarehouseId === nextWarehouseId) {
-      return;
-    }
-
-    if (cartItems.length > 0) {
-      setCartError(
-        "Nie można zmienić magazynu, gdy koszyk zawiera pozycje. Wyślij rezerwację albo usuń pozycje z koszyka.",
-      );
-      setCartOpen(true);
-      return;
-    }
-
-    setCartError(null);
-    setSelectedWarehouseId(nextWarehouseId);
   }
 
   const hasClientRole = session.roles.some((r) => r.toLowerCase() === "klient");
@@ -334,11 +317,6 @@ export function ClientShell({
           <ProductsScreen
             apiBaseUrl={apiBaseUrl}
             token={session.accessToken}
-            warehouses={warehouses}
-            warehousesLoading={warehousesLoading}
-            warehousesError={warehousesError}
-            selectedWarehouseId={selectedWarehouseId}
-            onSelectWarehouse={handleWarehouseSelection}
             cartItems={cartItems}
             cartItemsCount={cartItems.length}
             onAddToCart={addProductToCart}
@@ -372,10 +350,7 @@ export function ClientShell({
         );
       case "profil":
         return (
-          <ProfileScreen
-            apiBaseUrl={apiBaseUrl}
-            token={session.accessToken}
-          />
+          <ProfileScreen apiBaseUrl={apiBaseUrl} token={session.accessToken} />
         );
       case "cms":
         return <CmsScreen apiBaseUrl={apiBaseUrl} />;
@@ -388,11 +363,7 @@ export function ClientShell({
     currentRoute.key,
     orderOpenRequest,
     reservationOpenRequest,
-    selectedWarehouseId,
     session,
-    warehouses,
-    warehousesError,
-    warehousesLoading,
   ]);
 
   return (
@@ -462,20 +433,33 @@ export function ClientShell({
             <ScrollView style={styles.cartModalScroll} nestedScrollEnabled>
               <Text style={styles.label}>Magazyn odbioru</Text>
               {warehousesLoading && warehouses.length === 0 ? (
-                <LoadingBlock label="Pobieranie magazynów..." />
-              ) : selectedWarehouseId && warehouses.length > 0 ? (
-                <View style={styles.cartInfoBox}>
-                  <Text style={styles.cartInfoValue}>
-                    {selectedWarehouseName}
-                  </Text>
-                  <Text style={styles.cartInfoHint}>
-                    Zmiana magazynu w zakładce Prod.
-                  </Text>
+                <LoadingBlock label="Pobieranie magazynow..." />
+              ) : warehouses.length > 0 ? (
+                <View style={styles.warehouseChoiceWrap}>
+                  {warehouses.map((w) => (
+                    <View
+                      key={w.warehouseId}
+                      style={styles.warehouseChoiceSlot}
+                    >
+                      <ActionButton
+                        label={w.name}
+                        variant={
+                          selectedWarehouseId === w.warehouseId
+                            ? "secondary"
+                            : "ghost"
+                        }
+                        onPress={() => {
+                          setCartError(null);
+                          setSelectedWarehouseId(w.warehouseId);
+                        }}
+                      />
+                    </View>
+                  ))}
                 </View>
               ) : (
                 <EmptyBlock
-                  title="Brak wybranego magazynu"
-                  subtitle="Wybierz magazyn odbioru w zakładce Prod."
+                  title="Brak magazynów"
+                  subtitle="Brak aktywnych magazynów do wyboru."
                 />
               )}
 
@@ -540,7 +524,7 @@ export function ClientShell({
                 onChangeText={setReservationNote}
                 multiline
                 numberOfLines={3}
-                placeholder={`Magazyn: ${selectedWarehouseName}`}
+                placeholder={"Magazyn: " + selectedWarehouseName}
                 textColor={colors.text}
                 outlineColor={colors.line}
                 activeOutlineColor={colors.accent}
@@ -556,9 +540,9 @@ export function ClientShell({
                     Podsumowanie
                   </Text>
                   <View style={styles.cartSummary}>
-                    <Pill label={`Pozycji: ${cartItems.length}`} />
+                    <Pill label={"Pozycji: " + cartItems.length} />
                     <Pill
-                      label={`Suma ilości: ${formatNumber(cartTotalQty)}`}
+                      label={"Suma ilości: " + formatNumber(cartTotalQty)}
                       tone="good"
                     />
                   </View>
@@ -585,56 +569,61 @@ export function ClientShell({
 
       {clearCartConfirmOpen ? (
         <Portal>
-        <Dialog
-          visible={clearCartConfirmOpen}
-          onDismiss={() => setClearCartConfirmOpen(false)}
-          style={styles.confirmDialog}
-        >
-          <View style={styles.confirmDialogTitleRow}>
-            <View style={styles.confirmDialogIconWrap}>
-              <IconButton
-                icon="alert-circle-outline"
-                size={18}
-                iconColor={colors.danger}
-                style={styles.confirmDialogIcon}
-              />
+          <Dialog
+            visible={clearCartConfirmOpen}
+            onDismiss={() => setClearCartConfirmOpen(false)}
+            style={styles.confirmDialog}
+          >
+            <View style={styles.confirmDialogTitleRow}>
+              <View style={styles.confirmDialogIconWrap}>
+                <IconButton
+                  icon="alert-circle-outline"
+                  size={18}
+                  iconColor={colors.danger}
+                  style={styles.confirmDialogIcon}
+                />
+              </View>
+              <Dialog.Title style={styles.confirmDialogTitle}>
+                Wyczyść koszyk rezerwacji
+              </Dialog.Title>
             </View>
-            <Dialog.Title style={styles.confirmDialogTitle}>
-              Wyczyść koszyk rezerwacji
-            </Dialog.Title>
-          </View>
-          <Dialog.Content style={styles.confirmDialogContent}>
-            <Text style={styles.confirmDialogText}>
-              {`Czy na pewno chcesz usunąć ${cartItems.length > 0 ? `wszystkie pozycje (${cartItems.length})` : "zawartość koszyka"}${reservationNote.trim() ? " oraz notatkę" : ""}?`}
-            </Text>
-          </Dialog.Content>
-          <Dialog.Actions style={styles.confirmDialogActions}>
-            <View style={styles.confirmDialogButtonRow}>
-              <PaperButton
-                mode="outlined"
-                onPress={() => setClearCartConfirmOpen(false)}
-                style={[
-                  styles.confirmDialogButton,
-                  styles.confirmDialogCancelButton,
-                ]}
-                labelStyle={styles.confirmDialogCancelLabel}
-              >
-                Anuluj
-              </PaperButton>
-              <PaperButton
-                mode="contained-tonal"
-                onPress={confirmClearCart}
-                style={[
-                  styles.confirmDialogButton,
-                  styles.confirmDialogDeleteButton,
-                ]}
-                labelStyle={styles.confirmDialogDeleteLabel}
-              >
-                Usuń
-              </PaperButton>
-            </View>
-          </Dialog.Actions>
-        </Dialog>
+            <Dialog.Content style={styles.confirmDialogContent}>
+              <Text style={styles.confirmDialogText}>
+                {"Czy na pewno chcesz usunąć " +
+                  (cartItems.length > 0
+                    ? "wszystkie pozycje (" + cartItems.length + ")"
+                    : "zawartość koszyka") +
+                  (reservationNote.trim() ? " oraz notatkę" : "") +
+                  "?"}
+              </Text>
+            </Dialog.Content>
+            <Dialog.Actions style={styles.confirmDialogActions}>
+              <View style={styles.confirmDialogButtonRow}>
+                <PaperButton
+                  mode="outlined"
+                  onPress={() => setClearCartConfirmOpen(false)}
+                  style={[
+                    styles.confirmDialogButton,
+                    styles.confirmDialogCancelButton,
+                  ]}
+                  labelStyle={styles.confirmDialogCancelLabel}
+                >
+                  Anuluj
+                </PaperButton>
+                <PaperButton
+                  mode="contained-tonal"
+                  onPress={confirmClearCart}
+                  style={[
+                    styles.confirmDialogButton,
+                    styles.confirmDialogDeleteButton,
+                  ]}
+                  labelStyle={styles.confirmDialogDeleteLabel}
+                >
+                  Usuń
+                </PaperButton>
+              </View>
+            </Dialog.Actions>
+          </Dialog>
         </Portal>
       ) : null}
 
@@ -816,24 +805,14 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(127,29,29,.10)",
   },
   cartModalScroll: { maxHeight: 460, marginBottom: 10 },
-  cartInfoBox: {
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: 12,
-    backgroundColor: "rgba(22,35,61,.35)",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+  warehouseChoiceWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
     marginBottom: 10,
   },
-  cartInfoValue: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: "700",
-  },
-  cartInfoHint: {
-    color: colors.muted,
-    fontSize: 11,
-    marginTop: 4,
+  warehouseChoiceSlot: {
+    width: "100%",
   },
   cartRow: {
     paddingVertical: 10,

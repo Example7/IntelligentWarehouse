@@ -33,7 +33,34 @@ namespace IntranetWeb.Controllers
         {
             if (id == null) return NotFound();
             var model = await _rezerwacjaService.GetDetailsDataAsync(id.Value);
-            return model == null ? NotFound() : View(model);
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.ReorderSuppliers = await _context.Dostawca
+                .AsNoTracking()
+                .Where(d => d.CzyAktywny)
+                .OrderBy(d => d.Nazwa)
+                .Select(d => new SelectListItem
+                {
+                    Value = d.IdDostawcy.ToString(),
+                    Text = d.Nazwa
+                })
+                .ToListAsync();
+
+            ViewBag.ReorderReceiptLocations = await _context.Lokacja
+                .AsNoTracking()
+                .Where(l => l.CzyAktywna && l.IdMagazynu == model.Dokument.IdMagazynu)
+                .OrderBy(l => l.Kod)
+                .Select(l => new SelectListItem
+                {
+                    Value = l.IdLokacji.ToString(),
+                    Text = string.IsNullOrWhiteSpace(l.Opis) ? l.Kod : $"{l.Kod} - {l.Opis}"
+                })
+                .ToListAsync();
+
+            return View(model);
         }
 
         [HttpPost]
@@ -75,6 +102,51 @@ namespace IntranetWeb.Controllers
                 }
             }
 
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UtworzPzDraftZBrakowRezerwacji(int id, int? idDostawcy, int? idLokacjiPrzyjecia)
+        {
+            if (!idDostawcy.HasValue)
+            {
+                TempData["RezerwacjaPzError"] = "Wybierz dostawcę przed utworzeniem PZ Draft.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            if (!idLokacjiPrzyjecia.HasValue)
+            {
+                TempData["RezerwacjaPzError"] = "Wybierz lokację przyjęcia dla pozycji PZ.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var currentUserId = TryGetCurrentUserId();
+            if (!currentUserId.HasValue)
+            {
+                TempData["RezerwacjaPzError"] = "Nie można ustalić zalogowanego użytkownika.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            var result = await _rezerwacjaService.CreateShortagePzDraftAsync(
+                reservationId: id,
+                supplierId: idDostawcy.Value,
+                receiptLocationId: idLokacjiPrzyjecia.Value,
+                currentUserId: currentUserId.Value);
+
+            if (!result.Success)
+            {
+                TempData["RezerwacjaPzError"] = result.Message ?? "Nie udało się utworzyć PZ Draft.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            if (result.DokumentPzId.HasValue)
+            {
+                TempData["DokumentPZCreateSuccess"] = result.Message;
+                return RedirectToAction("Details", "DokumentPZ", new { id = result.DokumentPzId.Value });
+            }
+
+            TempData["RezerwacjaPzError"] = result.Message ?? "Nie udało się utworzyć PZ Draft.";
             return RedirectToAction(nameof(Details), new { id });
         }
 

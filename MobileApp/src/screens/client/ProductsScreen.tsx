@@ -17,20 +17,12 @@ import {
 } from "../../components/ui";
 import { formatNumber } from "../../lib/format";
 import { mobileApi } from "../../lib/api";
-import type {
-  ClientProductLookupDto,
-  ClientWarehouseLookupDto,
-} from "../../types";
+import type { ClientProductLookupDto } from "../../types";
 import type { ClientReservationCartItem } from "../../appTypes";
 
 export function ProductsScreen({
   apiBaseUrl,
   token,
-  warehouses,
-  warehousesLoading,
-  warehousesError,
-  selectedWarehouseId,
-  onSelectWarehouse,
   cartItems,
   cartItemsCount,
   onAddToCart,
@@ -38,11 +30,6 @@ export function ProductsScreen({
 }: {
   apiBaseUrl: string;
   token: string;
-  warehouses: ClientWarehouseLookupDto[];
-  warehousesLoading: boolean;
-  warehousesError?: string | null;
-  selectedWarehouseId: number | null;
-  onSelectWarehouse: (warehouseId: number) => void;
   cartItems: ClientReservationCartItem[];
   cartItemsCount: number;
   onAddToCart: (product: ClientProductLookupDto, quantity: number) => void;
@@ -74,7 +61,7 @@ export function ProductsScreen({
         token,
         term,
         30,
-        selectedWarehouseId,
+        undefined,
       );
       setProducts(result);
     } catch (e) {
@@ -90,11 +77,6 @@ export function ProductsScreen({
     void loadProducts("");
   }, [apiBaseUrl, token]);
 
-  useEffect(() => {
-    if (!selectedWarehouseId) return;
-    void loadProducts(query);
-  }, [selectedWarehouseId]);
-
   function addSelectedToCart() {
     setFormError(null);
 
@@ -109,28 +91,6 @@ export function ProductsScreen({
       return;
     }
 
-    const available = selectedProduct.availableQuantity;
-    if (available != null) {
-      const existingQty =
-        cartItems.find((x) => x.productId === selectedProduct.productId)
-          ?.quantity ?? 0;
-      const totalAfterAdd = existingQty + qty;
-
-      if (available <= 0) {
-        setFormError("Produkt jest obecnie niedostępny w wybranym magazynie.");
-        return;
-      }
-
-      if (totalAfterAdd > available) {
-        setFormError(
-          `Ilość przekracza dostępny stan. Dostępne: ${formatNumber(
-            available,
-          )}, w koszyku po dodaniu byłoby: ${formatNumber(totalAfterAdd)}.`,
-        );
-        return;
-      }
-    }
-
     onAddToCart(selectedProduct, qty);
     setQuantityText("1");
   }
@@ -141,7 +101,7 @@ export function ProductsScreen({
     <Card>
       <SectionTitle
         title="Katalog produktów"
-        subtitle="Buduj koszyk rezerwacji. WZ tworzy obsługa magazynu po stronie firmy."
+        subtitle="Buduj koszyk rezerwacji. Magazyn odbioru wybierzesz w koszyku przed wysyłką."
       />
 
       <InlineRow style={{ marginBottom: 10 }}>
@@ -154,28 +114,8 @@ export function ProductsScreen({
         </View>
       </InlineRow>
 
-      {warehousesError ? <ErrorBlock message={warehousesError} /> : null}
       {error ? <ErrorBlock message={error} /> : null}
       {formError ? <ErrorBlock message={formError} /> : null}
-
-      <Text style={styles.label}>Magazyn odbioru</Text>
-      {warehousesLoading ? (
-        <LoadingBlock label="Pobieranie magazynów..." />
-      ) : (
-        <View style={styles.choiceWrap}>
-          {warehouses.map((w) => (
-            <View key={w.warehouseId} style={styles.choiceButtonSlot}>
-              <ActionButton
-                label={w.name}
-                variant={
-                  selectedWarehouseId === w.warehouseId ? "secondary" : "ghost"
-                }
-                onPress={() => onSelectWarehouse(w.warehouseId)}
-              />
-            </View>
-          ))}
-        </View>
-      )}
 
       <Text style={styles.label}>Wyszukaj produkt</Text>
       <PaperTextInput
@@ -214,10 +154,6 @@ export function ProductsScreen({
               label={`Wybrany: ${selectedProduct.code} (${selectedProduct.defaultUom ?? "-"})`}
               tone="good"
             />
-            {selectedProduct.availableQuantity != null &&
-            selectedProduct.availableQuantity <= 0 ? (
-              <Pill label="Brak dostępnego stanu" tone="danger" />
-            ) : null}
           </InlineRow>
         </View>
       ) : null}
@@ -304,15 +240,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: -4,
     marginBottom: 8,
-  },
-  choiceWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 10,
-  },
-  choiceButtonSlot: {
-    width: "100%",
   },
   addToCartBlock: {
     marginBottom: 8,

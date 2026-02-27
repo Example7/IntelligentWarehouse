@@ -378,6 +378,130 @@ namespace Services.Magazyn
             return RezerwacjaStatusChangeResultDto.Ok("Rezerwacja została zwolniona.");
         }
 
+        public async Task<RezerwacjaCreateShortagePzResultDto> CreateShortagePzDraftAsync(int reservationId, int supplierId, int receiptLocationId, int currentUserId)
+        {
+            var reservation = await _context.Rezerwacja
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.Id == reservationId);
+
+            if (reservation == null)
+            {
+                return RezerwacjaCreateShortagePzResultDto.Fail("Nie znaleziono rezerwacji.");
+            }
+
+            if (!string.Equals(reservation.Status, "Draft", StringComparison.OrdinalIgnoreCase))
+            {
+                return RezerwacjaCreateShortagePzResultDto.Fail("PZ z braków można utworzyć tylko dla rezerwacji w statusie Draft.");
+            }
+
+            var supplierExists = await _context.Dostawca
+                .AsNoTracking()
+                .AnyAsync(d => d.IdDostawcy == supplierId && d.CzyAktywny);
+            if (!supplierExists)
+            {
+                return RezerwacjaCreateShortagePzResultDto.Fail("Wybrany dostawca jest nieprawidłowy lub nieaktywny.");
+            }
+
+            var location = await _context.Lokacja
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l => l.IdLokacji == receiptLocationId && l.CzyAktywna);
+            if (location == null || location.IdMagazynu != reservation.IdMagazynu)
+            {
+                return RezerwacjaCreateShortagePzResultDto.Fail("Wybrana lokacja przyjęcia nie należy do magazynu tej rezerwacji.");
+            }
+
+            var positions = await _context.PozycjaRezerwacji
+                .AsNoTracking()
+                .Where(p => p.IdRezerwacji == reservationId)
+                .OrderBy(p => p.Lp)
+                .ThenBy(p => p.Id)
+                .ToListAsync();
+
+            if (positions.Count == 0)
+            {
+                return RezerwacjaCreateShortagePzResultDto.Fail("Rezerwacja nie ma pozycji.");
+            }
+
+            var shortages = await CalculateShortagesByProductAsync(reservation, positions);
+            if (shortages.Count == 0)
+            {
+                return RezerwacjaCreateShortagePzResultDto.Fail("Brakujące ilości nie zostały wykryte. Rezerwację można aktywować bez dodatkowego zamówienia.");
+            }
+
+            var productIds = shortages.Keys.ToList();
+            var products = await _context.Produkt
+                .AsNoTracking()
+                .Include(p => p.DomyslnaJednostka)
+                .Where(p => productIds.Contains(p.IdProduktu))
+                .ToDictionaryAsync(p => p.IdProduktu);
+
+            var rows = shortages
+                .Where(x => x.Value > 0m)
+                .Select(x =>
+                {
+                    products.TryGetValue(x.Key, out var product);
+                    return new PzShortageRow
+                    {
+                        ProductId = x.Key,
+                        Qty = x.Value,
+                        ProductCode = product?.Kod ?? $"ID:{x.Key}",
+                        Unit = product?.DomyslnaJednostka?.Kod ?? "j.m."
+                    };
+                })
+                .OrderBy(x => x.ProductCode, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (rows.Count == 0)
+            {
+                return RezerwacjaCreateShortagePzResultDto.Fail("Brakujące ilości nie zostały wykryte.");
+            }
+
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var now = DateTime.UtcNow;
+                var pz = new DokumentPZ
+                {
+                    Numer = await GenerateNextPzNumberAsync(now.Year),
+                    IdMagazynu = reservation.IdMagazynu,
+                    IdDostawcy = supplierId,
+                    Status = "Draft",
+                    DataPrzyjeciaUtc = now,
+                    IdUtworzyl = currentUserId,
+                    ZaksiegowanoUtc = null,
+                    Notatka = BuildPzShortageNote(reservation.Numer, rows)
+                };
+
+                var lp = 1;
+                foreach (var row in rows)
+                {
+                    pz.Pozycje.Add(new PozycjaPZ
+                    {
+                        Lp = lp++,
+                        IdProduktu = row.ProductId,
+                        IdLokacji = receiptLocationId,
+                        IdPartii = null,
+                        Ilosc = row.Qty,
+                        CenaJednostkowa = null
+                    });
+                }
+
+                _context.DokumentPZ.Add(pz);
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+
+                return RezerwacjaCreateShortagePzResultDto.Ok(
+                    pz.Id,
+                    pz.Numer,
+                    $"Utworzono PZ Draft {pz.Numer} z brakujących ilości rezerwacji {reservation.Numer}.");
+            }
+            catch (DbUpdateException ex)
+            {
+                await tx.RollbackAsync();
+                return RezerwacjaCreateShortagePzResultDto.Fail($"Nie udało się utworzyć PZ Draft: {ex.GetBaseException().Message}");
+            }
+        }
+
         public async Task<int> ReleaseExpiredAsync(DateTime utcNow, CancellationToken cancellationToken = default)
         {
             var expired = await _context.Rezerwacja
@@ -498,6 +622,29 @@ namespace Services.Magazyn
             return $"{prefix}{next:0000}";
         }
 
+        private async Task<string> GenerateNextPzNumberAsync(int year)
+        {
+            var prefix = $"PZ/{year}/";
+            var lastNumber = await _context.DokumentPZ
+                .AsNoTracking()
+                .Where(d => d.Numer.StartsWith(prefix))
+                .OrderByDescending(d => d.Id)
+                .Select(d => d.Numer)
+                .FirstOrDefaultAsync();
+
+            var next = 1;
+            if (!string.IsNullOrWhiteSpace(lastNumber))
+            {
+                var suffix = lastNumber[prefix.Length..];
+                if (int.TryParse(suffix, out var parsed))
+                {
+                    next = parsed + 1;
+                }
+            }
+
+            return $"{prefix}{next:0000}";
+        }
+
         private static DateTime? NormalizeInputUtc(DateTime? value)
         {
             if (!value.HasValue)
@@ -522,11 +669,155 @@ namespace Services.Magazyn
         private static string Fmt(decimal value)
             => value.ToString("0.###", CultureInfo.InvariantCulture);
 
+        private static string BuildPzShortageNote(string reservationNumber, IEnumerable<PzShortageRow> rows)
+        {
+            var items = rows
+                .Select(r => $"{r.ProductCode}: {r.Qty.ToString("0.###", CultureInfo.InvariantCulture)} {r.Unit}")
+                .ToList();
+
+            var joined = string.Join("; ", items);
+            var source = $"Utworzono z braków rezerwacji {reservationNumber}.";
+            return $"{source} Pozycje: {joined}";
+        }
+
+        private async Task<Dictionary<int, decimal>> CalculateShortagesByProductAsync(Rezerwacja reservation, List<PozycjaRezerwacji> pozycje)
+        {
+            var productIds = pozycje.Select(p => p.IdProduktu).Distinct().ToList();
+            if (productIds.Count == 0)
+            {
+                return new Dictionary<int, decimal>();
+            }
+
+            var stockRows = await _context.StanMagazynowy
+                .AsNoTracking()
+                .Where(s =>
+                    productIds.Contains(s.IdProduktu) &&
+                    s.Lokacja.IdMagazynu == reservation.IdMagazynu &&
+                    s.Lokacja.CzyAktywna)
+                .Select(s => new
+                {
+                    s.IdProduktu,
+                    s.IdLokacji,
+                    s.Ilosc
+                })
+                .ToListAsync();
+
+            var activeReservedRows = await _context.PozycjaRezerwacji
+                .AsNoTracking()
+                .Where(p =>
+                    p.IdRezerwacji != reservation.Id &&
+                    productIds.Contains(p.IdProduktu) &&
+                    p.Rezerwacja.IdMagazynu == reservation.IdMagazynu &&
+                    p.Rezerwacja.Status == "Active")
+                .GroupBy(p => new { p.IdProduktu, p.IdLokacji })
+                .Select(g => new
+                {
+                    g.Key.IdProduktu,
+                    g.Key.IdLokacji,
+                    Qty = g.Sum(x => x.Ilosc)
+                })
+                .ToListAsync();
+
+            var draftWzRows = await _context.PozycjaWZ
+                .AsNoTracking()
+                .Where(p =>
+                    p.IdLokacji.HasValue &&
+                    productIds.Contains(p.IdProduktu) &&
+                    p.Dokument.IdMagazynu == reservation.IdMagazynu &&
+                    p.Dokument.Status == "Draft")
+                .GroupBy(p => new { p.IdProduktu, p.IdLokacji })
+                .Select(g => new
+                {
+                    g.Key.IdProduktu,
+                    g.Key.IdLokacji,
+                    Qty = g.Sum(x => x.Ilosc)
+                })
+                .ToListAsync();
+
+            var warehouseStockByProduct = stockRows
+                .GroupBy(x => x.IdProduktu)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Ilosc));
+
+            var activeReservedWarehouseByProduct = activeReservedRows
+                .GroupBy(x => x.IdProduktu)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
+
+            foreach (var draft in draftWzRows)
+            {
+                activeReservedWarehouseByProduct[draft.IdProduktu] =
+                    activeReservedWarehouseByProduct.GetValueOrDefault(draft.IdProduktu, 0m) + draft.Qty;
+            }
+
+            var activeReservedAtLocation = activeReservedRows
+                .Where(x => x.IdLokacji.HasValue)
+                .ToDictionary(x => (x.IdProduktu, x.IdLokacji!.Value), x => x.Qty);
+
+            foreach (var draft in draftWzRows.Where(x => x.IdLokacji.HasValue))
+            {
+                var key = (draft.IdProduktu, draft.IdLokacji!.Value);
+                activeReservedAtLocation[key] = activeReservedAtLocation.GetValueOrDefault(key, 0m) + draft.Qty;
+            }
+
+            var shortagesByProduct = new Dictionary<int, decimal>();
+
+            var warehouseLevelGroups = pozycje
+                .Where(p => p.IdLokacji == null)
+                .GroupBy(p => p.IdProduktu)
+                .Select(g => new { ProductId = g.Key, Qty = g.Sum(x => x.Ilosc) })
+                .ToList();
+
+            foreach (var group in warehouseLevelGroups)
+            {
+                var stockInWarehouse = warehouseStockByProduct.GetValueOrDefault(group.ProductId, 0m);
+                var activeReserved = activeReservedWarehouseByProduct.GetValueOrDefault(group.ProductId, 0m);
+                var available = stockInWarehouse - activeReserved;
+                var missing = group.Qty - available;
+                if (missing > 0m)
+                {
+                    shortagesByProduct[group.ProductId] = shortagesByProduct.GetValueOrDefault(group.ProductId, 0m) + missing;
+                }
+            }
+
+            var locationLevelGroups = pozycje
+                .Where(p => p.IdLokacji.HasValue)
+                .GroupBy(p => new { p.IdProduktu, p.IdLokacji })
+                .Select(g => new { g.Key.IdProduktu, g.Key.IdLokacji, Qty = g.Sum(x => x.Ilosc) })
+                .ToList();
+
+            foreach (var group in locationLevelGroups)
+            {
+                var locationId = group.IdLokacji!.Value;
+                var stockAtLocation = stockRows
+                    .Where(s => s.IdProduktu == group.IdProduktu && s.IdLokacji == locationId)
+                    .Sum(s => s.Ilosc);
+
+                var activeReservedQty = activeReservedAtLocation.GetValueOrDefault((group.IdProduktu, locationId), 0m);
+                var available = stockAtLocation - activeReservedQty;
+                var missing = group.Qty - available;
+                if (missing > 0m)
+                {
+                    shortagesByProduct[group.IdProduktu] = shortagesByProduct.GetValueOrDefault(group.IdProduktu, 0m) + missing;
+                }
+            }
+
+            return shortagesByProduct
+                .Where(x => x.Value > 0m)
+                .ToDictionary(x => x.Key, x => x.Value);
+        }
+
         private sealed class ReservationLocationAllocation
         {
             public int LocationId { get; set; }
             public string LocationCode { get; set; } = string.Empty;
             public decimal Available { get; set; }
+        }
+
+        private sealed class PzShortageRow
+        {
+            public int ProductId { get; set; }
+            public decimal Qty { get; set; }
+            public string ProductCode { get; set; } = string.Empty;
+            public string Unit { get; set; } = "j.m.";
         }
     }
 }
