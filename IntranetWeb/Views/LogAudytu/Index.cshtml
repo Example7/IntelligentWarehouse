@@ -67,12 +67,12 @@
 
         if (actionUpper == "LOGIN")
         {
-            return "Logowanie uzytkownika";
+            return "Logowanie użytkownika";
         }
 
         if (actionUpper == "LOGOUT")
         {
-            return "Wylogowanie uzytkownika";
+            return "Wylogowanie użytkownika";
         }
 
         if (actionUpper == "CREATE")
@@ -92,13 +92,13 @@
         {
             if (oldMap.Count == 0)
             {
-                return "Usunieto rekord";
+                return "Usunięto rekord";
             }
 
             var deletedFields = oldMap
                 .Take(3)
                 .Select(kv => $"{kv.Key}={Shorten(kv.Value, 24)}");
-            return $"Usuniete dane: {string.Join(", ", deletedFields)}";
+            return $"Usunięte dane: {string.Join(", ", deletedFields)}";
         }
 
         var keys = oldMap.Keys
@@ -120,7 +120,7 @@
 
         if (changed.Count == 0)
         {
-            return "Brak roznic w danych";
+            return "Brak różnic w danych";
         }
 
         return string.Join("; ", changed.Take(2));
@@ -143,11 +143,11 @@
             <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-journal-text"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Log audytu</h1>
-                <p class="news-admin-header__subheading mb-0">Historia operacji w systemie: akcje, encje, uzytkownik i zmiany danych.</p>
+                <p class="news-admin-header__subheading mb-0">Historia operacji w systemie: akcje, encje, użytkownik i zmiany danych.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Lacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Dzisiaj</span><strong class="news-admin-stat__value">@todayCount</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">DELETE</span><strong class="news-admin-stat__value">@deleteCount</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">LOGIN</span><strong class="news-admin-stat__value">@loginCount</strong></div>
@@ -156,16 +156,16 @@
 
     <section class="news-admin-toolbar">
         <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie logu audytu">
-            <label for="auditSearchTerm" class="visually-hidden">Szukaj wpisow audytu</label>
+            <label for="auditSearchTerm" class="visually-hidden">Szukaj wpisów audytu</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
                 <input id="auditSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
-                       placeholder="Szukaj po akcji, encji, ID encji lub uzytkowniku..." />
+                       placeholder="Szukaj po akcji, encji, ID encji lub użytkowniku..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczysc filtr"><i class="bi bi-x-lg"></i></a>
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
             }
         </form>
     </section>
@@ -174,21 +174,21 @@
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-journal-x"></i></div>
-            <h2 class="h4 mb-2">Brak wpisow audytu</h2>
+            <h2 class="h4 mb-2">Brak wpisów audytu</h2>
             <p class="text-muted mb-3">
                 @if (string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    <span>Brak zapisanych wpisow w logu audytu.</span>
+                    <span>Brak zapisanych wpisów w logu audytu.</span>
                 }
                 else
                 {
-                    <span>Brak wynikow dla frazy: <strong>@searchTerm</strong>.</span>
+                    <span>Brak wyników dla frazy: <strong>@searchTerm</strong>.</span>
                 }
             </p>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 <div class="d-flex justify-content-center gap-2 flex-wrap">
-                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczysc filtr</a>
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Wyczyść filtr</a>
                 </div>
             }
         </section>
@@ -203,7 +203,7 @@
                             <th>Akcja</th>
                             <th>Encja</th>
                             <th>ID encji</th>
-                            <th>Uzytkownik</th>
+                            <th>Użytkownik</th>
                             <th>Kiedy</th>
                             <th>Zmiana</th>
                             <th class="text-end">Akcje</th>
@@ -233,7 +233,7 @@
                             <td><div class="entity-cell-subtitle text-truncate" style="max-width: 24rem;" title="@changePreview">@changePreview</div></td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla wpisu audytu @item.Id">
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegoly"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły"><i class="bi bi-eye"></i></a>
                                 </div>
                             </td>
                         </tr>

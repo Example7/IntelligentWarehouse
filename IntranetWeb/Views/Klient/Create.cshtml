@@ -1,4 +1,4 @@
-@model Data.Data.Magazyn.Klient
+@model IntranetWeb.Models.Klient.KlientCreateViewModel
 
 @{
     ViewData["Title"] = "Dodaj klienta";
@@ -10,7 +10,7 @@
             <span class="news-admin-header__icon"><i class="bi bi-plus-square"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Dodaj klienta</h1>
-                <p class="news-admin-header__subheading mb-0">Utworz nowego klienta i dane kontaktowe.</p>
+                <p class="news-admin-header__subheading mb-0">Utwórz nowego klienta i dane kontaktowe.</p>
             </div>
         </div>
     </section>
@@ -18,11 +18,14 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane klienta</h2>
-            <p class="text-muted mb-0">Uzupelnij dane kontaktowe i status aktywnosci klienta.</p>
+            <p class="text-muted mb-0">Uzupełnij dane kontaktowe i status aktywności klienta.</p>
         </div>
 
-        <form asp-action="Create" method="post" class="news-editor-form" novalidate>
+        <form asp-action="Create" method="post" class="news-editor-form" novalidate autocomplete="off">
+            <input type="text" name="fakeUsername" class="d-none" tabindex="-1" autocomplete="username" aria-hidden="true" />
+            <input type="password" name="fakePassword" class="d-none" tabindex="-1" autocomplete="current-password" aria-hidden="true" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
+
             <div class="news-form-grid">
                 <div class="news-form-field news-form-field--full">
                     <label asp-for="Nazwa" class="form-label news-form-label"></label>
@@ -34,7 +37,7 @@
                     <input asp-for="Telefon" class="form-control news-form-control" />
                     <span asp-validation-for="Telefon" class="text-danger small"></span>
                 </div>
-                <div class="news-form-field news-form-field--full">
+                <div class="news-form-field">
                     <label asp-for="Email" class="form-label news-form-label"></label>
                     <input asp-for="Email" class="form-control news-form-control" />
                     <span asp-validation-for="Email" class="text-danger small"></span>
@@ -45,16 +48,66 @@
                     <span asp-validation-for="Adres" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field news-form-field--full">
-                    <div class="form-check form-switch mt-2">
+                    <div class="form-check news-form-check">
                         <input class="form-check-input" asp-for="CzyAktywny" />
                         <label class="form-check-label news-form-label mb-0" asp-for="CzyAktywny"></label>
                     </div>
-                    <span asp-validation-for="CzyAktywny" class="text-danger small"></span>
                 </div>
             </div>
+
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="client-account-create-block mt-3">
+                    <div class="form-check news-form-check">
+                        <input class="form-check-input" asp-for="UtworzKontoMobilne" id="toggleMobileAccountCreate" />
+                        <label class="form-check-label news-form-label mb-0" asp-for="UtworzKontoMobilne"></label>
+                        <span asp-validation-for="UtworzKontoMobilne" class="text-danger small d-block mt-1"></span>
+                    </div>
+
+                    <div id="mobileAccountFields" class="client-account-create-fields @(Model.UtworzKontoMobilne ? string.Empty : "d-none")">
+                        <div class="client-account-create-info">
+                            <div class="client-account-create-info__icon"><i class="bi bi-phone"></i></div>
+                            <div>
+                                <div class="client-account-create-info__title">Konto mobilne klienta</div>
+                                <div class="client-account-create-info__text">Po zapisaniu klienta system utworzy konto i przypisze rolę klienta.</div>
+                            </div>
+                        </div>
+
+                        <div class="news-form-grid">
+                            <div class="news-form-field">
+                                <label asp-for="LoginMobilny" class="form-label news-form-label"></label>
+                                <input asp-for="LoginMobilny" class="form-control news-form-control" autocomplete="off" />
+                                <span asp-validation-for="LoginMobilny" class="text-danger small"></span>
+                            </div>
+                            <div class="news-form-field">
+                                <label asp-for="EmailMobilny" class="form-label news-form-label"></label>
+                                <input asp-for="EmailMobilny" class="form-control news-form-control" autocomplete="off" />
+                                <span asp-validation-for="EmailMobilny" class="text-danger small"></span>
+                            </div>
+                            <div class="news-form-field">
+                                <label asp-for="HasloMobilne" class="form-label news-form-label"></label>
+                                <input asp-for="HasloMobilne" class="form-control news-form-control" autocomplete="new-password" />
+                                <span asp-validation-for="HasloMobilne" class="text-danger small"></span>
+                            </div>
+                            <div class="news-form-field">
+                                <label asp-for="PotwierdzHasloMobilne" class="form-label news-form-label"></label>
+                                <input asp-for="PotwierdzHasloMobilne" class="form-control news-form-control" autocomplete="new-password" />
+                                <span asp-validation-for="PotwierdzHasloMobilne" class="text-danger small"></span>
+                            </div>
+                            <div class="news-form-field news-form-field--full">
+                                <div class="form-check news-form-check">
+                                    <input asp-for="CzyAktywneKontoMobilne" class="form-check-input" />
+                                    <label asp-for="CzyAktywneKontoMobilne" class="form-check-label news-form-label mb-0"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
             <div class="news-form-actions">
                 <button type="submit" class="btn btn-primary news-form-actions__primary"><i class="bi bi-check2-circle"></i> Zapisz klienta</button>
-                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wroc do listy</a>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Wróć do listy</a>
             </div>
         </form>
     </section>
@@ -62,4 +115,20 @@
 
 @section Scripts {
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        (function () {
+            const toggle = document.getElementById('toggleMobileAccountCreate');
+            const fields = document.getElementById('mobileAccountFields');
+            if (!toggle || !fields) {
+                return;
+            }
+
+            const sync = () => {
+                fields.classList.toggle('d-none', !toggle.checked);
+            };
+
+            toggle.addEventListener('change', sync);
+            sync();
+        })();
+    </script>
 }
