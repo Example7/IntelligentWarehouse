@@ -1,5 +1,6 @@
 @model Interfaces.Magazyn.Dtos.DokumentWZIndexDto
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Wydania WZ";
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm ?? string.Empty;
@@ -75,7 +76,10 @@
                             @if (canEdit) { <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id" title="Edytuj"><i class="bi bi-pencil"></i></a> }
                             else { <button type="button" class="btn btn-outline-secondary" disabled title="Edycja tylko dla Draft"><i class="bi bi-pencil"></i></button> }
                             <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                            @if (isAdmin)
+                            {
                             <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usuń"><i class="bi bi-trash"></i></a>
+                            }
                         </div></td>
                     </tr>
                 }
@@ -85,3 +89,4 @@
         </section>
     }
 </div>
+

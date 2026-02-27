@@ -201,6 +201,7 @@ namespace IntranetWeb.Controllers
         }
 
         // GET: StanMagazynowy/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -223,6 +224,7 @@ namespace IntranetWeb.Controllers
         }
 
         // POST: StanMagazynowy/Delete/5
+        [Authorize(Roles = AppRoles.AdminOnly)]
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

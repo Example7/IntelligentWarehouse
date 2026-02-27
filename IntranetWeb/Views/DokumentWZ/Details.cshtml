@@ -1,6 +1,7 @@
 @model Interfaces.Magazyn.Dtos.DokumentWZDetailsDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Szczegóły WZ";
     var d = Model.Dokument;
     var isPosted = string.Equals(d.Status, "Posted", StringComparison.OrdinalIgnoreCase);
@@ -68,7 +69,10 @@
                     <button type="button" class="btn btn-outline-secondary" disabled title="Edycja tylko dla Draft"><i class="bi bi-pencil-square me-1"></i> Edytuj</button>
                 }
                 <a asp-action="Wydruk" asp-route-id="@d.Id" class="btn btn-outline-primary" title="Generuj wydruk z aktywnego szablonu WZ"><i class="bi bi-printer me-1"></i> Wydruk</a>
+                @if (isAdmin)
+                {
                 <a asp-action="Delete" asp-route-id="@d.Id" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                }
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
@@ -142,3 +146,4 @@
         }
     </section>
 </div>
+

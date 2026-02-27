@@ -1,4 +1,4 @@
-﻿@model Interfaces.Magazyn.Dtos.StanMagazynowyIndexDto
+@model Interfaces.Magazyn.Dtos.StanMagazynowyIndexDto
 
 @{
     ViewData["Title"] = "Stany magazynowe";
@@ -16,7 +16,7 @@
             <span class="news-admin-header__icon"><i class="bi bi-stack"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Stany magazynowe</h1>
-                <p class="news-admin-header__subheading mb-0">Aktualne ilości produktow w lokalizacjach magazynowych.</p>
+                <p class="news-admin-header__subheading mb-0">Aktualne ilości produktów w lokalizacjach magazynowych.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -26,8 +26,8 @@
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie stanow magazynowych">
-            <label for="stockSearchTerm" class="visually-hidden">Szukaj stanow magazynowych</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie stanów magazynowych">
+            <label for="stockSearchTerm" class="visually-hidden">Szukaj stanów magazynowych</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon"></i>
                 <input id="stockSearchTerm"
@@ -90,7 +90,7 @@
                             <th>Produkt</th>
                             <th>Magazyn</th>
                             <th>Lokacja</th>
-                            <th class="text-end">Ilosc</th>
+                            <th class="text-end">Ilość</th>
                             <th class="text-end">Zarezerwowane</th>
                             <th class="text-end">Dostępne</th>
                             <th>JM</th>
@@ -127,7 +127,10 @@
                                         <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdStanu" title="Edytuj"><i class="bi bi-pencil"></i></a>
                                     }
                                     <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdStanu" title="Szczegóły"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdStanu" title="Usuń"><i class="bi bi-trash"></i></a>
+                                    @if (isAdmin)
+                                    {
+                                        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdStanu" title="Usuń"><i class="bi bi-trash"></i></a>
+                                    }
                                 </div>
                             </td>
                         </tr>
@@ -138,4 +141,3 @@
         </section>
     }
 </div>
-

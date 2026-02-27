@@ -1,6 +1,7 @@
-﻿@model IEnumerable<Data.Data.Magazyn.Kategoria>
+@model IEnumerable<Data.Data.Magazyn.Kategoria>
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Kategorie";
     var items = Model.ToList();
     var searchTerm = Context.Request.Query["searchTerm"].ToString();
@@ -80,7 +81,10 @@
                             <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla kategorii @item.Nazwa">
                                 <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdKategorii"><i class="bi bi-pencil"></i></a>
                                 <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdKategorii"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdKategorii"><i class="bi bi-trash"></i></a>
+                                @if (isAdmin)
+                                {
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdKategorii"><i class="bi bi-trash"></i></a>
+                                }
                             </div>
                         </div>
                     </div>

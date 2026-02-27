@@ -1,6 +1,7 @@
-﻿@model Interfaces.Magazyn.Dtos.LokacjaDetailsDto
+@model Interfaces.Magazyn.Dtos.LokacjaDetailsDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Szczegóły lokacji";
     var lokacja = Model.Lokacja;
     string Fmt(decimal value) => value.ToString("0.###");
@@ -28,7 +29,10 @@
             <h2 class="news-details-panel__title">@lokacja.Kod</h2>
             <div class="news-details-panel__actions">
                 <a asp-action="Edit" asp-route-id="@lokacja.IdLokacji" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@lokacja.IdLokacji" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                @if (isAdmin)
+                {
+                    <a asp-action="Delete" asp-route-id="@lokacja.IdLokacji" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                }
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
@@ -38,7 +42,7 @@
             <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value entity-mono">@lokacja.Kod</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(lokacja.CzyAktywna ? "Aktywna" : "Nieaktywna")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Pozycje stanu</div><div class="news-details-item__value">@Model.StanyLokacji.Count</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Łączny stan (mieszane JM)</div><div class="news-details-item__value">@Fmt(Model.AktualnyStan)</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Łączny stan (mieszane j.m.)</div><div class="news-details-item__value">@Fmt(Model.AktualnyStan)</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Rezerwacje (ostatnie)</div><div class="news-details-item__value">@Model.OstatniePozycjeRezerwacji.Count</div></div>
             <div class="news-details-item news-details-item--full">
                 <div class="news-details-item__label">Opis</div>
@@ -138,9 +142,9 @@
                         @if (!Model.OstatniePozycjePz.Any()) { <div class="p-3 text-muted small">Brak pozycji PZ.</div> }
                         else
                         {
-                            <div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Dokument</th><th>Produkt</th><th class="text-end">Ilosc</th><th class="text-end">Akcje</th></tr></thead><tbody>
+                            <div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Dokument</th><th>Produkt</th><th class="text-end">Ilość</th><th class="text-end">Akcje</th></tr></thead><tbody>
                             @foreach (var p in Model.OstatniePozycjePz)
-                            {<tr><td><div class="entity-cell-title">@p.Dokument.Numer</div><div class="entity-cell-subtitle">@p.Dokument.DataPrzyjeciaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div></td><td>@p.Produkt.Kod</td><td class="text-end">@Fmt(p.Ilosc) @(p.Produkt.DomyslnaJednostka?.Kod ?? "")</td><td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentPZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegoly PZ"><i class="bi bi-eye"></i></a></td></tr>}
+                            {<tr><td><div class="entity-cell-title">@p.Dokument.Numer</div><div class="entity-cell-subtitle">@p.Dokument.DataPrzyjeciaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div></td><td>@p.Produkt.Kod</td><td class="text-end">@Fmt(p.Ilosc) @(p.Produkt.DomyslnaJednostka?.Kod ?? "")</td><td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentPZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegóły PZ"><i class="bi bi-eye"></i></a></td></tr>}
                             </tbody></table></div>
                         }
                     </div>
@@ -151,9 +155,9 @@
                         @if (!Model.OstatniePozycjeWz.Any()) { <div class="p-3 text-muted small">Brak pozycji WZ.</div> }
                         else
                         {
-                            <div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Dokument</th><th>Produkt</th><th class="text-end">Ilosc</th><th class="text-end">Akcje</th></tr></thead><tbody>
+                            <div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Dokument</th><th>Produkt</th><th class="text-end">Ilość</th><th class="text-end">Akcje</th></tr></thead><tbody>
                             @foreach (var p in Model.OstatniePozycjeWz)
-                            {<tr><td><div class="entity-cell-title">@p.Dokument.Numer</div><div class="entity-cell-subtitle">@p.Dokument.DataWydaniaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div></td><td>@p.Produkt.Kod</td><td class="text-end">@Fmt(p.Ilosc) @(p.Produkt.DomyslnaJednostka?.Kod ?? "")</td><td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentWZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegoly WZ"><i class="bi bi-eye"></i></a></td></tr>}
+                            {<tr><td><div class="entity-cell-title">@p.Dokument.Numer</div><div class="entity-cell-subtitle">@p.Dokument.DataWydaniaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div></td><td>@p.Produkt.Kod</td><td class="text-end">@Fmt(p.Ilosc) @(p.Produkt.DomyslnaJednostka?.Kod ?? "")</td><td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentWZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegóły WZ"><i class="bi bi-eye"></i></a></td></tr>}
                             </tbody></table></div>
                         }
                     </div>
@@ -164,11 +168,11 @@
                         @if (!Model.OstatniePozycjeMmZ.Any() && !Model.OstatniePozycjeMmDo.Any()) { <div class="p-3 text-muted small">Brak pozycji MM.</div> }
                         else
                         {
-                            <div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Kierunek</th><th>Dokument</th><th>Produkt</th><th class="text-end">Ilosc</th></tr></thead><tbody>
+                            <div class="entity-table-wrap"><table class="table table-hover align-middle mb-0 entity-table"><thead><tr><th>Kierunek</th><th>Dokument</th><th>Produkt</th><th class="text-end">Ilość</th></tr></thead><tbody>
                             @foreach (var p in Model.OstatniePozycjeMmZ)
-                            {<tr><td><span class="entity-badge entity-badge--warning">Wyjscie</span></td><td><div class="entity-cell-title">@p.Dokument.Numer</div><div class="entity-cell-subtitle">do @(p.LokacjaDo?.Kod ?? "-")</div></td><td>@p.Produkt.Kod</td><td class="text-end">@Fmt(p.Ilosc) @(p.Produkt.DomyslnaJednostka?.Kod ?? "")</td></tr>}
+                            {<tr><td><span class="entity-badge entity-badge--warning">Wyjście</span></td><td><div class="entity-cell-title">@p.Dokument.Numer</div><div class="entity-cell-subtitle">do @(p.LokacjaDo?.Kod ?? "-")</div></td><td>@p.Produkt.Kod</td><td class="text-end">@Fmt(p.Ilosc) @(p.Produkt.DomyslnaJednostka?.Kod ?? "")</td></tr>}
                             @foreach (var p in Model.OstatniePozycjeMmDo)
-                            {<tr><td><span class="entity-badge entity-badge--success">Wejscie</span></td><td><div class="entity-cell-title">@p.Dokument.Numer</div><div class="entity-cell-subtitle">z @(p.LokacjaZ?.Kod ?? "-")</div></td><td>@p.Produkt.Kod</td><td class="text-end">@Fmt(p.Ilosc) @(p.Produkt.DomyslnaJednostka?.Kod ?? "")</td></tr>}
+                            {<tr><td><span class="entity-badge entity-badge--success">Wejście</span></td><td><div class="entity-cell-title">@p.Dokument.Numer</div><div class="entity-cell-subtitle">z @(p.LokacjaZ?.Kod ?? "-")</div></td><td>@p.Produkt.Kod</td><td class="text-end">@Fmt(p.Ilosc) @(p.Produkt.DomyslnaJednostka?.Kod ?? "")</td></tr>}
                             </tbody></table></div>
                         }
                     </div>

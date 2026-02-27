@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using IntranetWeb.Security;
 
 namespace IntranetWeb.Controllers;
 
@@ -72,6 +73,17 @@ public class KontoController : Controller
             .Cast<string>()
             .ToList();
 
+        var hasIntranetAccessRole = roleNames.Any(role =>
+            string.Equals(role, AppRoles.Admin, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role, AppRoles.Magazynier, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(role, AppRoles.Operator, StringComparison.OrdinalIgnoreCase));
+
+        if (!hasIntranetAccessRole)
+        {
+            ModelState.AddModelError(string.Empty, "To konto nie ma dostepu do panelu intranetowego.");
+            return View(model);
+        }
+
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.IdUzytkownika.ToString()),
@@ -106,23 +118,27 @@ public class KontoController : Controller
         return RedirectToLocal(model.ReturnUrl);
     }
 
-    [Authorize]
+    [AllowAnonymous]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Wyloguj()
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var userId = int.TryParse(userIdValue, out var parsedUserId) ? parsedUserId : (int?)null;
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = int.TryParse(userIdValue, out var parsedUserId) ? parsedUserId : (int?)null;
 
-        await AddSecurityAuditAsync(
-            userId: userId,
-            action: "LOGOUT",
-            entityName: nameof(Uzytkownik),
-            entityId: userId?.ToString(),
-            oldJson: null,
-            newJson: null);
+            await AddSecurityAuditAsync(
+                userId: userId,
+                action: "LOGOUT",
+                entityName: nameof(Uzytkownik),
+                entityId: userId?.ToString(),
+                oldJson: null,
+                newJson: null);
 
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        }
+
         return RedirectToAction(nameof(Login));
     }
 

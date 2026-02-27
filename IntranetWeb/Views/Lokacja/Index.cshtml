@@ -1,6 +1,7 @@
-﻿@model Interfaces.Magazyn.Dtos.LokacjaIndexDto
+@model Interfaces.Magazyn.Dtos.LokacjaIndexDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Lokacje";
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm ?? string.Empty;
@@ -38,7 +39,7 @@
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" aria-label="Wyczysc wyszukiwanie">
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" aria-label="Wyczyść wyszukiwanie">
                     <i class="bi bi-x-lg"></i>
                 </a>
             }
@@ -94,7 +95,10 @@
                             <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla lokacji @lokacja.Kod">
                                 <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@lokacja.IdLokacji" aria-label="Edytuj @lokacja.Kod"><i class="bi bi-pencil"></i></a>
                                 <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@lokacja.IdLokacji" aria-label="Szczegóły @lokacja.Kod"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@lokacja.IdLokacji" aria-label="Usuń @lokacja.Kod"><i class="bi bi-trash"></i></a>
+                                @if (isAdmin)
+                                {
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@lokacja.IdLokacji" aria-label="Usuń @lokacja.Kod"><i class="bi bi-trash"></i></a>
+                                }
                             </div>
                         </div>
                     </div>

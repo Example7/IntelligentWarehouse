@@ -1,6 +1,7 @@
-﻿@model Interfaces.Magazyn.Dtos.PartiaIndexDto
+@model Interfaces.Magazyn.Dtos.PartiaIndexDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Partie";
     var items = (Model.Items ?? new()).ToList();
     var searchTerm = Model.SearchTerm ?? string.Empty;
@@ -101,7 +102,10 @@
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla partii @item.NumerPartii">
                                     <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.IdPartii" title="Edytuj partię"><i class="bi bi-pencil"></i></a>
                                     <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.IdPartii" title="Szczegóły partii"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdPartii" title="Usuń partię"><i class="bi bi-trash"></i></a>
+                                    @if (isAdmin)
+                                    {
+                                        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.IdPartii" title="Usuń partię"><i class="bi bi-trash"></i></a>
+                                    }
                                 </div>
                             </td>
                         </tr>

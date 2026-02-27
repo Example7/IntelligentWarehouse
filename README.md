@@ -10,6 +10,33 @@ Zintegrowany System Informatyczny (ZSI) dla obszaru magazynowego / WMS z moduła
 - `Services` - logika biznesowa (współdzielona)
 - `Interfaces` - kontrakty / DTO
 
+## Dodatkowe biblioteki (aktualny stan)
+
+### MobileApp (React Native / Expo)
+
+- `react-native-paper` - komponenty UI (Material Design)
+- `react-native-safe-area-context` - obsługa bezpiecznych obszarów ekranu
+- `@react-native-async-storage/async-storage` - lokalne przechowywanie sesji/konfiguracji
+- `react-native-vector-icons` - ikony UI
+- `expo-linear-gradient`, `expo-asset`, `expo-status-bar` - elementy UI i zasoby w Expo
+
+### IntranetWeb / backend współdzielony
+
+- `Microsoft.EntityFrameworkCore.Tools` / `Design` - migracje i narzędzia EF Core
+- `DocumentFormat.OpenXml` - obsługa szablonów i generowania dokumentów (np. DOCX)
+- `QuestPDF` - generowanie PDF (np. raporty/wydruki)
+- `ClosedXML` - generowanie plików Excel (XLSX)
+
+### Joby i zadania cykliczne
+
+- Joby są realizowane przez wbudowane `HostedService` (`BackgroundService`) w `IntranetWeb`
+- Aktualnie brak zewnętrznego schedulera typu Hangfire/Quartz
+
+### Szablony i załączniki
+
+- Szablony wydruków: logika oparta o `DocumentFormat.OpenXml` (+ renderowanie prostych szablonów tekstowych/HTML)
+- Załączniki: upload i walidacja realizowane natywnie w ASP.NET Core (`IFormFile`), bez dodatkowej dedykowanej biblioteki
+
 ## Uwierzytelnianie i autoryzacja
 
 ### IntranetWeb
@@ -166,6 +193,7 @@ W warstwie UI (MobileApp) statusy mogą być prezentowane klientowi jako etykiet
 Poniższy scenariusz jest aktualnie zaimplementowany i możliwy do demonstracji:
 
 1. `MobileApp` (klient)
+
 - klient loguje się do aplikacji mobilnej
 - wybiera magazyn
 - wyszukuje produkty
@@ -175,18 +203,21 @@ Poniższy scenariusz jest aktualnie zaimplementowany i możliwy do demonstracji:
 - jeśli aktywacja nie powiedzie się (np. brak dostępności przy weryfikacji), rezerwacja pozostaje `Draft`
 
 2. `IntranetWeb` (magazynier / operator)
+
 - otwiera szczegóły rezerwacji
 - uruchamia akcję `Aktywuj` (`Draft -> Active`) jako fallback dla rezerwacji niepotwierdzonych automatycznie
 - system waliduje dostępność stanów magazynowych (ilości / lokacje)
 - w przypadku braku dostępności aktywacja jest blokowana komunikatem błędu
 
 3. `IntranetWeb` (konwersja rezerwacji do WZ)
+
 - z poziomu `Rezerwacja/Details` dostępna jest akcja `Utworz WZ` (dla aktywnej rezerwacji)
 - system automatycznie tworzy dokument `WZ` w statusie `Draft`
 - system automatycznie kopiuje pozycje rezerwacji do pozycji `WZ`
 - rezerwacja przechodzi do statusu `Released` (zwolniona po utworzeniu WZ)
 
 4. Automatyczne przypisywanie lokacji przy tworzeniu `WZ`
+
 - jeśli pozycja rezerwacji ma wskazaną lokację:
   - ta lokacja jest przenoszona do pozycji `WZ` (po weryfikacji stanu)
 - jeśli pozycja rezerwacji nie ma lokacji:
@@ -197,12 +228,14 @@ Poniższy scenariusz jest aktualnie zaimplementowany i możliwy do demonstracji:
   - `WZ` nie zostanie utworzone (komunikat błędu)
 
 5. `IntranetWeb` (księgowanie WZ)
+
 - operator otwiera nowo utworzone `WZ`
 - uruchamia akcję `Zaksieguj`
 - system waliduje pozycje `WZ` (m.in. ilości > 0, poprawne lokacje, zgodność lokacji z magazynem dokumentu, wystarczający stan)
 - po sukcesie dokument `WZ` przechodzi do statusu `Posted`
 
 6. `MobileApp` (klient)
+
 - klient widzi dokument `WZ` na liście i w szczegółach w kanale mobilnym
 - statusy są prezentowane w etykietach biznesowych (PL), niezależnie od technicznych wartości statusów
 
@@ -217,12 +250,14 @@ Poniższy scenariusz jest aktualnie zaimplementowany i możliwy do demonstracji:
 System wspiera obecnie dwa kanały wejścia do procesu wydania (`WZ`):
 
 1. Kanał klienta (`MobileApp`) - przez rezerwację
+
 - klient składa rezerwację w aplikacji mobilnej
 - system próbuje automatycznie potwierdzić rezerwację (auto-activate)
 - jeśli auto-aktywacja się nie powiedzie, rezerwacja jest obsługiwana przez pracownika w `IntranetWeb`
 - na podstawie rezerwacji tworzony jest dokument `WZ`
 
 2. Kanał wewnętrzny (`IntranetWeb`) - bezpośrednie utworzenie `WZ`
+
 - operator / magazynier / administrator może utworzyć dokument `WZ` ręcznie
 - scenariusz używany np. dla zgłoszeń telefonicznych, mailowych lub zamówień przyjętych poza aplikacją mobilną
 
@@ -248,4 +283,3 @@ Walidacja operacyjna:
 
 - `CenaJednostkowa` nie może być ujemna,
 - brak ceny (`null`) jest dozwolony tylko na etapie `Draft`; przed ksiegowaniem PZ wszystkie pozycje musza miec uzupelniona cene jednostkowa.
-

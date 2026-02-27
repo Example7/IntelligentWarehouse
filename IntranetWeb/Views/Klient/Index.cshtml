@@ -1,6 +1,7 @@
 @model Interfaces.Magazyn.Dtos.KlientIndexDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Klienci";
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm ?? string.Empty;
@@ -89,7 +90,10 @@
                             <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla klienta @k.Nazwa">
                                 <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@k.IdKlienta" title="Edytuj klienta"><i class="bi bi-pencil"></i></a>
                                 <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@k.IdKlienta" title="Szczegóły klienta"><i class="bi bi-eye"></i></a>
+                                @if (isAdmin)
+                                {
                                 <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@k.IdKlienta" title="Usuń klienta"><i class="bi bi-trash"></i></a>
+                                }
                             </div>
                         </div>
                     </div>
@@ -98,3 +102,4 @@
         </div>
     }
 </div>
+

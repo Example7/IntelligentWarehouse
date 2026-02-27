@@ -17,7 +17,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews(options =>
 {
-    options.Filters.Add(new AuthorizeFilter());
+    options.Filters.Add(new AuthorizeFilter("IntranetStaffOnly"));
 });
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -32,6 +32,8 @@ builder.Services
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("IntranetStaffOnly", policy =>
+        policy.RequireRole(AppRoles.Admin, AppRoles.Magazynier, AppRoles.Operator));
 });
 builder.Services.AddCmsAppServices();
 builder.Services.AddDashboardAppServices();

@@ -1,6 +1,7 @@
-﻿@model Interfaces.Magazyn.Dtos.ProduktDetailsDto
+@model Interfaces.Magazyn.Dtos.ProduktDetailsDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Szczegóły produktu";
     var produkt = Model.Produkt;
     var jednostkaMiary = produkt.DomyslnaJednostka?.Kod ?? "j.m.";
@@ -13,7 +14,7 @@
             <span class="news-admin-header__icon"><i class="bi bi-box-seam"></i></span>
             <div>
                 <h1 class="news-admin-header__heading mb-1">Szczegóły produktu</h1>
-                <p class="news-admin-header__subheading mb-0">Podgląd pelnych danych produktu magazynowego oraz jego aktywności.</p>
+                <p class="news-admin-header__subheading mb-0">Podgląd pełnych danych produktu magazynowego oraz jego aktywności.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -30,7 +31,10 @@
             <h2 class="news-details-panel__title">@produkt.Nazwa</h2>
             <div class="news-details-panel__actions">
                 <a asp-action="Edit" asp-route-id="@produkt.IdProduktu" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@produkt.IdProduktu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                @if (isAdmin)
+                {
+                    <a asp-action="Delete" asp-route-id="@produkt.IdProduktu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                }
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
@@ -39,13 +43,13 @@
             <div class="news-details-item"><div class="news-details-item__label">Kod</div><div class="news-details-item__value">@produkt.Kod</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Nazwa</div><div class="news-details-item__value">@produkt.Nazwa</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Kategoria</div><div class="news-details-item__value">@(produkt.Kategoria?.Nazwa ?? "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Domyslna jednostka miary</div><div class="news-details-item__value">@(produkt.DomyslnaJednostka?.Kod ?? "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Domyślna jednostka miary</div><div class="news-details-item__value">@(produkt.DomyslnaJednostka?.Kod ?? "-")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Aktualny stan</div><div class="news-details-item__value">@Fmt(Model.AktualnyStan) @jednostkaMiary</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Zarezerwowane (pozycje rezerwacji)</div><div class="news-details-item__value">@Fmt(Model.IloscZarezerwowana) @jednostkaMiary</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Stan minimalny</div><div class="news-details-item__value">@Fmt(produkt.StanMinimalny) @jednostkaMiary</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Status</div><div class="news-details-item__value">@(produkt.CzyAktywny ? "Aktywny" : "Nieaktywny")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Punkt ponownego zamowienia (ROP)</div><div class="news-details-item__value">@(produkt.PunktPonownegoZamowienia.HasValue ? $"{Fmt(produkt.PunktPonownegoZamowienia.Value)} {jednostkaMiary}" : "-")</div></div>
-            <div class="news-details-item"><div class="news-details-item__label">Ilość ponownego zamowienia (ROQ)</div><div class="news-details-item__value">@(produkt.IloscPonownegoZamowienia.HasValue ? $"{Fmt(produkt.IloscPonownegoZamowienia.Value)} {jednostkaMiary}" : "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Punkt ponownego zamówienia (ROP)</div><div class="news-details-item__value">@(produkt.PunktPonownegoZamowienia.HasValue ? $"{Fmt(produkt.PunktPonownegoZamowienia.Value)} {jednostkaMiary}" : "-")</div></div>
+            <div class="news-details-item"><div class="news-details-item__label">Ilość ponownego zamówienia (ROQ)</div><div class="news-details-item__value">@(produkt.IloscPonownegoZamowienia.HasValue ? $"{Fmt(produkt.IloscPonownegoZamowienia.Value)} {jednostkaMiary}" : "-")</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Alerty / nowe</div><div class="news-details-item__value">@Model.LiczbaAlertow / @Model.LiczbaNowychAlertow</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Pozycje rezerwacji</div><div class="news-details-item__value">@Model.LiczbaPozycjiRezerwacji</div></div>
             <div class="news-details-item"><div class="news-details-item__label">Utworzono</div><div class="news-details-item__value">@produkt.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div></div>
@@ -101,8 +105,8 @@
                                             @if (stan.Lokacja != null)
                                             {
                                                 <div class="btn-group btn-group-sm category-products-actions" role="group" aria-label="Akcje dla lokacji @(stan.Lokacja.Kod)">
-                                                    <a class="btn btn-outline-info" asp-controller="Lokacja" asp-action="Details" asp-route-id="@stan.Lokacja.IdLokacji" title="Szczegoly lokacji"><i class="bi bi-eye"></i></a>
-                                                    <a class="btn btn-outline-warning" asp-controller="Lokacja" asp-action="Edit" asp-route-id="@stan.Lokacja.IdLokacji" title="Edytuj lokacje"><i class="bi bi-pencil"></i></a>
+                                                    <a class="btn btn-outline-info" asp-controller="Lokacja" asp-action="Details" asp-route-id="@stan.Lokacja.IdLokacji" title="Szczegóły lokacji"><i class="bi bi-eye"></i></a>
+                                                    <a class="btn btn-outline-warning" asp-controller="Lokacja" asp-action="Edit" asp-route-id="@stan.Lokacja.IdLokacji" title="Edytuj lokację"><i class="bi bi-pencil"></i></a>
                                                 </div>
                                             }
                                         </td>
@@ -136,7 +140,7 @@
                         {
                             <div class="entity-table-wrap">
                                 <table class="table table-hover align-middle mb-0 entity-table">
-                                    <thead><tr><th>Dokument</th><th class="text-end">Ilosc</th><th>Data</th><th class="text-end">Akcje</th></tr></thead>
+                                    <thead><tr><th>Dokument</th><th class="text-end">Ilość</th><th>Data</th><th class="text-end">Akcje</th></tr></thead>
                                     <tbody>
                                         @foreach (var p in Model.OstatniePozycjePz)
                                         {
@@ -147,7 +151,7 @@
                                                 </td>
                                                 <td class="text-end">@Fmt(p.Ilosc) @jednostkaMiary</td>
                                                 <td>@p.Dokument.DataPrzyjeciaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-                                                <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentPZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegoly PZ"><i class="bi bi-eye"></i></a></td>
+                                                <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentPZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegóły PZ"><i class="bi bi-eye"></i></a></td>
                                             </tr>
                                         }
                                     </tbody>
@@ -168,7 +172,7 @@
                         {
                             <div class="entity-table-wrap">
                                 <table class="table table-hover align-middle mb-0 entity-table">
-                                    <thead><tr><th>Dokument</th><th class="text-end">Ilosc</th><th>Data</th><th class="text-end">Akcje</th></tr></thead>
+                                    <thead><tr><th>Dokument</th><th class="text-end">Ilość</th><th>Data</th><th class="text-end">Akcje</th></tr></thead>
                                     <tbody>
                                         @foreach (var p in Model.OstatniePozycjeWz)
                                         {
@@ -179,7 +183,7 @@
                                                 </td>
                                                 <td class="text-end">@Fmt(p.Ilosc) @jednostkaMiary</td>
                                                 <td>@p.Dokument.DataWydaniaUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-                                                <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentWZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegoly WZ"><i class="bi bi-eye"></i></a></td>
+                                                <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentWZ" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegóły WZ"><i class="bi bi-eye"></i></a></td>
                                             </tr>
                                         }
                                     </tbody>
@@ -200,7 +204,7 @@
                         {
                             <div class="entity-table-wrap">
                                 <table class="table table-hover align-middle mb-0 entity-table">
-                                    <thead><tr><th>Dokument</th><th class="text-end">Ilosc</th><th>Data</th><th class="text-end">Akcje</th></tr></thead>
+                                    <thead><tr><th>Dokument</th><th class="text-end">Ilość</th><th>Data</th><th class="text-end">Akcje</th></tr></thead>
                                     <tbody>
                                         @foreach (var p in Model.OstatniePozycjeMm)
                                         {
@@ -211,7 +215,7 @@
                                                 </td>
                                                 <td class="text-end">@Fmt(p.Ilosc) @jednostkaMiary</td>
                                                 <td>@p.Dokument.DataUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-                                                <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentMM" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegoly MM"><i class="bi bi-eye"></i></a></td>
+                                                <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="DokumentMM" asp-action="Details" asp-route-id="@p.Dokument.Id" title="Szczegóły MM"><i class="bi bi-eye"></i></a></td>
                                             </tr>
                                         }
                                     </tbody>
@@ -276,7 +280,7 @@
                                     <td class="text-end">@Fmt(p.Ilosc) @jednostkaMiary</td>
                                     <td><span class="entity-badge entity-badge--muted">@p.Rezerwacja.Status</span></td>
                                     <td>@(p.Rezerwacja.WygasaUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
-                                    <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="Rezerwacja" asp-action="Details" asp-route-id="@p.Rezerwacja.Id" title="Szczegoly rezerwacji"><i class="bi bi-eye"></i></a></td>
+                                    <td class="text-end"><a class="btn btn-outline-info btn-sm" asp-controller="Rezerwacja" asp-action="Details" asp-route-id="@p.Rezerwacja.Id" title="Szczegóły rezerwacji"><i class="bi bi-eye"></i></a></td>
                                 </tr>
                             }
                         </tbody>

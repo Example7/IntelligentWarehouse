@@ -1,7 +1,8 @@
 @model Interfaces.Magazyn.Dtos.DokumentPZIndexDto
 
 @{
-    ViewData["Title"] = "Przyjecia PZ";
+    var isAdmin = User?.IsInRole("Admin") ?? false;
+    ViewData["Title"] = "Przyjęcia PZ";
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm ?? string.Empty;
     var postedCount = items.Count(x => string.Equals(x.Status, "Posted", StringComparison.OrdinalIgnoreCase));
@@ -13,8 +14,8 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-box-arrow-in-down"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Przyjecia PZ</h1>
-                <p class="news-admin-header__subheading mb-0">Rejestr dokumentow przyjecia z filtrowaniem i szybkim CRUD.</p>
+                <h1 class="news-admin-header__heading mb-1">Przyjęcia PZ</h1>
+                <p class="news-admin-header__subheading mb-0">Rejestr dokumentów przyjęcia z filtrowaniem i szybkim CRUD.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
@@ -25,8 +26,8 @@
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie dokumentow PZ">
-            <label for="pzSearchTerm" class="visually-hidden">Szukaj dokumentow PZ</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie dokumentów PZ">
+            <label for="pzSearchTerm" class="visually-hidden">Szukaj dokumentów PZ</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
                 <input id="pzSearchTerm" class="form-control news-admin-search__input" name="searchTerm" value="@searchTerm"
@@ -108,7 +109,10 @@
                                 <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla dokumentu PZ @item.Numer">
                                     <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id"><i class="bi bi-pencil"></i></a>
                                     <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                    @if (isAdmin)
+                                    {
+                                        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id"><i class="bi bi-trash"></i></a>
+                                    }
                                 </div>
                             </td>
                         </tr>

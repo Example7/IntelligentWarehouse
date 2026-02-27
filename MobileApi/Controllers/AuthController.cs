@@ -75,7 +75,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("me")]
-    [Authorize]
+    [Authorize(Roles = "Client,Klient")]
     public ActionResult<CurrentUserDto> Me()
     {
         var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -96,7 +96,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("change-password")]
-    [Authorize]
+    [Authorize(Roles = "Client,Klient")]
     public async Task<ActionResult<ChangePasswordResponseDto>> ChangePassword([FromBody] ChangePasswordRequestDto request)
     {
         if (string.IsNullOrWhiteSpace(request.CurrentPassword) ||

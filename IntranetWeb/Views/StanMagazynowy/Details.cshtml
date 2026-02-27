@@ -1,4 +1,4 @@
-﻿@model Data.Data.Magazyn.StanMagazynowy
+@model Data.Data.Magazyn.StanMagazynowy
 
 @{
     ViewData["Title"] = "Szczegóły stanu magazynowego";
@@ -29,7 +29,10 @@
                 {
                     <a asp-action="Edit" asp-route-id="@Model.IdStanu" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
                 }
+                @if (isAdmin)
+                {
                 <a asp-action="Delete" asp-route-id="@Model.IdStanu" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                }
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
@@ -66,3 +69,4 @@
         </div>
     </section>
 </div>
+

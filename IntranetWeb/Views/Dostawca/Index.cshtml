@@ -1,6 +1,7 @@
 @model Interfaces.Magazyn.Dtos.DostawcaIndexDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Dostawcy";
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm ?? string.Empty;
@@ -93,7 +94,10 @@
                             <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla dostawcy @d.Nazwa">
                                 <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@d.IdDostawcy" title="Edytuj dostawcę"><i class="bi bi-pencil"></i></a>
                                 <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@d.IdDostawcy" title="Szczegóły dostawcy"><i class="bi bi-eye"></i></a>
+                                @if (isAdmin)
+                                {
                                 <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@d.IdDostawcy" title="Usuń dostawcę"><i class="bi bi-trash"></i></a>
+                                }
                             </div>
                         </div>
                     </div>
@@ -102,3 +106,4 @@
         </div>
     }
 </div>
+

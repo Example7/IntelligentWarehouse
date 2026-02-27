@@ -1,6 +1,7 @@
 @model Interfaces.Magazyn.Dtos.DostawcaDetailsDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Szczegóły dostawcy";
     var dostawca = Model.Dostawca;
     var ostatniePz = Model.OstatnieDokumentyPz;
@@ -31,7 +32,10 @@
             <h2 class="news-details-panel__title">@dostawca.Nazwa</h2>
             <div class="news-details-panel__actions">
                 <a asp-action="Edit" asp-route-id="@dostawca.IdDostawcy" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
+                @if (isAdmin)
+                {
                 <a asp-action="Delete" asp-route-id="@dostawca.IdDostawcy" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                }
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>
         </div>
@@ -208,3 +212,4 @@
         </div>
     </section>
 </div>
+

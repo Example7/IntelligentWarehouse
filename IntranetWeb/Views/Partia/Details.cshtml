@@ -1,6 +1,7 @@
-﻿@model Interfaces.Magazyn.Dtos.PartiaDetailsDto
+@model Interfaces.Magazyn.Dtos.PartiaDetailsDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Szczegóły partii";
     var partia = Model.Partia;
     var isExpired = partia.DataWaznosci.HasValue && partia.DataWaznosci.Value.Date < DateTime.Today;
@@ -31,7 +32,10 @@
             <h2 class="news-details-panel__title entity-mono">@partia.NumerPartii</h2>
             <div class="news-details-panel__actions">
                 <a asp-action="Edit" asp-route-id="@partia.IdPartii" class="btn btn-primary"><i class="bi bi-pencil-square me-1"></i> Edytuj</a>
-                <a asp-action="Delete" asp-route-id="@partia.IdPartii" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                @if (isAdmin)
+                {
+                    <a asp-action="Delete" asp-route-id="@partia.IdPartii" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i> Usuń</a>
+                }
                 <a asp-controller="Produkt" asp-action="Details" asp-route-id="@partia.IdProduktu" class="btn btn-outline-info"><i class="bi bi-box-seam me-1"></i> Produkt</a>
                 <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i> Lista</a>
             </div>

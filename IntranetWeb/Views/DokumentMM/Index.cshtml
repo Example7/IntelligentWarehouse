@@ -1,6 +1,7 @@
 @model Interfaces.Magazyn.Dtos.DokumentMMIndexDto
 @{
-    ViewData["Title"] = "Przesuniecia MM";
+    var isAdmin = User?.IsInRole("Admin") ?? false;
+    ViewData["Title"] = "Przesunięcia MM";
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm ?? string.Empty;
     var postedCount = items.Count(x => string.Equals(x.Status, "Posted", StringComparison.OrdinalIgnoreCase));
@@ -11,12 +12,12 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon"><i class="bi bi-arrow-left-right"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Przesuniecia MM</h1>
-                <p class="news-admin-header__subheading mb-0">Rejestr dokumentow przesuniec magazynowych z filtrowaniem i szybkim CRUD.</p>
+                <h1 class="news-admin-header__heading mb-1">Przesunięcia MM</h1>
+                <p class="news-admin-header__subheading mb-0">Rejestr dokumentów przesunięć magazynowych z filtrowaniem i szybkim CRUD.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Lacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Posted</span><strong class="news-admin-stat__value">@postedCount</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Draft</span><strong class="news-admin-stat__value">@draftCount</strong></div>
         </div>
@@ -39,7 +40,7 @@
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon"><i class="bi bi-inbox"></i></div>
-            <h2 class="h4 mb-2">Brak dokumentow MM</h2>
+            <h2 class="h4 mb-2">Brak dokumentów MM</h2>
         </section>
     }
     else
@@ -52,9 +53,9 @@
                             <th>Numer</th>
                             <th>Magazyn</th>
                             <th>Status</th>
-                            <th>Data przesuniecia</th>
-                            <th>Utworzyl</th>
-                            <th>Zaksiegowano</th>
+                            <th>Data przesunięcia</th>
+                            <th>Utworzył</th>
+                            <th>Zaksięgowano</th>
                             <th>Notatka</th>
                             <th class="text-end">Akcje</th>
                         </tr>
@@ -75,8 +76,11 @@
                             <td class="text-end"><div class="btn-group btn-group-sm">
                                 @if (canEdit) { <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id" title="Edytuj"><i class="bi bi-pencil"></i></a> }
                                 else { <button type="button" class="btn btn-outline-secondary" disabled title="Edycja tylko dla Draft"><i class="bi bi-pencil"></i></button> }
-                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegoly"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usun"><i class="bi bi-trash"></i></a>
+                                <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły"><i class="bi bi-eye"></i></a>
+                                @if (isAdmin)
+                                {
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usuń"><i class="bi bi-trash"></i></a>
+                                }
                             </div></td>
                         </tr>
                     }

@@ -1,6 +1,7 @@
-﻿@model Interfaces.Magazyn.Dtos.JednostkaMiaryIndexDto
+@model Interfaces.Magazyn.Dtos.JednostkaMiaryIndexDto
 
 @{
+    var isAdmin = User?.IsInRole("Admin") ?? false;
     ViewData["Title"] = "Jednostki miary";
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm ?? string.Empty;
@@ -17,7 +18,7 @@
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Lacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Aktywne</span><strong class="news-admin-stat__value">@activeCount</strong></div>
         </div>
     </section>
@@ -90,7 +91,10 @@
                             <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla jednostki @jm.Kod">
                                 <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@jm.IdJednostki" aria-label="Edytuj @jm.Kod"><i class="bi bi-pencil"></i></a>
                                 <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@jm.IdJednostki" aria-label="Szczegóły @jm.Kod"><i class="bi bi-eye"></i></a>
-                                <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@jm.IdJednostki" aria-label="Usuń @jm.Kod"><i class="bi bi-trash"></i></a>
+                                @if (isAdmin)
+                                {
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@jm.IdJednostki" aria-label="Usuń @jm.Kod"><i class="bi bi-trash"></i></a>
+                                }
                             </div>
                         </div>
                     </div>
