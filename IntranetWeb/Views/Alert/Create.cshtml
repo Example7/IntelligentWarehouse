@@ -1,4 +1,4 @@
-@model Data.Data.Magazyn.Alert
+﻿@model Data.Data.Magazyn.Alert
 
 @{
     ViewData["Title"] = "Dodaj alert";
@@ -18,7 +18,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Dane alertu</h2>
-            <p class="text-muted mb-0">Uzupełnij wagę, treść i opcjonalnie dane potwierdzenia.</p>
+            <p class="text-muted mb-0">Uzupełnij wagę i treść. Dane potwierdzenia są ustawiane automatycznie.</p>
         </div>
 
         <form asp-action="Create" method="post" class="news-editor-form" novalidate>
@@ -48,23 +48,6 @@
                     <label asp-for="Tresc" class="form-label news-form-label">Treść</label>
                     <textarea asp-for="Tresc" class="form-control news-form-control news-form-control--textarea" rows="4"></textarea>
                     <span asp-validation-for="Tresc" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <div class="form-check form-switch mt-4">
-                        <input class="form-check-input" asp-for="CzyPotwierdzony" />
-                        <label class="form-check-label news-form-label mb-0" asp-for="CzyPotwierdzony">Czy potwierdzony</label>
-                    </div>
-                    <span asp-validation-for="CzyPotwierdzony" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <label asp-for="PotwierdzilUserId" class="form-label news-form-label">Potwierdził (opcjonalnie)</label>
-                    <select asp-for="PotwierdzilUserId" class="form-select news-form-control" asp-items="ViewBag.PotwierdzilUserId"></select>
-                    <span asp-validation-for="PotwierdzilUserId" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <label asp-for="PotwierdzonoUtc" class="form-label news-form-label">Potwierdzono (opcjonalnie)</label>
-                    <input asp-for="PotwierdzonoUtc" type="datetime-local" class="form-control news-form-control" />
-                    <span asp-validation-for="PotwierdzonoUtc" class="text-danger small"></span>
                 </div>
             </div>
             <div class="news-form-actions">

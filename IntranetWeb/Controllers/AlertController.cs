@@ -29,23 +29,6 @@ namespace IntranetWeb.Controllers
             return View(model);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GenerujZRegul(string? searchTerm)
-        {
-            var result = await _alertService.GenerujAlertyZRegulAsync();
-
-            TempData["AlertGenerateSuccess"] =
-                $"Przetworzono reguł: {result.LiczbaPrzetworzonychRegul}, sprawdzono pozycji: {result.LiczbaSprawdzonychPozycji}, utworzono alertów: {result.LiczbaNowychAlertow}, auto-potwierdzono: {result.LiczbaAutoPotwierdzonychAlertow}, pominięto duplikatów: {result.LiczbaPominietychDuplikatow}.";
-
-            if (result.LiczbaPominietychNieobslugiwanychRegul > 0)
-            {
-                TempData["AlertGenerateInfo"] =
-                    $"Pominięto nieobsługiwane typy reguł: {result.LiczbaPominietychNieobslugiwanychRegul} (np. Custom).";
-            }
-
-            return RedirectToAction(nameof(Index), new { searchTerm });
-        }
         // GET: Alert/Details/5
         public async Task<IActionResult> Details(long? id)
         {
@@ -74,12 +57,14 @@ namespace IntranetWeb.Controllers
         // POST: Alert/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,IdReguly,IdMagazynu,IdProduktu,Waga,Tresc,CzyPotwierdzony,PotwierdzilUserId,PotwierdzonoUtc")] Alert alert)
+        public async Task<IActionResult> Create([Bind("Id,IdReguly,IdMagazynu,IdProduktu,Waga,Tresc")] Alert alert)
         {
             alert.Waga = (alert.Waga ?? string.Empty).Trim().ToUpperInvariant();
             alert.Tresc = (alert.Tresc ?? string.Empty).Trim();
             alert.UtworzonoUtc = DateTime.UtcNow;
-            NormalizujPotwierdzenie(alert);
+            alert.CzyPotwierdzony = false;
+            alert.PotwierdzilUserId = null;
+            alert.PotwierdzonoUtc = null;
 
             if (ModelState.IsValid)
             {
@@ -106,12 +91,6 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            // Pokazujemy lokalny czas w formularzu.
-            if (alert.PotwierdzonoUtc.HasValue)
-            {
-                alert.PotwierdzonoUtc = DateTime.SpecifyKind(alert.PotwierdzonoUtc.Value, DateTimeKind.Utc).ToLocalTime();
-            }
-
             UzupelnijDaneFormularza(alert);
             return View(alert);
         }
@@ -119,7 +98,7 @@ namespace IntranetWeb.Controllers
         // POST: Alert/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, [Bind("Id,IdReguly,IdMagazynu,IdProduktu,Waga,Tresc,CzyPotwierdzony,PotwierdzilUserId,PotwierdzonoUtc")] Alert alert)
+        public async Task<IActionResult> Edit(long id, [Bind("Id,IdReguly,IdMagazynu,IdProduktu,Waga,Tresc")] Alert alert)
         {
             if (id != alert.Id)
             {
@@ -128,7 +107,6 @@ namespace IntranetWeb.Controllers
 
             alert.Waga = (alert.Waga ?? string.Empty).Trim().ToUpperInvariant();
             alert.Tresc = (alert.Tresc ?? string.Empty).Trim();
-            NormalizujPotwierdzenie(alert);
 
             if (ModelState.IsValid)
             {
@@ -145,9 +123,6 @@ namespace IntranetWeb.Controllers
                     existing.IdProduktu = alert.IdProduktu;
                     existing.Waga = alert.Waga;
                     existing.Tresc = alert.Tresc;
-                    existing.CzyPotwierdzony = alert.CzyPotwierdzony;
-                    existing.PotwierdzilUserId = alert.PotwierdzilUserId;
-                    existing.PotwierdzonoUtc = alert.PotwierdzonoUtc;
 
                     await _context.SaveChangesAsync();
                 }
@@ -237,38 +212,6 @@ namespace IntranetWeb.Controllers
             ViewData["IdReguly"] = new SelectList(reguly, "Id", "Label", model.IdReguly);
 
             ViewData["Severities"] = new SelectList(new[] { "INFO", "WARN", "CRIT" }, model.Waga);
-
-            var users = _context.Uzytkownik.AsNoTracking()
-                .OrderBy(u => u.Email)
-                .Select(u => new { u.IdUzytkownika, u.Email })
-                .ToList();
-            var userItems = users.Select(u => new SelectListItem
-            {
-                Value = u.IdUzytkownika.ToString(),
-                Text = u.Email,
-                Selected = model.PotwierdzilUserId == u.IdUzytkownika
-            }).ToList();
-            userItems.Insert(0, new SelectListItem { Value = string.Empty, Text = "(brak)", Selected = model.PotwierdzilUserId == null });
-            ViewData["PotwierdzilUserId"] = userItems;
-        }
-
-        private static void NormalizujPotwierdzenie(Alert alert)
-        {
-            if (!alert.CzyPotwierdzony)
-            {
-                alert.PotwierdzilUserId = null;
-                alert.PotwierdzonoUtc = null;
-                return;
-            }
-
-            if (alert.PotwierdzonoUtc.HasValue)
-            {
-                alert.PotwierdzonoUtc = DateTime.SpecifyKind(alert.PotwierdzonoUtc.Value, DateTimeKind.Local).ToUniversalTime();
-            }
-            else
-            {
-                alert.PotwierdzonoUtc = DateTime.UtcNow;
-            }
         }
     }
 }

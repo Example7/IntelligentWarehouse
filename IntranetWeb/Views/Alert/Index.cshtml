@@ -24,21 +24,6 @@
         </div>
     </section>
 
-    @if (TempData["AlertGenerateSuccess"] is string generateSuccess && !string.IsNullOrWhiteSpace(generateSuccess))
-    {
-        <div class="alert alert-success d-flex align-items-start gap-2" role="alert">
-            <i class="bi bi-check-circle mt-1"></i>
-            <span>@generateSuccess</span>
-        </div>
-    }
-    @if (TempData["AlertGenerateInfo"] is string generateInfo && !string.IsNullOrWhiteSpace(generateInfo))
-    {
-        <div class="alert alert-info d-flex align-items-start gap-2" role="alert">
-            <i class="bi bi-info-circle mt-1"></i>
-            <span>@generateInfo</span>
-        </div>
-    }
-
     <section class="news-admin-toolbar">
         <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie alertów">
             <label for="alertSearchTerm" class="visually-hidden">Szukaj alertów</label>
@@ -53,14 +38,7 @@
                 <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr"><i class="bi bi-x-lg"></i></a>
             }
         </form>
-        <div class="d-flex gap-2 flex-wrap">
-            <form method="post" asp-action="GenerujZRegul" class="d-inline">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="searchTerm" value="@searchTerm" />
-                <button type="submit" class="btn btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i> Generuj z reguł</button>
-            </form>
-            <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj alert</a>
-        </div>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj alert</a>
     </section>
 
     @if (!items.Any())
@@ -79,11 +57,6 @@
                 }
             </p>
             <div class="d-flex justify-content-center gap-2 flex-wrap">
-                <form method="post" asp-action="GenerujZRegul" class="d-inline">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="searchTerm" value="@searchTerm" />
-                    <button type="submit" class="btn btn-outline-primary"><i class="bi bi-arrow-repeat me-1"></i> Generuj z reguł</button>
-                </form>
                 <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj alert</a>
                 @if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
@@ -96,7 +69,17 @@
     {
         <section class="entity-table-panel">
             <div class="entity-table-wrap">
-                <table class="table table-hover align-middle mb-0 entity-table">
+                <table class="table table-hover align-middle mb-0 entity-table alert-table">
+                    <colgroup>
+                        <col class="alert-col-weight" />
+                        <col class="alert-col-content" />
+                        <col class="alert-col-warehouse" />
+                        <col class="alert-col-product" />
+                        <col class="alert-col-rule" />
+                        <col class="alert-col-created" />
+                        <col class="alert-col-status" />
+                        <col class="alert-col-actions" />
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>Waga</th>
@@ -113,6 +96,7 @@
                     @foreach (var row in items)
                     {
                         var item = row.Alert;
+                        var canPreviewContent = !string.IsNullOrWhiteSpace(item.Tresc) && item.Tresc.Length > 110;
                         var severityClass = string.Equals(item.Waga, "CRIT", StringComparison.OrdinalIgnoreCase)
                             ? "entity-badge--danger"
                             : string.Equals(item.Waga, "WARN", StringComparison.OrdinalIgnoreCase)
@@ -120,13 +104,27 @@
                                 : "entity-badge--muted";
                         <tr>
                             <td><span class="entity-badge @severityClass">@item.Waga</span></td>
-                            <td><div class="entity-cell-title text-truncate" title="@item.Tresc">@item.Tresc</div></td>
-                            <td>@(item.Magazyn?.Nazwa ?? "-")</td>
                             <td>
-                                <div class="entity-cell-title">@(item.Produkt?.Kod ?? "-")</div>
-                                <div class="entity-cell-subtitle">@(item.Produkt?.Nazwa ?? "-")</div>
+                                <div class="alert-content">
+                                    <div class="entity-cell-title alert-cell-truncate" title="@item.Tresc">@item.Tresc</div>
+                                    @if (canPreviewContent)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-link alert-content-preview"
+                                                data-alert-preview
+                                                data-alert-id="@item.Id"
+                                                data-alert-content="@item.Tresc">
+                                            Pokaż pełną treść
+                                        </button>
+                                    }
+                                </div>
                             </td>
-                            <td>@(item.Regula?.Typ ?? "-")</td>
+                            <td><span class="alert-cell-truncate" title="@item.Magazyn?.Nazwa">@(item.Magazyn?.Nazwa ?? "-")</span></td>
+                            <td>
+                                <div class="entity-cell-title alert-cell-truncate" title="@item.Produkt?.Kod">@(item.Produkt?.Kod ?? "-")</div>
+                                <div class="entity-cell-subtitle alert-cell-truncate" title="@item.Produkt?.Nazwa">@(item.Produkt?.Nazwa ?? "-")</div>
+                            </td>
+                            <td><span class="alert-cell-truncate" title="@item.Regula?.Typ">@(item.Regula?.Typ ?? "-")</span></td>
                             <td>@item.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                             <td>
                                 <span class="entity-badge @(item.CzyPotwierdzony ? "entity-badge--success" : "entity-badge--muted")">
@@ -148,3 +146,37 @@
         </section>
     }
 </div>
+
+<div class="modal fade" id="alertContentModal" tabindex="-1" aria-labelledby="alertContentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="alertContentModalLabel">Pełna treść alertu</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+            </div>
+            <div class="modal-body">
+                <p id="alertContentModalText" class="alert-content-modal-text mb-0"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const modalElement = document.getElementById('alertContentModal');
+            const modalText = document.getElementById('alertContentModalText');
+            if (!modalElement || !modalText || typeof bootstrap === 'undefined') return;
+
+            const modal = new bootstrap.Modal(modalElement);
+            document.addEventListener('click', (event) => {
+                const button = event.target.closest('[data-alert-preview]');
+                if (!button) return;
+
+                const content = button.getAttribute('data-alert-content') || '';
+                modalText.textContent = content;
+                modal.show();
+            });
+        })();
+    </script>
+}

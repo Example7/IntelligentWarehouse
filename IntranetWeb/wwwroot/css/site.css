@@ -1231,6 +1231,73 @@ body.intranet-shell {
   word-break: normal;
 }
 
+.alert-table {
+  table-layout: fixed;
+}
+
+.alert-table .alert-col-weight {
+  width: 8%;
+}
+
+.alert-table .alert-col-content {
+  width: 36%;
+}
+
+.alert-table .alert-col-warehouse {
+  width: 12%;
+}
+
+.alert-table .alert-col-product {
+  width: 16%;
+}
+
+.alert-table .alert-col-rule {
+  width: 8%;
+}
+
+.alert-table .alert-col-created {
+  width: 10%;
+}
+
+.alert-table .alert-col-status {
+  width: 10%;
+}
+
+.alert-table .alert-col-actions {
+  width: 10%;
+}
+
+.alert-table .alert-cell-truncate {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alert-table .alert-content {
+  min-width: 0;
+}
+
+.alert-table .alert-content-preview {
+  margin-top: 2px;
+  padding: 0;
+  font-size: 0.75rem;
+  text-decoration: none;
+}
+
+.alert-table .alert-content-preview:hover,
+.alert-table .alert-content-preview:focus-visible {
+  text-decoration: underline;
+}
+
+.alert-content-modal-text {
+  color: #273246;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .category-products-count {
   color: #64748b;
   font-weight: 700;
