@@ -1,9 +1,32 @@
-@model Interfaces.CMS.Dtos.ZalacznikDokumentuIndexDto
+﻿@model Interfaces.CMS.Dtos.ZalacznikDokumentuIndexDto
 
 @{
-    ViewData["Title"] = "Załączniki dokumentów";
+    ViewData["Title"] = "Zalaczniki dokumentow";
     var items = Model.Items.ToList();
     var searchTerm = Model.SearchTerm;
+
+    static string ShortContentType(string? contentType)
+    {
+        var normalized = (contentType ?? string.Empty).Trim().ToLowerInvariant();
+        return normalized switch
+        {
+            "image/jpeg" => "JPG",
+            "image/png" => "PNG",
+            "image/gif" => "GIF",
+            "image/webp" => "WEBP",
+            "application/pdf" => "PDF",
+            "application/msword" => "DOC",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => "DOCX",
+            "application/vnd.ms-excel" => "XLS",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => "XLSX",
+            "text/plain" => "TXT",
+            "text/csv" => "CSV",
+            "application/zip" => "ZIP",
+            _ when normalized.StartsWith("image/") => "IMG",
+            _ when string.IsNullOrWhiteSpace(normalized) => "-",
+            _ => contentType!
+        };
+    }
 }
 
 <div class="news-admin-page">
@@ -11,59 +34,69 @@
         <div class="news-admin-header__title">
             <span class="news-admin-header__icon" aria-hidden="true"><i class="bi bi-paperclip"></i></span>
             <div>
-                <h1 class="news-admin-header__heading mb-1">Załączniki dokumentów</h1>
-                <p class="news-admin-header__subheading mb-0">Powiązania plików z dokumentami WMS i metadane załączników.</p>
+                <h1 class="news-admin-header__heading mb-1">Zalaczniki dokumentow</h1>
+                <p class="news-admin-header__subheading mb-0">Powiazania plikow z dokumentami WMS i metadane zalacznikow.</p>
             </div>
         </div>
         <div class="news-admin-header__stats">
-            <div class="news-admin-stat"><span class="news-admin-stat__label">Łącznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
+            <div class="news-admin-stat"><span class="news-admin-stat__label">Lacznie</span><strong class="news-admin-stat__value">@items.Count</strong></div>
             <div class="news-admin-stat"><span class="news-admin-stat__label">Typy</span><strong class="news-admin-stat__value">@items.Select(x => x.TypDokumentu).Distinct().Count()</strong></div>
         </div>
     </section>
 
     <section class="news-admin-toolbar">
-        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie załączników dokumentów">
-            <label for="attachmentSearchTerm" class="visually-hidden">Szukaj załączników dokumentów</label>
+        <form method="get" class="news-admin-search" role="search" aria-label="Wyszukiwanie zalacznikow dokumentow">
+            <label for="attachmentSearchTerm" class="visually-hidden">Szukaj zalacznikow dokumentow</label>
             <div class="news-admin-search__input-wrap">
                 <i class="bi bi-search news-admin-search__icon" aria-hidden="true"></i>
                 <input id="attachmentSearchTerm"
                        class="form-control news-admin-search__input"
                        name="searchTerm"
                        value="@searchTerm"
-                       placeholder="Szukaj po typie dokumentu, pliku, content type lub ścieżce..." />
+                       placeholder="Szukaj po typie dokumentu, pliku, content type lub sciezce..." />
             </div>
             <button class="btn btn-primary news-admin-search__submit" type="submit">Szukaj</button>
             @if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczyść filtr" aria-label="Wyczyść filtrowanie"><i class="bi bi-x-lg"></i></a>
+                <a class="btn btn-outline-secondary news-admin-search__clear" href="@Url.Action("Index")" title="Wyczysc filtr" aria-label="Wyczysc filtrowanie"><i class="bi bi-x-lg"></i></a>
             }
         </form>
-        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj załącznik</a>
+        <a class="btn news-admin-toolbar__cta" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj zalacznik</a>
     </section>
 
     @if (!items.Any())
     {
         <section class="news-admin-empty">
             <div class="news-admin-empty__icon" aria-hidden="true"><i class="bi bi-paperclip"></i></div>
-            <h2 class="h4 mb-2">Brak załączników</h2>
-            <p class="text-muted mb-3">Dodaj pierwszy załącznik powiązany z dokumentem WMS.</p>
-            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj załącznik</a>
+            <h2 class="h4 mb-2">Brak zalacznikow</h2>
+            <p class="text-muted mb-3">Dodaj pierwszy zalacznik powiazany z dokumentem WMS.</p>
+            <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-circle me-1"></i> Dodaj zalacznik</a>
         </section>
     }
     else
     {
         <section class="entity-table-panel">
             <div class="entity-table-wrap">
-                <table class="table table-hover align-middle mb-0 entity-table">
+                <table class="table table-hover align-middle mb-0 entity-table attachment-table">
+                    <colgroup>
+                        <col class="attachment-col-type" />
+                        <col class="attachment-col-docid" />
+                        <col class="attachment-col-file" />
+                        <col class="attachment-col-contenttype" />
+                        <col class="attachment-col-path" />
+                        <col class="attachment-col-uploaded" />
+                        <col class="attachment-col-user" />
+                        <col class="attachment-col-actions" />
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>Typ dok.</th>
                             <th>ID dok.</th>
                             <th>Plik</th>
                             <th>Typ pliku</th>
-                            <th>Ścieżka</th>
+                            <th>Sciezka</th>
                             <th>Wgrano</th>
-                            <th>Wgrał</th>
+                            <th>Wgral</th>
                             <th class="text-end">Akcje</th>
                         </tr>
                     </thead>
@@ -74,18 +107,18 @@
                             <td><span class="entity-badge entity-badge--muted">@item.TypDokumentu</span></td>
                             <td><div class="entity-cell-title">@item.IdDokumentu</div></td>
                             <td>
-                                <div class="entity-cell-title">@item.NazwaPliku</div>
-                                <div class="entity-cell-subtitle">ID załącznika: @item.Id</div>
+                                <div class="entity-cell-title media-cell-truncate" title="@item.NazwaPliku">@item.NazwaPliku</div>
+                                <div class="entity-cell-subtitle">ID zalacznika: @item.Id</div>
                             </td>
-                            <td><span class="entity-badge entity-badge--muted">@item.ContentType</span></td>
-                            <td><span class="entity-mono">@item.Sciezka</span></td>
+                            <td><span class="entity-badge entity-badge--muted media-cell-truncate d-inline-flex" title="@item.ContentType">@ShortContentType(item.ContentType)</span></td>
+                            <td><span class="entity-mono media-cell-truncate" title="@item.Sciezka">@item.Sciezka</span></td>
                             <td>@item.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-                            <td>@(string.IsNullOrWhiteSpace(item.WgralEmail) ? "-" : item.WgralEmail)</td>
+                            <td><span class="media-cell-truncate" title="@item.WgralEmail">@(string.IsNullOrWhiteSpace(item.WgralEmail) ? "-" : item.WgralEmail)</span></td>
                             <td class="text-end">
-                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla załącznika @item.NazwaPliku">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Akcje dla zalacznika @item.NazwaPliku">
                                     <a class="btn btn-outline-warning" asp-action="Edit" asp-route-id="@item.Id" title="Edytuj"><i class="bi bi-pencil"></i></a>
-                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegóły"><i class="bi bi-eye"></i></a>
-                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usuń"><i class="bi bi-trash"></i></a>
+                                    <a class="btn btn-outline-info" asp-action="Details" asp-route-id="@item.Id" title="Szczegoly"><i class="bi bi-eye"></i></a>
+                                    <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" title="Usun"><i class="bi bi-trash"></i></a>
                                 </div>
                             </td>
                         </tr>

@@ -21,7 +21,7 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Edycja szablonu</h2>
-            <p class="text-muted mb-0">Zmień wersję, ścieżkę, plik i status aktywności. Czas wgrania jest tylko do podglądu.</p>
+            <p class="text-muted mb-0">Możesz zmienić typ, wersję, nazwę i status. Podmiana pliku jest opcjonalna.</p>
         </div>
         <form asp-action="Edit" method="post" enctype="multipart/form-data" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="Id" />
@@ -43,31 +43,21 @@
                     <span asp-validation-for="Nazwa" class="text-danger small"></span>
                 </div>
                 <div class="news-form-field">
-                    <label asp-for="NazwaPliku" class="form-label news-form-label">Nazwa pliku</label>
-                    <input asp-for="NazwaPliku" class="form-control news-form-control" />
-                    <span asp-validation-for="NazwaPliku" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <label class="form-label news-form-label" for="templateFile">Nowy plik szablonu</label>
-                    <input id="templateFile" name="templateFile" type="file" class="form-control news-form-control" accept=".docx,.html,.htm,.txt,.md" />
-                    <div class="form-text">Opcjonalnie: nadpisz plik szablonu. System zapisze go do katalogu <code>Templates/{typ}</code> i zaktualizuje sciezke.</div>
+                    <label class="form-label news-form-label">Aktualny plik</label>
+                    <input class="form-control news-form-control" value="@Model.NazwaPliku" readonly />
                 </div>
                 <div class="news-form-field">
                     <label class="form-label news-form-label">Wgrano</label>
                     <input class="form-control news-form-control" value="@Model.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" readonly />
                 </div>
-                <div class="news-form-field">
-                    <label asp-for="WgralUserId" class="form-label news-form-label">Wgrał</label>
-                    <select asp-for="WgralUserId" class="form-select news-form-control" asp-items="ViewBag.WgralUserId">
-                        <option value="">(brak)</option>
-                    </select>
-                    <span asp-validation-for="WgralUserId" class="text-danger small"></span>
+                <div class="news-form-field news-form-field--full">
+                    <label class="form-label news-form-label" for="templateFile">Nowy plik szablonu (opcjonalnie)</label>
+                    <input id="templateFile" name="templateFile" type="file" class="form-control news-form-control" accept=".docx,.html,.htm,.txt,.md" />
+                    <div class="form-text">Po podmianie pliku system automatycznie zaktualizuje nazwę pliku i ścieżkę.</div>
                 </div>
                 <div class="news-form-field news-form-field--full">
-                    <label asp-for="Sciezka" class="form-label news-form-label">Ścieżka</label>
-                    <input asp-for="Sciezka" class="form-control news-form-control" />
-                    <div class="form-text">Mozesz podac recznie albo wgrac nowy plik szablonu.</div>
-                    <span asp-validation-for="Sciezka" class="text-danger small"></span>
+                    <label class="form-label news-form-label">Ścieżka</label>
+                    <input class="form-control news-form-control" value="@Model.Sciezka" readonly />
                 </div>
                 <div class="news-form-field news-form-field--full">
                     <div class="form-check news-form-check">

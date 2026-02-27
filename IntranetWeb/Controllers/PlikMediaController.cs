@@ -2,13 +2,12 @@ using Data.Data;
 using Data.Data.CMS;
 using IntranetWeb.Controllers.Abstrakcja;
 using Interfaces.CMS;
-
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-
 using IntranetWeb.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using System.Security.Claims;
 
 namespace IntranetWeb.Controllers
 {
@@ -16,10 +15,15 @@ namespace IntranetWeb.Controllers
     public class PlikMediaController : BaseSearchController<PlikMedia>
     {
         private readonly IPlikMediaService _plikMediaService;
+        private readonly IWebHostEnvironment _environment;
 
-        public PlikMediaController(DataContext context, IPlikMediaService plikMediaService) : base(context)
+        public PlikMediaController(
+            DataContext context,
+            IPlikMediaService plikMediaService,
+            IWebHostEnvironment environment) : base(context)
         {
             _plikMediaService = plikMediaService;
+            _environment = environment;
         }
 
         public async Task<IActionResult> Index(string? searchTerm)
@@ -45,7 +49,6 @@ namespace IntranetWeb.Controllers
 
         public IActionResult Create()
         {
-            PopulateUzytkownicySelect();
             return View(new PlikMedia
             {
                 NazwaPliku = string.Empty,
@@ -56,20 +59,40 @@ namespace IntranetWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,NazwaPliku,ContentType,Sciezka,RozmiarBajty,Opis,WgralUserId")] PlikMedia plikMedia)
+        public async Task<IActionResult> Create([Bind("Id,NazwaPliku,ContentType,Sciezka,RozmiarBajty,Opis")] PlikMedia plikMedia, IFormFile? mediaFile)
         {
             Normalize(plikMedia);
             plikMedia.WgranoUtc = DateTime.UtcNow;
+            plikMedia.WgralUserId = GetCurrentUserId();
+            ModelState.Remove(nameof(PlikMedia.NazwaPliku));
+            ModelState.Remove(nameof(PlikMedia.ContentType));
+            ModelState.Remove(nameof(PlikMedia.Sciezka));
+            ModelState.Remove(nameof(PlikMedia.RozmiarBajty));
+            await TryStoreUploadedMediaAsync(plikMedia, mediaFile);
+
+            if (mediaFile == null || mediaFile.Length <= 0)
+            {
+                ModelState.AddModelError(nameof(PlikMedia.Sciezka), "Wybierz plik do wgrania.");
+            }
+
+            TryValidateModel(plikMedia);
 
             if (!ModelState.IsValid)
             {
-                PopulateUzytkownicySelect(plikMedia.WgralUserId);
                 return View(plikMedia);
             }
 
-            _context.Add(plikMedia);
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _context.Add(plikMedia);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(nameof(PlikMedia.Sciezka), "Plik o takiej ścieżce już istnieje.");
+                return View(plikMedia);
+            }
         }
 
         public async Task<IActionResult> Edit(long? id)
@@ -85,13 +108,12 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            PopulateUzytkownicySelect(plikMedia.WgralUserId);
             return View(plikMedia);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, [Bind("Id,NazwaPliku,ContentType,Sciezka,RozmiarBajty,Opis,WgralUserId")] PlikMedia plikMedia)
+        public async Task<IActionResult> Edit(long id, [Bind("Id,NazwaPliku,ContentType,Sciezka,RozmiarBajty,Opis")] PlikMedia plikMedia, IFormFile? mediaFile)
         {
             if (id != plikMedia.Id)
             {
@@ -99,10 +121,21 @@ namespace IntranetWeb.Controllers
             }
 
             Normalize(plikMedia);
+            if (mediaFile != null && mediaFile.Length > 0)
+            {
+                ModelState.Remove(nameof(PlikMedia.NazwaPliku));
+                ModelState.Remove(nameof(PlikMedia.ContentType));
+                ModelState.Remove(nameof(PlikMedia.Sciezka));
+                ModelState.Remove(nameof(PlikMedia.RozmiarBajty));
+            }
+            await TryStoreUploadedMediaAsync(plikMedia, mediaFile);
+            if (mediaFile != null && mediaFile.Length > 0)
+            {
+                TryValidateModel(plikMedia);
+            }
 
             if (!ModelState.IsValid)
             {
-                PopulateUzytkownicySelect(plikMedia.WgralUserId);
                 return View(plikMedia);
             }
 
@@ -112,12 +145,16 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
-            existing.NazwaPliku = plikMedia.NazwaPliku;
-            existing.ContentType = plikMedia.ContentType;
-            existing.Sciezka = plikMedia.Sciezka;
-            existing.RozmiarBajty = plikMedia.RozmiarBajty;
             existing.Opis = plikMedia.Opis;
-            existing.WgralUserId = plikMedia.WgralUserId;
+            if (mediaFile != null && mediaFile.Length > 0)
+            {
+                existing.NazwaPliku = plikMedia.NazwaPliku;
+                existing.ContentType = plikMedia.ContentType;
+                existing.Sciezka = plikMedia.Sciezka;
+                existing.RozmiarBajty = plikMedia.RozmiarBajty;
+                existing.WgranoUtc = DateTime.UtcNow;
+                existing.WgralUserId = GetCurrentUserId();
+            }
 
             try
             {
@@ -132,6 +169,11 @@ namespace IntranetWeb.Controllers
                 }
 
                 throw;
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError(nameof(PlikMedia.Sciezka), "Plik o takiej ścieżce już istnieje.");
+                return View(plikMedia);
             }
         }
 
@@ -165,21 +207,6 @@ namespace IntranetWeb.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private void PopulateUzytkownicySelect(int? selected = null)
-        {
-            var users = _context.Uzytkownik
-                .AsNoTracking()
-                .OrderBy(x => x.Login)
-                .Select(x => new
-                {
-                    x.IdUzytkownika,
-                    Label = string.IsNullOrWhiteSpace(x.Email) ? x.Login : $"{x.Login} | {x.Email}"
-                })
-                .ToList();
-
-            ViewData["WgralUserId"] = new SelectList(users, "IdUzytkownika", "Label", selected);
-        }
-
         private static void Normalize(PlikMedia plikMedia)
         {
             plikMedia.NazwaPliku = (plikMedia.NazwaPliku ?? string.Empty).Trim();
@@ -187,7 +214,59 @@ namespace IntranetWeb.Controllers
             plikMedia.Sciezka = (plikMedia.Sciezka ?? string.Empty).Trim();
             plikMedia.Opis = string.IsNullOrWhiteSpace(plikMedia.Opis) ? null : plikMedia.Opis.Trim();
         }
+
+        private int? GetCurrentUserId()
+        {
+            var raw = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            return int.TryParse(raw, out var userId) ? userId : null;
+        }
+
+        private async Task TryStoreUploadedMediaAsync(PlikMedia model, IFormFile? mediaFile)
+        {
+            if (mediaFile == null || mediaFile.Length <= 0)
+            {
+                return;
+            }
+
+            var safeOriginalName = Path.GetFileName(mediaFile.FileName ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(safeOriginalName))
+            {
+                ModelState.AddModelError(nameof(PlikMedia.NazwaPliku), "Nieprawidłowa nazwa pliku.");
+                return;
+            }
+
+            var extension = Path.GetExtension(safeOriginalName);
+            var baseName = Path.GetFileNameWithoutExtension(safeOriginalName);
+            var safeBaseName = string.Concat(baseName.Select(ch => char.IsLetterOrDigit(ch) ? ch : '_')).Trim('_');
+            if (string.IsNullOrWhiteSpace(safeBaseName))
+            {
+                safeBaseName = "plik";
+            }
+
+            var finalFileName = $"{safeBaseName}_{Guid.NewGuid():N}{extension}";
+            var year = DateTime.UtcNow.ToString("yyyy");
+            var month = DateTime.UtcNow.ToString("MM");
+
+            var webRoot = _environment.WebRootPath;
+            if (string.IsNullOrWhiteSpace(webRoot))
+            {
+                webRoot = Path.Combine(_environment.ContentRootPath, "wwwroot");
+            }
+
+            var targetDirectory = Path.Combine(webRoot, "uploads", "media", year, month);
+            Directory.CreateDirectory(targetDirectory);
+
+            var targetPath = Path.Combine(targetDirectory, finalFileName);
+            await using (var fileStream = new FileStream(targetPath, FileMode.Create))
+            {
+                await mediaFile.CopyToAsync(fileStream);
+            }
+
+            model.NazwaPliku = safeOriginalName;
+            model.ContentType = string.IsNullOrWhiteSpace(mediaFile.ContentType) ? "application/octet-stream" : mediaFile.ContentType.Trim();
+            model.RozmiarBajty = mediaFile.Length;
+            model.Sciezka = $"/uploads/media/{year}/{month}/{finalFileName}";
+        }
     }
 }
-
 

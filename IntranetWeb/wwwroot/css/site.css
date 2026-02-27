@@ -1135,6 +1135,102 @@ body.intranet-shell {
   word-break: break-all;
 }
 
+.media-table {
+  table-layout: fixed;
+}
+
+.media-table .media-col-file {
+  width: 28%;
+}
+
+.media-table .media-col-type {
+  width: 18%;
+}
+
+.media-table .media-col-path {
+  width: 24%;
+}
+
+.media-table .media-col-size {
+  width: 8%;
+}
+
+.media-table .media-col-desc {
+  width: 16%;
+}
+
+.media-table .media-col-uploaded {
+  width: 11%;
+}
+
+.media-table .media-col-user {
+  width: 10%;
+}
+
+.media-table .media-col-actions {
+  width: 11%;
+}
+
+.media-table .media-cell-truncate {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-table .entity-mono.media-cell-truncate {
+  word-break: normal;
+}
+
+.attachment-table {
+  table-layout: fixed;
+}
+
+.attachment-table .attachment-col-type {
+  width: 7%;
+}
+
+.attachment-table .attachment-col-docid {
+  width: 8%;
+}
+
+.attachment-table .attachment-col-file {
+  width: 27%;
+}
+
+.attachment-table .attachment-col-contenttype {
+  width: 19%;
+}
+
+.attachment-table .attachment-col-path {
+  width: 23%;
+}
+
+.attachment-table .attachment-col-uploaded {
+  width: 10%;
+}
+
+.attachment-table .attachment-col-user {
+  width: 12%;
+}
+
+.attachment-table .attachment-col-actions {
+  width: 10%;
+}
+
+.attachment-table .media-cell-truncate {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attachment-table .entity-mono.media-cell-truncate {
+  word-break: normal;
+}
+
 .category-products-count {
   color: #64748b;
   font-weight: 700;

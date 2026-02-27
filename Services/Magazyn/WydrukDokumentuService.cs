@@ -46,7 +46,7 @@ namespace Services.Magazyn
 
             var szablon = await PobierzSzablonAsync("WZ", idSzablonu);
             var templatePath = ResolveTemplatePath(szablon.Sciezka);
-            var outputBaseName = $"WZ_{SanitizeFileName(dokument.Numer)}_{DateTime.Now:yyyyMMdd_HHmmss}";
+            var outputBaseName = BuildOutputBaseName("WZ", dokument.Numer);
             var usedFallback = false;
             string? infoMessage = null;
 
@@ -90,7 +90,7 @@ namespace Services.Magazyn
 
             var szablon = await PobierzSzablonAsync("PZ", idSzablonu);
             var templatePath = ResolveTemplatePath(szablon.Sciezka);
-            var outputBaseName = $"PZ_{SanitizeFileName(dokument.Numer)}_{DateTime.Now:yyyyMMdd_HHmmss}";
+            var outputBaseName = BuildOutputBaseName("PZ", dokument.Numer);
 
             if (!File.Exists(templatePath))
             {
@@ -130,7 +130,7 @@ namespace Services.Magazyn
 
             var szablon = await PobierzSzablonAsync("MM", idSzablonu);
             var templatePath = ResolveTemplatePath(szablon.Sciezka);
-            var outputBaseName = $"MM_{SanitizeFileName(dokument.Numer)}_{DateTime.Now:yyyyMMdd_HHmmss}";
+            var outputBaseName = BuildOutputBaseName("MM", dokument.Numer);
 
             if (!File.Exists(templatePath))
             {
@@ -439,16 +439,29 @@ namespace Services.Magazyn
 
         private static void RemoveLoopMarkers(OpenXmlElement element)
         {
-            foreach (var textNode in element.Descendants<Text>())
+            foreach (var paragraph in element.Descendants<Paragraph>())
             {
-                if (string.IsNullOrEmpty(textNode.Text))
+                var textNodes = paragraph.Descendants<Text>().ToList();
+                if (textNodes.Count == 0)
                 {
                     continue;
                 }
 
-                textNode.Text = textNode.Text
+                var current = string.Concat(textNodes.Select(x => x.Text ?? string.Empty));
+                var cleaned = current
                     .Replace("{{#Items}}", string.Empty, StringComparison.Ordinal)
                     .Replace("{{/Items}}", string.Empty, StringComparison.Ordinal);
+
+                if (cleaned == current)
+                {
+                    continue;
+                }
+
+                textNodes[0].Text = cleaned;
+                for (var i = 1; i < textNodes.Count; i++)
+                {
+                    textNodes[i].Text = string.Empty;
+                }
             }
         }
 
@@ -459,20 +472,32 @@ namespace Services.Magazyn
                 return;
             }
 
-            foreach (var textNode in element.Descendants<Text>())
+            foreach (var paragraph in element.Descendants<Paragraph>())
             {
-                if (string.IsNullOrEmpty(textNode.Text))
+                var textNodes = paragraph.Descendants<Text>().ToList();
+                if (textNodes.Count == 0)
                 {
                     continue;
                 }
 
-                var current = textNode.Text;
+                var current = string.Concat(textNodes.Select(x => x.Text ?? string.Empty));
+                var replaced = current;
+
                 foreach (var kv in map)
                 {
-                    current = current.Replace("{{" + kv.Key + "}}", kv.Value ?? string.Empty, StringComparison.Ordinal);
+                    replaced = replaced.Replace("{{" + kv.Key + "}}", kv.Value ?? string.Empty, StringComparison.Ordinal);
                 }
 
-                textNode.Text = current;
+                if (replaced == current)
+                {
+                    continue;
+                }
+
+                textNodes[0].Text = replaced;
+                for (var i = 1; i < textNodes.Count; i++)
+                {
+                    textNodes[i].Text = string.Empty;
+                }
             }
         }
 
@@ -1221,6 +1246,19 @@ namespace Services.Magazyn
                 .ToArray());
 
             return string.IsNullOrWhiteSpace(sanitized) ? "document" : sanitized;
+        }
+
+        private static string BuildOutputBaseName(string docType, string documentNumber)
+        {
+            var normalizedType = (docType ?? string.Empty).Trim().ToUpperInvariant();
+            var sanitizedNumber = SanitizeFileName(documentNumber);
+            var numberUpper = sanitizedNumber.ToUpperInvariant();
+            var hasTypePrefix =
+                numberUpper.StartsWith($"{normalizedType}_", StringComparison.Ordinal) ||
+                numberUpper.StartsWith($"{normalizedType}-", StringComparison.Ordinal);
+
+            var core = hasTypePrefix ? sanitizedNumber : $"{normalizedType}_{sanitizedNumber}";
+            return $"{core}_{DateTime.Now:yyyyMMdd_HHmmss}";
         }
 
         private static string FormatQuantity(decimal value) => value.ToString("0.00", PlCulture);

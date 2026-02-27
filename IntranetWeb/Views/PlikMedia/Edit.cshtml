@@ -2,6 +2,33 @@
 
 @{
     ViewData["Title"] = "Edytuj plik media";
+
+    static string HumanSize(long bytes)
+    {
+        string[] units = ["B", "KB", "MB", "GB"];
+        double size = bytes;
+        var i = 0;
+        while (size >= 1024 && i < units.Length - 1)
+        {
+            size /= 1024;
+            i++;
+        }
+
+        return $"{size:0.##} {units[i]}";
+    }
+
+    static string ShortContentType(string? contentType)
+    {
+        var normalized = (contentType ?? string.Empty).Trim().ToLowerInvariant();
+        return normalized switch
+        {
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" => "DOCX",
+            "application/pdf" => "PDF",
+            "image/jpeg" => "JPG",
+            "image/png" => "PNG",
+            _ => string.IsNullOrWhiteSpace(contentType) ? "-" : contentType
+        };
+    }
 }
 
 <div class="news-admin-page">
@@ -21,43 +48,35 @@
     <section class="news-editor-panel">
         <div class="news-editor-panel__header">
             <h2 class="h5 mb-1">Edycja metadanych</h2>
-            <p class="text-muted mb-0">Zmień dane techniczne, opis lub użytkownika wgrywającego. Czas wgrania jest tylko do podglądu.</p>
+            <p class="text-muted mb-0">Możesz podmienić plik i zmienić opis. Typ, rozmiar i ścieżka są zarządzane automatycznie.</p>
         </div>
-        <form asp-action="Edit" method="post" class="news-editor-form" novalidate>
+        <form asp-action="Edit" method="post" enctype="multipart/form-data" class="news-editor-form" novalidate>
             <input type="hidden" asp-for="Id" />
             <div asp-validation-summary="ModelOnly" class="alert alert-danger news-form-validation" role="alert"></div>
             <div class="news-form-grid">
                 <div class="news-form-field">
-                    <label asp-for="NazwaPliku" class="form-label news-form-label"></label>
-                    <input asp-for="NazwaPliku" class="form-control news-form-control" />
-                    <span asp-validation-for="NazwaPliku" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <label asp-for="ContentType" class="form-label news-form-label"></label>
-                    <input asp-for="ContentType" class="form-control news-form-control" />
-                    <span asp-validation-for="ContentType" class="text-danger small"></span>
+                    <label class="form-label news-form-label">Aktualny plik</label>
+                    <input class="form-control news-form-control" value="@Model.NazwaPliku" readonly />
+                    <small class="text-muted">Typ: <strong>@ShortContentType(Model.ContentType)</strong> | Rozmiar: <strong>@HumanSize(Model.RozmiarBajty)</strong></small>
                 </div>
                 <div class="news-form-field news-form-field--full">
-                    <label asp-for="Sciezka" class="form-label news-form-label"></label>
-                    <input asp-for="Sciezka" class="form-control news-form-control" />
-                    <span asp-validation-for="Sciezka" class="text-danger small"></span>
-                </div>
-                <div class="news-form-field">
-                    <label asp-for="RozmiarBajty" class="form-label news-form-label"></label>
-                    <input asp-for="RozmiarBajty" class="form-control news-form-control" type="number" min="0" step="1" />
-                    <span asp-validation-for="RozmiarBajty" class="text-danger small"></span>
+                    <label for="mediaFile" class="form-label news-form-label">Podmień plik (opcjonalnie)</label>
+                    <input id="mediaFile" name="mediaFile" class="form-control news-form-control" type="file" />
+                    <small class="text-muted">Po wyborze nowego pliku metadane zostaną nadpisane automatycznie.</small>
                 </div>
                 <div class="news-form-field">
                     <label class="form-label news-form-label">Wgrano</label>
                     <input class="form-control news-form-control" value="@Model.WgranoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" readonly />
                 </div>
-                <div class="news-form-field">
-                    <label asp-for="WgralUserId" class="form-label news-form-label">Wgrał</label>
-                    <select asp-for="WgralUserId" class="form-select news-form-control" asp-items="ViewBag.WgralUserId">
-                        <option value="">(brak)</option>
-                    </select>
-                    <span asp-validation-for="WgralUserId" class="text-danger small"></span>
+                <div class="news-form-field news-form-field--full">
+                    <label asp-for="Sciezka" class="form-label news-form-label"></label>
+                    <input asp-for="Sciezka" class="form-control news-form-control" readonly />
+                    <span asp-validation-for="Sciezka" class="text-danger small"></span>
                 </div>
+                <input asp-for="NazwaPliku" type="hidden" />
+                <input asp-for="ContentType" type="hidden" />
+                <input asp-for="RozmiarBajty" type="hidden" />
+                <input asp-for="Sciezka" type="hidden" />
                 <div class="news-form-field news-form-field--full">
                     <label asp-for="Opis" class="form-label news-form-label"></label>
                     <textarea asp-for="Opis" class="form-control news-form-control news-form-control--textarea" rows="4"></textarea>

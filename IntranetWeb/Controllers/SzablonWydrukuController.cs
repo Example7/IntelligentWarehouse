@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Data.Data;
 using Data.Data.CMS;
@@ -8,6 +7,7 @@ using IntranetWeb.Security;
 using Interfaces.CMS;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using System.Security.Claims;
 
 namespace IntranetWeb.Controllers
 {
@@ -26,13 +26,11 @@ namespace IntranetWeb.Controllers
             _environment = environment;
         }
 
-        // GET: SzablonWydruku
         public async Task<IActionResult> Index(string? searchTerm)
         {
             return View(await _szablonWydrukuService.GetIndexDataAsync(searchTerm));
         }
 
-        // GET: SzablonWydruku/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -49,10 +47,8 @@ namespace IntranetWeb.Controllers
             return View(dto);
         }
 
-        // GET: SzablonWydruku/Create
         public IActionResult Create()
         {
-            PopulateUzytkownicySelect();
             return View(new SzablonWydruku
             {
                 TypDokumentu = string.Empty,
@@ -63,27 +59,29 @@ namespace IntranetWeb.Controllers
             });
         }
 
-        // POST: SzablonWydruku/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,TypDokumentu,Nazwa,Wersja,NazwaPliku,Sciezka,CzyAktywny,WgralUserId")] SzablonWydruku szablonWydruku, IFormFile? templateFile)
+        public async Task<IActionResult> Create([Bind("Id,TypDokumentu,Nazwa,Wersja,CzyAktywny")] SzablonWydruku szablonWydruku, IFormFile? templateFile)
         {
+            szablonWydruku.CzyAktywny = ResolveCheckboxValue(nameof(SzablonWydruku.CzyAktywny), szablonWydruku.CzyAktywny);
             Normalize(szablonWydruku);
             szablonWydruku.WgranoUtc = DateTime.UtcNow;
+            szablonWydruku.WgralUserId = GetCurrentUserId();
+            ModelState.Remove(nameof(SzablonWydruku.NazwaPliku));
+            ModelState.Remove(nameof(SzablonWydruku.Sciezka));
             await TryStoreUploadedTemplateAsync(szablonWydruku, templateFile);
 
             await ValidateUniqueTypWersjaAsync(szablonWydruku);
 
-            if (templateFile == null && string.IsNullOrWhiteSpace(szablonWydruku.Sciezka))
+            if (templateFile == null || templateFile.Length <= 0)
             {
-                ModelState.AddModelError(nameof(SzablonWydruku.Sciezka), "Podaj ścieżkę lub wgraj plik szablonu.");
+                ModelState.AddModelError(nameof(SzablonWydruku.Sciezka), "Wybierz plik szablonu.");
             }
+
+            TryValidateModel(szablonWydruku);
 
             if (!ModelState.IsValid)
             {
-                PopulateUzytkownicySelect(szablonWydruku.WgralUserId);
                 return View(szablonWydruku);
             }
 
@@ -101,12 +99,15 @@ namespace IntranetWeb.Controllers
             catch (DbUpdateException)
             {
                 ModelState.AddModelError(nameof(SzablonWydruku.Wersja), $"Szablon dla typu '{szablonWydruku.TypDokumentu}' i wersji '{szablonWydruku.Wersja}' już istnieje.");
-                PopulateUzytkownicySelect(szablonWydruku.WgralUserId);
+                return View(szablonWydruku);
+            }
+            catch (IOException)
+            {
+                ModelState.AddModelError(nameof(SzablonWydruku.NazwaPliku), "Nie udało się zapisać pliku szablonu. Upewnij się, że plik nie jest otwarty w innym programie.");
                 return View(szablonWydruku);
             }
         }
 
-        // GET: SzablonWydruku/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -119,35 +120,17 @@ namespace IntranetWeb.Controllers
             {
                 return NotFound();
             }
-            PopulateUzytkownicySelect(szablonWydruku.WgralUserId);
+
             return View(szablonWydruku);
         }
 
-        // POST: SzablonWydruku/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,TypDokumentu,Nazwa,Wersja,NazwaPliku,Sciezka,CzyAktywny,WgralUserId")] SzablonWydruku szablonWydruku, IFormFile? templateFile)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,TypDokumentu,Nazwa,Wersja,CzyAktywny")] SzablonWydruku szablonWydruku, IFormFile? templateFile)
         {
             if (id != szablonWydruku.Id)
             {
                 return NotFound();
-            }
-
-            Normalize(szablonWydruku);
-            await TryStoreUploadedTemplateAsync(szablonWydruku, templateFile);
-            await ValidateUniqueTypWersjaAsync(szablonWydruku, szablonWydruku.Id);
-
-            if (templateFile == null && string.IsNullOrWhiteSpace(szablonWydruku.Sciezka))
-            {
-                ModelState.AddModelError(nameof(SzablonWydruku.Sciezka), "Podaj ścieżkę lub wgraj plik szablonu.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                PopulateUzytkownicySelect(szablonWydruku.WgralUserId);
-                return View(szablonWydruku);
             }
 
             var existing = await _context.SzablonWydruku.FirstOrDefaultAsync(x => x.Id == id);
@@ -156,16 +139,39 @@ namespace IntranetWeb.Controllers
                 return NotFound();
             }
 
+            szablonWydruku.CzyAktywny = ResolveCheckboxValue(nameof(SzablonWydruku.CzyAktywny), szablonWydruku.CzyAktywny);
+            Normalize(szablonWydruku);
+            ModelState.Remove(nameof(SzablonWydruku.NazwaPliku));
+            ModelState.Remove(nameof(SzablonWydruku.Sciezka));
+
+            if (templateFile != null && templateFile.Length > 0)
+            {
+                await TryStoreUploadedTemplateAsync(szablonWydruku, templateFile);
+            }
+            else
+            {
+                szablonWydruku.NazwaPliku = existing.NazwaPliku;
+                szablonWydruku.Sciezka = existing.Sciezka;
+            }
+
+            await ValidateUniqueTypWersjaAsync(szablonWydruku, szablonWydruku.Id);
+            TryValidateModel(szablonWydruku);
+
+            if (!ModelState.IsValid)
+            {
+                return View(szablonWydruku);
+            }
+
             existing.TypDokumentu = szablonWydruku.TypDokumentu;
             existing.Nazwa = szablonWydruku.Nazwa;
             existing.Wersja = szablonWydruku.Wersja;
-            existing.NazwaPliku = szablonWydruku.NazwaPliku;
-            existing.Sciezka = szablonWydruku.Sciezka;
             existing.CzyAktywny = szablonWydruku.CzyAktywny;
-            existing.WgralUserId = szablonWydruku.WgralUserId;
             if (templateFile != null && templateFile.Length > 0)
             {
+                existing.NazwaPliku = szablonWydruku.NazwaPliku;
+                existing.Sciezka = szablonWydruku.Sciezka;
                 existing.WgranoUtc = DateTime.UtcNow;
+                existing.WgralUserId = GetCurrentUserId();
             }
 
             try
@@ -190,12 +196,15 @@ namespace IntranetWeb.Controllers
             catch (DbUpdateException)
             {
                 ModelState.AddModelError(nameof(SzablonWydruku.Wersja), $"Szablon dla typu '{szablonWydruku.TypDokumentu}' i wersji '{szablonWydruku.Wersja}' już istnieje.");
-                PopulateUzytkownicySelect(szablonWydruku.WgralUserId);
+                return View(szablonWydruku);
+            }
+            catch (IOException)
+            {
+                ModelState.AddModelError(nameof(SzablonWydruku.NazwaPliku), "Nie udało się zapisać pliku szablonu. Upewnij się, że plik nie jest otwarty w innym programie.");
                 return View(szablonWydruku);
             }
         }
 
-        // GET: SzablonWydruku/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -212,7 +221,6 @@ namespace IntranetWeb.Controllers
             return View(dto);
         }
 
-        // POST: SzablonWydruku/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -232,28 +240,39 @@ namespace IntranetWeb.Controllers
             return _context.SzablonWydruku.Any(e => e.Id == id);
         }
 
-        private void PopulateUzytkownicySelect(int? selected = null)
+        private int? GetCurrentUserId()
         {
-            var users = _context.Uzytkownik
-                .AsNoTracking()
-                .OrderBy(x => x.Login)
-                .Select(x => new
-                {
-                    x.IdUzytkownika,
-                    Label = string.IsNullOrWhiteSpace(x.Email) ? x.Login : $"{x.Login} | {x.Email}"
-                })
-                .ToList();
-
-            ViewData["WgralUserId"] = new SelectList(users, "IdUzytkownika", "Label", selected);
+            var raw = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
+            return int.TryParse(raw, out var userId) ? userId : null;
         }
 
         private static void Normalize(SzablonWydruku szablonWydruku)
         {
-            szablonWydruku.TypDokumentu = (szablonWydruku.TypDokumentu ?? string.Empty).Trim();
+            szablonWydruku.TypDokumentu = (szablonWydruku.TypDokumentu ?? string.Empty).Trim().ToUpperInvariant();
             szablonWydruku.Nazwa = (szablonWydruku.Nazwa ?? string.Empty).Trim();
             szablonWydruku.Wersja = (szablonWydruku.Wersja ?? string.Empty).Trim();
             szablonWydruku.NazwaPliku = (szablonWydruku.NazwaPliku ?? string.Empty).Trim();
             szablonWydruku.Sciezka = (szablonWydruku.Sciezka ?? string.Empty).Trim();
+        }
+
+        private bool ResolveCheckboxValue(string fieldName, bool fallback)
+        {
+            if (!Request.HasFormContentType || !Request.Form.TryGetValue(fieldName, out var values) || values.Count == 0)
+            {
+                return fallback;
+            }
+
+            foreach (var value in values)
+            {
+                if (string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(value, "on", StringComparison.OrdinalIgnoreCase) ||
+                    value == "1")
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private async Task ValidateUniqueTypWersjaAsync(SzablonWydruku szablonWydruku, int? excludeId = null)
@@ -263,6 +282,7 @@ namespace IntranetWeb.Controllers
                 ModelState.AddModelError(nameof(SzablonWydruku.Wersja), $"Szablon dla typu '{szablonWydruku.TypDokumentu}' i wersji '{szablonWydruku.Wersja}' już istnieje.");
             }
         }
+
         private async Task TryStoreUploadedTemplateAsync(SzablonWydruku model, IFormFile? templateFile)
         {
             if (templateFile == null || templateFile.Length == 0)
@@ -292,21 +312,22 @@ namespace IntranetWeb.Controllers
             var fileName = SanitizeFileName(Path.GetFileName(templateFile.FileName));
             if (string.IsNullOrWhiteSpace(fileName))
             {
-                ModelState.AddModelError(nameof(SzablonWydruku.NazwaPliku), "Nieprawidlowa nazwa pliku.");
+                ModelState.AddModelError(nameof(SzablonWydruku.NazwaPliku), "Nieprawidłowa nazwa pliku.");
                 return;
             }
 
             var targetDirectory = Path.Combine(_environment.ContentRootPath, "Templates", typeFolder);
             Directory.CreateDirectory(targetDirectory);
 
-            var targetPath = Path.Combine(targetDirectory, fileName);
-            await using (var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            var uniqueFileName = BuildUniqueFileName(targetDirectory, fileName);
+            var targetPath = Path.Combine(targetDirectory, uniqueFileName);
+            await using (var fileStream = new FileStream(targetPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
             {
                 await templateFile.CopyToAsync(fileStream);
             }
 
-            model.NazwaPliku = fileName;
-            model.Sciezka = $"/templates/{typeFolder}/{fileName}";
+            model.NazwaPliku = uniqueFileName;
+            model.Sciezka = $"/templates/{typeFolder}/{uniqueFileName}";
         }
 
         private static string NormalizeTypeFolder(string? typDokumentu)
@@ -325,6 +346,22 @@ namespace IntranetWeb.Controllers
         {
             var invalid = Path.GetInvalidFileNameChars();
             return new string(fileName.Select(ch => invalid.Contains(ch) ? '_' : ch).ToArray()).Trim();
+        }
+
+        private static string BuildUniqueFileName(string directoryPath, string originalFileName)
+        {
+            var baseName = Path.GetFileNameWithoutExtension(originalFileName);
+            var ext = Path.GetExtension(originalFileName);
+            var candidate = originalFileName;
+            var counter = 1;
+
+            while (System.IO.File.Exists(Path.Combine(directoryPath, candidate)))
+            {
+                candidate = $"{baseName}_{counter}{ext}";
+                counter++;
+            }
+
+            return candidate;
         }
 
         private async Task DeactivateOtherActiveTemplatesAsync(string? typDokumentu, int? excludeId = null)
