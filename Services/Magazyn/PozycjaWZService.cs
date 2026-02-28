@@ -1,4 +1,4 @@
-using Data.Data;
+﻿using Data.Data;
 using Interfaces.Magazyn;
 using Interfaces.Magazyn.Dtos;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +18,7 @@ namespace Services.Magazyn
                 .AsNoTracking()
                 .Include(p => p.Dokument)
                 .Include(p => p.Lokacja)
-                    .ThenInclude(l => l.Magazyn)
+                    .ThenInclude(l => l!.Magazyn)
                 .Include(p => p.Produkt)
                     .ThenInclude(p => p.DomyslnaJednostka)
                 .Include(p => p.Partia)
@@ -46,7 +46,7 @@ namespace Services.Magazyn
             var pozycja = await _context.PozycjaWZ
                 .AsNoTracking()
                 .Include(p => p.Dokument).ThenInclude(d => d.Magazyn)
-                .Include(p => p.Lokacja).ThenInclude(l => l.Magazyn)
+                .Include(p => p.Lokacja).ThenInclude(l => l!.Magazyn)
                 .Include(p => p.Produkt).ThenInclude(p => p.DomyslnaJednostka)
                 .Include(p => p.Partia)
                 .FirstOrDefaultAsync(p => p.Id == idPozycji);
@@ -67,7 +67,7 @@ namespace Services.Magazyn
             var pozycja = await _context.PozycjaWZ
                 .AsNoTracking()
                 .Include(p => p.Dokument).ThenInclude(d => d.Magazyn)
-                .Include(p => p.Lokacja).ThenInclude(l => l.Magazyn)
+                .Include(p => p.Lokacja).ThenInclude(l => l!.Magazyn)
                 .Include(p => p.Produkt).ThenInclude(p => p.DomyslnaJednostka)
                 .Include(p => p.Partia)
                 .FirstOrDefaultAsync(p => p.Id == idPozycji);
@@ -81,8 +81,9 @@ namespace Services.Magazyn
             {
                 Pozycja = pozycja,
                 CzyDokumentDraft = isDraft,
-                PowodBlokady = isDraft ? null : "Pozycje można usuwać tylko dla dokumentu WZ w statusie Draft."
+                PowodBlokady = isDraft ? null : "Pozycje moĹĽna usuwaÄ‡ tylko dla dokumentu WZ w statusie Draft."
             };
         }
     }
 }
+

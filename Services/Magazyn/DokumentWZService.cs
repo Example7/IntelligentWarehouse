@@ -1,4 +1,4 @@
-using Data.Data;
+ï»¿using Data.Data;
 using Data.Data.Magazyn;
 using Interfaces.Magazyn;
 using Interfaces.Magazyn.Dtos;
@@ -59,7 +59,7 @@ namespace Services.Magazyn
                     .ThenInclude(p => p.DomyslnaJednostka)
                 .Include(p => p.Partia)
                 .Include(p => p.Lokacja)
-                    .ThenInclude(l => l.Magazyn)
+                    .ThenInclude(l => l!.Magazyn)
                 .Where(p => p.IdDokumentu == idDokumentu)
                 .OrderBy(p => p.Lp)
                 .ThenBy(p => p.Id)
@@ -101,7 +101,7 @@ namespace Services.Magazyn
 
             if (!string.Equals(dokument.Status, "Draft", StringComparison.OrdinalIgnoreCase))
             {
-                return new DokumentWZPostResultDto { Success = false, ErrorMessage = "Zaksiêgowaæ mo¿na tylko dokument WZ w statusie Draft." };
+                return new DokumentWZPostResultDto { Success = false, ErrorMessage = "ZaksiÄ™gowaÄ‡ moÅ¼na tylko dokument WZ w statusie Draft." };
             }
 
             var pozycje = await _context.PozycjaWZ
@@ -113,17 +113,17 @@ namespace Services.Magazyn
 
             if (pozycje.Count == 0)
             {
-                return new DokumentWZPostResultDto { Success = false, ErrorMessage = "Nie mo¿na zaksiêgowaæ dokumentu WZ bez pozycji." };
+                return new DokumentWZPostResultDto { Success = false, ErrorMessage = "Nie moÅ¼na zaksiÄ™gowaÄ‡ dokumentu WZ bez pozycji." };
             }
 
             if (pozycje.Any(p => p.Ilosc <= 0))
             {
-                return new DokumentWZPostResultDto { Success = false, ErrorMessage = "Wszystkie pozycje WZ musz¹ mieæ iloœæ wiêksz¹ od zera." };
+                return new DokumentWZPostResultDto { Success = false, ErrorMessage = "Wszystkie pozycje WZ muszÄ… mieÄ‡ iloÅ›Ä‡ wiÄ™kszÄ… od zera." };
             }
 
             if (pozycje.Any(p => p.Lokacja == null || p.Lokacja.IdMagazynu != dokument.IdMagazynu))
             {
-                return new DokumentWZPostResultDto { Success = false, ErrorMessage = "Wszystkie lokacje pozycji WZ musz¹ nale¿eæ do magazynu dokumentu." };
+                return new DokumentWZPostResultDto { Success = false, ErrorMessage = "Wszystkie lokacje pozycji WZ muszÄ… naleÅ¼eÄ‡ do magazynu dokumentu." };
             }
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -161,7 +161,7 @@ namespace Services.Magazyn
                         return new DokumentWZPostResultDto
                         {
                             Success = false,
-                            ErrorMessage = $"Niewystarczaj¹cy stan w lokacji {pozycja.Lokacja?.Kod ?? pozycja.IdLokacji?.ToString() ?? "-"} dla produktu {pozycja.IdProduktu}. Dostêpne: {stan.Ilosc:0.###}."
+                            ErrorMessage = $"NiewystarczajÄ…cy stan w lokacji {pozycja.Lokacja?.Kod ?? pozycja.IdLokacji?.ToString() ?? "-"} dla produktu {pozycja.IdProduktu}. DostÄ™pne: {stan.Ilosc:0.###}."
                         };
                     }
 
@@ -197,5 +197,6 @@ namespace Services.Magazyn
         }
     }
 }
+
 
 

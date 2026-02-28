@@ -1,4 +1,4 @@
-using Data.Data;
+﻿using Data.Data;
 using Interfaces.Magazyn;
 using Interfaces.Magazyn.Dtos;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,7 @@ namespace Services.Magazyn
                 .AsNoTracking()
                 .Include(p => p.Rezerwacja).ThenInclude(r => r.Magazyn)
                 .Include(p => p.Produkt).ThenInclude(p => p.DomyslnaJednostka)
-                .Include(p => p.Lokacja).ThenInclude(l => l.Magazyn)
+                .Include(p => p.Lokacja).ThenInclude(l => l!.Magazyn)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -40,7 +40,7 @@ namespace Services.Magazyn
                 .AsNoTracking()
                 .Include(p => p.Rezerwacja).ThenInclude(r => r.Magazyn)
                 .Include(p => p.Produkt).ThenInclude(p => p.DomyslnaJednostka)
-                .Include(p => p.Lokacja).ThenInclude(l => l.Magazyn)
+                .Include(p => p.Lokacja).ThenInclude(l => l!.Magazyn)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (pozycja == null)
             {
@@ -60,7 +60,7 @@ namespace Services.Magazyn
                 .AsNoTracking()
                 .Include(p => p.Rezerwacja).ThenInclude(r => r.Magazyn)
                 .Include(p => p.Produkt).ThenInclude(p => p.DomyslnaJednostka)
-                .Include(p => p.Lokacja).ThenInclude(l => l.Magazyn)
+                .Include(p => p.Lokacja).ThenInclude(l => l!.Magazyn)
                 .FirstOrDefaultAsync(p => p.Id == id);
             if (pozycja == null)
             {
@@ -85,3 +85,4 @@ namespace Services.Magazyn
         }
     }
 }
+
