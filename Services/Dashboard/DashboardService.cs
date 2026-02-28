@@ -18,8 +18,10 @@ namespace Services.Dashboard
         public async Task<DashboardVm> GetDashboardAsync()
         {
             var nowUtc = DateTime.UtcNow;
-            var todayUtc = nowUtc.Date;
-            var tomorrowUtc = todayUtc.AddDays(1);
+            var localTimeZone = TimeZoneInfo.Local;
+            var todayLocal = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, localTimeZone).Date;
+            var todayUtc = TimeZoneInfo.ConvertTimeToUtc(todayLocal, localTimeZone);
+            var tomorrowUtc = TimeZoneInfo.ConvertTimeToUtc(todayLocal.AddDays(1), localTimeZone);
             var last7DaysUtc = nowUtc.AddDays(-7);
 
             var activeAlerts = await _context.Alert.AsNoTracking()

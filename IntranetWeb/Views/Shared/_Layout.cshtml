@@ -15,6 +15,10 @@
     <link rel="stylesheet" href="~/IntranetWeb.styles.css" asp-append-version="true" />
 </head>
 
+@using Data.Data
+@using Microsoft.EntityFrameworkCore
+@inject DataContext DbContext
+
 @{
         var currentController = (ViewContext.RouteData.Values["controller"]?.ToString()) ?? "";
         var currentAction = (ViewContext.RouteData.Values["action"]?.ToString()) ?? "";
@@ -57,6 +61,22 @@
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
         var currentRoleLabel = roleClaimValues.Count == 0 ? "Brak roli" : string.Join(", ", roleClaimValues);
+        var draftReservationsCount = 0;
+        var draftReservations = new List<Data.Data.Magazyn.Rezerwacja>();
+        if (canUseWarehouse && User?.Identity?.IsAuthenticated == true)
+        {
+            draftReservationsCount = await DbContext.Rezerwacja
+                .AsNoTracking()
+                .CountAsync(r => r.Status == "Draft");
+
+            draftReservations = await DbContext.Rezerwacja
+                .AsNoTracking()
+                .Include(r => r.Magazyn)
+                .Where(r => r.Status == "Draft")
+                .OrderByDescending(r => r.UtworzonoUtc)
+                .Take(6)
+                .ToListAsync();
+        }
 }
 
 <body class="has-sidebar intranet-shell">
@@ -97,6 +117,41 @@
                     <a class="btn app-icon-btn" asp-controller="Home" asp-action="Index" title="Dashboard" aria-label="Dashboard">
                         <i class="bi bi-house-door"></i>
                     </a>
+                    @if (canUseWarehouse && User?.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="dropdown">
+                            <button class="btn app-icon-btn app-icon-btn--alert" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Rezerwacje do potwierdzenia" aria-label="Rezerwacje do potwierdzenia">
+                                <i class="bi bi-bell"></i>
+                                @if (draftReservationsCount > 0)
+                                {
+                                    <span class="app-icon-badge">@(draftReservationsCount > 99 ? "99+" : draftReservationsCount.ToString())</span>
+                                }
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end app-topbar-dropdown p-0">
+                                <div class="app-topbar-dropdown__head">
+                                    <span>Rezerwacje do potwierdzenia</span>
+                                    <span class="app-topbar-dropdown__count">@draftReservationsCount</span>
+                                </div>
+                                @if (draftReservationsCount == 0)
+                                {
+                                    <div class="app-topbar-dropdown__empty">Brak rezerwacji oczekujacych na potwierdzenie.</div>
+                                }
+                                else
+                                {
+                                    foreach (var reservation in draftReservations)
+                                    {
+                                        <a class="dropdown-item app-topbar-alert-item" asp-controller="Rezerwacja" asp-action="Details" asp-route-id="@reservation.Id">
+                                            <div class="app-topbar-alert-item__title">@reservation.Numer</div>
+                                            <div class="app-topbar-alert-item__meta">@(reservation.Magazyn?.Nazwa ?? "-") • @reservation.UtworzonoUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                                        </a>
+                                    }
+                                }
+                                <div class="app-topbar-dropdown__footer">
+                                    <a asp-controller="Rezerwacja" asp-action="Index">Przejdz do listy rezerwacji</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
                     @if (User?.Identity?.IsAuthenticated == true)
                     {
                         <a class="btn app-icon-btn" asp-controller="Konto" asp-action="Profil" title="Profil" aria-label="Profil">
@@ -367,7 +422,6 @@
         <footer class="app-footer">
             <div class="container-fluid px-3 px-lg-4 small d-flex flex-column flex-md-row justify-content-between gap-2">
                 <span>© 2026 IntranetWeb • Intelligent Warehouse</span>
-                <a class="text-decoration-none" asp-controller="Home" asp-action="Privacy">Privacy</a>
             </div>
         </footer>
     </div>
