@@ -9,6 +9,7 @@
 
 # Temporary local build/check folders
 .tmpbuild/
+artifacts/
 
 # Visual Studio / VS Code
 .vscode/
