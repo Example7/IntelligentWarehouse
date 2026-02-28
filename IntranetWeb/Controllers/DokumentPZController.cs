@@ -207,6 +207,51 @@ namespace IntranetWeb.Controllers
             return RedirectToAction(nameof(Details), new { id });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateLineUnitPrice(int idDokumentu, int idPozycji, decimal? cenaJednostkowa)
+        {
+            var dokument = await _context.DokumentPZ
+                .AsNoTracking()
+                .FirstOrDefaultAsync(d => d.Id == idDokumentu);
+            if (dokument == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.Equals(dokument.Status, "Draft", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["DokumentPZInlinePriceError"] = "Cenę jednostkową można edytować tylko dla dokumentu PZ w statusie Draft.";
+                return RedirectToAction(nameof(Details), new { id = idDokumentu });
+            }
+
+            if (!cenaJednostkowa.HasValue)
+            {
+                TempData["DokumentPZInlinePriceError"] = "Podaj cenę jednostkową.";
+                return RedirectToAction(nameof(Details), new { id = idDokumentu });
+            }
+
+            if (cenaJednostkowa.Value < 0m)
+            {
+                TempData["DokumentPZInlinePriceError"] = "Cena jednostkowa nie może być ujemna.";
+                return RedirectToAction(nameof(Details), new { id = idDokumentu });
+            }
+
+            var pozycja = await _context.PozycjaPZ
+                .FirstOrDefaultAsync(p => p.Id == idPozycji && p.IdDokumentu == idDokumentu);
+            if (pozycja == null)
+            {
+                TempData["DokumentPZInlinePriceError"] = "Nie znaleziono pozycji PZ do aktualizacji.";
+                return RedirectToAction(nameof(Details), new { id = idDokumentu });
+            }
+
+            pozycja.CenaJednostkowa = Math.Round(cenaJednostkowa.Value, 2, MidpointRounding.AwayFromZero);
+            await _context.SaveChangesAsync();
+
+            TempData["DokumentPZInlinePriceSuccess"] = "Zapisano cenę jednostkową pozycji.";
+            return RedirectToAction(nameof(Details), new { id = idDokumentu });
+        }
+
         [HttpGet]
         public async Task<IActionResult> Wydruk(int id, int? idSzablonu)
         {

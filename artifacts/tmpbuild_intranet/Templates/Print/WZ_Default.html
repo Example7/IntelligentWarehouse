@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <title>WZ {{DocumentNo}}</title>
+  <style>
+    body { font-family: Segoe UI, Arial, sans-serif; margin: 24px; color: #1f2937; }
+    h1, h2, h3 { margin: 0; }
+    .header { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+    .card { border: 1px solid #d1d5db; border-radius: 8px; padding: 12px; }
+    .muted { color: #6b7280; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #d1d5db; padding: 6px 8px; vertical-align: top; }
+    th { background: #eef2ff; text-align: left; }
+    .num { text-align: right; white-space: nowrap; }
+    .footer { margin-top: 20px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Dokument WZ</h1>
+      <div class="muted">Numer: {{DocumentNo}}</div>
+      <div class="muted">Status: {{Status}}</div>
+    </div>
+    <div class="card">
+      <div><strong>Wydano:</strong> {{IssuedAt}}</div>
+      <div><strong>Zaksiegowano:</strong> {{PostedAt}}</div>
+      <div><strong>Wygenerowano:</strong> {{GeneratedAt}}</div>
+      <div><strong>Szablon:</strong> {{TemplateName}} v{{TemplateVersion}}</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Magazyn</h3>
+      <div>{{WarehouseName}}</div>
+      <div class="muted">ID: {{WarehouseId}}</div>
+    </div>
+    <div class="card">
+      <h3>Klient</h3>
+      <div>{{CustomerName}}</div>
+      <div class="muted">{{CustomerEmail}}</div>
+      <div class="muted">{{CustomerPhone}}</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div><strong>Utworzyl:</strong> {{CreatedBy}}</div>
+    <div><strong>Notatka:</strong> {{Note}}</div>
+    <div><strong>Liczba pozycji:</strong> {{ItemsCount}}</div>
+    <div><strong>Suma ilosci:</strong> {{TotalQty}}</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Lp</th>
+        <th>Kod produktu</th>
+        <th>Nazwa produktu</th>
+        <th>Partia</th>
+        <th>Lokacja</th>
+        <th>Magazyn lokacji</th>
+        <th class="num">Ilosc</th>
+        <th>JM</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#Items}}
+      <tr>
+        <td>{{LineNo}}</td>
+        <td>{{ProductCode}}</td>
+        <td>{{ProductName}}</td>
+        <td>{{BatchNo}}</td>
+        <td>{{LocationCode}}</td>
+        <td>{{LocationWarehouse}}</td>
+        <td class="num">{{Quantity}}</td>
+        <td>{{Unit}}</td>
+      </tr>
+      {{/Items}}
+    </tbody>
+  </table>
+
+  <div class="footer muted">
+    Inteligentny magazyn | Parametryzowany wydruk WZ | Dokument ID {{DocumentId}}
+  </div>
+</body>
+</html>

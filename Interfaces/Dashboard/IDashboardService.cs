@@ -16,6 +16,8 @@ namespace Interfaces.Dashboard
         public IList<DashboardDocumentVm> RecentWzDocuments { get; set; } = new List<DashboardDocumentVm>();
         public IList<DashboardAlertVm> ActiveAlerts { get; set; } = new List<DashboardAlertVm>();
         public IList<DashboardTopProductVm> TopProductsLast7Days { get; set; } = new List<DashboardTopProductVm>();
+        public IList<DashboardSelectOptionVm> ReorderSuppliers { get; set; } = new List<DashboardSelectOptionVm>();
+        public IList<DashboardSelectOptionVm> ReorderReceiptLocations { get; set; } = new List<DashboardSelectOptionVm>();
     }
 
     public class DashboardKpiVm
@@ -26,7 +28,7 @@ namespace Interfaces.Dashboard
         public int PzToday { get; set; }
         public int WzToday { get; set; }
         public int ActiveAlerts { get; set; }
-        public int ActiveUsers { get; set; }
+        public int ReservationsToday { get; set; }
     }
 
     public class DashboardRecentMovementVm
@@ -48,10 +50,9 @@ namespace Interfaces.Dashboard
 
     public class DashboardBusinessMetricsVm
     {
-        public int LowStockProducts { get; set; }
-        public int DraftDocumentsOlderThan24h { get; set; }
-        public int DraftPzOlderThan24h { get; set; }
-        public int DraftWzOlderThan24h { get; set; }
+        public int UnacknowledgedCritAlerts { get; set; }
+        public int DraftPzProductsWithoutUnitPrice { get; set; }
+        public int DraftWzDocuments { get; set; }
     }
 
     public class DashboardDocumentVm
@@ -70,8 +71,20 @@ namespace Interfaces.Dashboard
         public string Severity { get; set; } = string.Empty;
         public string Message { get; set; } = string.Empty;
         public DateTime CreatedAtUtc { get; set; }
+        public int ProductId { get; set; }
+        public int WarehouseId { get; set; }
         public string ProductCode { get; set; } = string.Empty;
+        public string ProductName { get; set; } = string.Empty;
         public string WarehouseName { get; set; } = string.Empty;
+        public decimal SuggestedOrderQty { get; set; }
+        public string UomCode { get; set; } = "j.m.";
+    }
+
+    public class DashboardSelectOptionVm
+    {
+        public int Value { get; set; }
+        public string Text { get; set; } = string.Empty;
+        public int? WarehouseId { get; set; }
     }
 
     public class DashboardTopProductVm

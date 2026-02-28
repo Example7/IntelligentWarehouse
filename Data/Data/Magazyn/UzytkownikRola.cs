@@ -13,6 +13,7 @@ namespace Data.Data.Magazyn
 
         [Required]
         [Column("UserId")]
+        [Display(Name = "Użytkownik")]
         public int IdUzytkownika { get; set; }
 
         [ForeignKey(nameof(IdUzytkownika))]
@@ -21,6 +22,7 @@ namespace Data.Data.Magazyn
 
         [Required]
         [Column("RoleId")]
+        [Display(Name = "Rola")]
         public int IdRoli { get; set; }
 
         [ForeignKey(nameof(IdRoli))]

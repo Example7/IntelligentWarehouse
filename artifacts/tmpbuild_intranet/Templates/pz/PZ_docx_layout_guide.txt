@@ -1,0 +1,36 @@
+Proponowany uklad sekcji dla PZ_standard_v1.docx (Word)
+
+1. Naglowek dokumentu
+- Tytul: "DOKUMENT PZ"
+- Pod tytulem: numer dokumentu {{DocumentNo}}
+- Linia pomocnicza: status {{Status}}, data przyjecia {{IssuedAt}}, zaksiegowano {{PostedAt}}
+
+2. Dane dokumentu (tabela 2 kolumny)
+- Magazyn: {{WarehouseName}}
+- ID magazynu: {{WarehouseId}}
+- Dostawca: {{SupplierName}}
+- Email dostawcy: {{SupplierEmail}}
+- Telefon dostawcy: {{SupplierPhone}}
+- NIP dostawcy: {{SupplierTaxId}}
+- Utworzyl: {{CreatedBy}}
+- Wygenerowano: {{GeneratedAt}}
+
+3. Uwagi (opcjonalnie)
+- Notatka: {{Note}}
+
+4. Tabela pozycji (1 wiersz = 1 pozycja)
+- Kolumny sugerowane:
+  Lp | Kod produktu | Nazwa produktu | Partia | Lokacja | Ilosc | JM | Cena | Wartosc
+- Zawartosc wiersza wewnatrz petli {{#Items}} ... {{/Items}}
+  {{LineNo}} | {{ProductCode}} | {{ProductName}} | {{BatchNo}} | {{LocationCode}} | {{Quantity}} | {{Unit}} | {{UnitPrice}} | {{LineValue}}
+
+5. Podsumowanie (tabela 2 kolumny)
+- Liczba pozycji: {{ItemsCount}}
+- Suma ilosci: {{TotalQty}}
+- Suma wartosci: {{TotalValue}}
+- Szablon: {{TemplateName}} v{{TemplateVersion}}
+
+Wskazowki:
+- Ustaw tabele na stale szerokosci kolumn.
+- Dla ilosci/cen uzyj wyrownania do prawej.
+- Nie rozbijaj placeholderow formatowaniem (np. polowa tokena bold, polowa nie).

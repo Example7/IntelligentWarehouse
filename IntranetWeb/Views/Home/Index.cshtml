@@ -1,8 +1,11 @@
-@model Interfaces.Dashboard.DashboardVm
+﻿@model Interfaces.Dashboard.DashboardVm
 
 @{
     ViewData["Title"] = "Dashboard";
     var freshMovementThresholdUtc = DateTime.UtcNow.AddMinutes(-15);
+    var reorderSuppliers = Model.ReorderSuppliers?.ToList() ?? new List<Interfaces.Dashboard.DashboardSelectOptionVm>();
+    var reorderReceiptLocations = Model.ReorderReceiptLocations?.ToList() ?? new List<Interfaces.Dashboard.DashboardSelectOptionVm>();
+    var canCreateAlertReorder = reorderSuppliers.Count > 0 && reorderReceiptLocations.Count > 0;
 }
 
 <div class="news-admin-page dashboard-page">
@@ -30,7 +33,7 @@
         <article class="dashboard-kpi-card">
             <div class="dashboard-kpi-card__label">Dokumenty PZ dzisiaj</div>
             <div class="dashboard-kpi-card__value">@Model.Kpi.PzToday</div>
-            <div class="dashboard-kpi-card__hint">Przyjecia</div>
+            <div class="dashboard-kpi-card__hint">Przyjęcia</div>
         </article>
         <article class="dashboard-kpi-card">
             <div class="dashboard-kpi-card__label">Dokumenty WZ dzisiaj</div>
@@ -38,9 +41,9 @@
             <div class="dashboard-kpi-card__hint">Wydania</div>
         </article>
         <article class="dashboard-kpi-card">
-            <div class="dashboard-kpi-card__label">Użytkownicy aktywni</div>
-            <div class="dashboard-kpi-card__value">@Model.Kpi.ActiveUsers</div>
-            <div class="dashboard-kpi-card__hint">Konta systemowe</div>
+            <div class="dashboard-kpi-card__label">Rezerwacje dziś</div>
+            <div class="dashboard-kpi-card__value">@Model.Kpi.ReservationsToday</div>
+            <div class="dashboard-kpi-card__hint">Utworzone dzisiaj</div>
         </article>
     </section>
 
@@ -98,18 +101,23 @@
             <div class="dashboard-two-col">
                 <section class="dashboard-side-panel dashboard-insight-panel">
                     <div class="dashboard-panel-header">
-                        <h2 class="dashboard-panel-title">Metryki biznesowe</h2>
+                        <h2 class="dashboard-panel-title">Priorytety operacyjne</h2>
                     </div>
                     <div class="dashboard-insight-grid">
-                        <article class="dashboard-insight-card dashboard-insight-card--warn">
-                            <div class="dashboard-insight-card__label">Produkty poniżej minimum</div>
-                            <div class="dashboard-insight-card__value">@Model.BusinessMetrics.LowStockProducts</div>
-                            <div class="dashboard-insight-card__hint">Aktywne produkty z suma stanu poniżej progu</div>
+                        <article class="dashboard-insight-card @(Model.BusinessMetrics.UnacknowledgedCritAlerts > 0 ? "dashboard-insight-card--danger" : "dashboard-insight-card--ok")">
+                            <div class="dashboard-insight-card__label">CRIT niepotwierdzone</div>
+                            <div class="dashboard-insight-card__value">@Model.BusinessMetrics.UnacknowledgedCritAlerts</div>
+                            <div class="dashboard-insight-card__hint">Alerty o wadze CRIT do potwierdzenia</div>
                         </article>
-                        <article class="dashboard-insight-card @(Model.BusinessMetrics.DraftDocumentsOlderThan24h > 0 ? "dashboard-insight-card--danger" : "dashboard-insight-card--ok")">
-                            <div class="dashboard-insight-card__label">Draft > 24h</div>
-                            <div class="dashboard-insight-card__value">@Model.BusinessMetrics.DraftDocumentsOlderThan24h</div>
-                            <div class="dashboard-insight-card__hint">PZ: @Model.BusinessMetrics.DraftPzOlderThan24h | WZ: @Model.BusinessMetrics.DraftWzOlderThan24h</div>
+                        <article class="dashboard-insight-card @(Model.BusinessMetrics.DraftPzProductsWithoutUnitPrice > 0 ? "dashboard-insight-card--warn" : "dashboard-insight-card--ok")">
+                            <div class="dashboard-insight-card__label">Produkty w PZ bez ceny</div>
+                            <div class="dashboard-insight-card__value">@Model.BusinessMetrics.DraftPzProductsWithoutUnitPrice</div>
+                            <div class="dashboard-insight-card__hint">Produkty w PZ wymagające ceny jednostkowej</div>
+                        </article>
+                        <article class="dashboard-insight-card @(Model.BusinessMetrics.DraftWzDocuments > 0 ? "dashboard-insight-card--warn" : "dashboard-insight-card--ok")">
+                            <div class="dashboard-insight-card__label">WZ Draft</div>
+                            <div class="dashboard-insight-card__value">@Model.BusinessMetrics.DraftWzDocuments</div>
+                            <div class="dashboard-insight-card__hint">Dokumenty WZ oczekujące na księgowanie</div>
                         </article>
                     </div>
                 </section>
@@ -215,15 +223,15 @@
         <aside class="dashboard-side">
             <section class="dashboard-side-panel">
                 <div class="dashboard-panel-header">
-                    <h2 class="dashboard-panel-title">Szybkie akcje</h2>
+                    <h2 class="dashboard-panel-title">Ważne akcje</h2>
                 </div>
                 <div class="dashboard-actions">
-                    <a asp-controller="RuchMagazynowy" asp-action="Create"><i class="bi bi-plus-circle"></i> Dodaj ruch magazynowy</a>
-                    <a asp-controller="DokumentPZ" asp-action="Create"><i class="bi bi-box-arrow-in-down"></i> Dodaj dokument PZ</a>
-                    <a asp-controller="DokumentWZ" asp-action="Create"><i class="bi bi-box-arrow-up-right"></i> Dodaj dokument WZ</a>
-                    <a asp-controller="Produkt" asp-action="Create"><i class="bi bi-box-seam"></i> Dodaj produkt</a>
-                    <a asp-controller="Klient" asp-action="Create"><i class="bi bi-people"></i> Dodaj klienta</a>
-                    <a asp-controller="Dostawca" asp-action="Create"><i class="bi bi-truck"></i> Dodaj dostawcę</a>
+                    <a asp-controller="Rezerwacja" asp-action="Index"><i class="bi bi-bookmark-check"></i> Rezerwacje</a>
+                    <a asp-controller="DokumentPZ" asp-action="Index"><i class="bi bi-box-arrow-in-down"></i> PZ (Przyjęcia)</a>
+                    <a asp-controller="DokumentWZ" asp-action="Index"><i class="bi bi-box-arrow-up-right"></i> WZ (Wydania)</a>
+                    <a asp-controller="DokumentMM" asp-action="Index"><i class="bi bi-arrow-left-right"></i> MM (Przesunięcia)</a>
+                    <a asp-controller="Raport" asp-action="PropozycjeZamowien"><i class="bi bi-cart-plus"></i> Propozycje zamówień</a>
+                    <a asp-controller="RuchMagazynowy" asp-action="Index"><i class="bi bi-arrow-repeat"></i> Ruchy magazynowe</a>
                 </div>
             </section>
 
@@ -237,7 +245,7 @@
                     {
                         @foreach (var alert in Model.ActiveAlerts)
                         {
-                            <article class="dashboard-alert-item">
+                            <article class="dashboard-alert-item" data-alert-warehouse-id="@alert.WarehouseId">
                                 <div class="dashboard-alert-item__top">
                                     <span class="entity-badge @(alert.Severity == "CRIT" ? "entity-badge--danger" : alert.Severity == "WARN" ? "entity-badge--warning" : "entity-badge--muted")">@alert.Severity</span>
                                     <span class="dashboard-alert-item__time">@alert.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
@@ -245,12 +253,55 @@
                                 <div class="dashboard-alert-item__message">@alert.Message</div>
                                 <div class="entity-inline-meta">
                                     <span class="entity-inline-meta__label">Produkt:</span>
-                                    <span class="entity-inline-meta__value">@alert.ProductCode</span>
+                                    <span class="entity-inline-meta__value">@($"{alert.ProductCode} - {alert.ProductName}")</span>
                                 </div>
                                 <div class="entity-inline-meta">
                                     <span class="entity-inline-meta__label">Magazyn:</span>
                                     <span class="entity-inline-meta__value">@alert.WarehouseName</span>
                                 </div>
+                                <div class="entity-inline-meta">
+                                    <span class="entity-inline-meta__label">Do zamówienia:</span>
+                                    <span class="entity-inline-meta__value">
+                                        @(alert.SuggestedOrderQty > 0m
+                                            ? $"{alert.SuggestedOrderQty.ToString("0.###")} {alert.UomCode}"
+                                            : "0")
+                                    </span>
+                                </div>
+                                @if (canCreateAlertReorder)
+                                {
+                                    <form asp-controller="Raport" asp-action="UtworzPzDraftZPropozycji" method="post" class="dashboard-alert-reorder-form mt-2">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="idMagazynu" value="@alert.WarehouseId" />
+                                        <input type="hidden" name="selectedRowKeys" value="@($"{alert.WarehouseId}:{alert.ProductId}")" />
+                                        <div class="row g-2">
+                                            <div class="col-12">
+                                                <label class="dashboard-alert-reorder-form__label">Dostawca</label>
+                                                <select class="form-select form-select-sm" name="idDostawcy" required>
+                                                    <option value="">Dostawca...</option>
+                                                    @foreach (var option in reorderSuppliers)
+                                                    {
+                                                        <option value="@option.Value">@option.Text</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="dashboard-alert-reorder-form__label">Lokacja przyjęcia</label>
+                                                <select class="form-select form-select-sm" name="idLokacjiPrzyjecia" required>
+                                                    <option value="">Lokacja przyjęcia...</option>
+                                                    @foreach (var option in reorderReceiptLocations)
+                                                    {
+                                                        <option value="@option.Value" data-warehouse-id="@option.WarehouseId">@option.Text</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="col-12 d-grid">
+                                                <button type="submit" class="btn btn-sm dashboard-alert-reorder-form__submit">
+                                                    <i class="bi bi-cart-plus me-1"></i>Utwórz PZ na braki
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                }
                             </article>
                         }
                     }
@@ -261,19 +312,6 @@
                 </div>
             </section>
 
-            <section class="dashboard-side-panel">
-                <div class="dashboard-panel-header">
-                    <h2 class="dashboard-panel-title">Szybkie przeglądanie</h2>
-                </div>
-                <div class="dashboard-shortcuts">
-                    <a asp-controller="Produkt" asp-action="Index">Produkty</a>
-                    <a asp-controller="StanMagazynowy" asp-action="Index">Stany magazynowe</a>
-                    <a asp-controller="RuchMagazynowy" asp-action="Index">Ruchy magazynowe</a>
-                    <a asp-controller="DokumentPZ" asp-action="Index">Dokumenty PZ</a>
-                    <a asp-controller="DokumentWZ" asp-action="Index">Dokumenty WZ</a>
-                    <a asp-controller="Alert" asp-action="Index">Alerty</a>
-                </div>
-            </section>
         </aside>
     </section>
 </div>
@@ -287,6 +325,20 @@
                     if (e.target.closest("a, button")) return;
                     var href = row.getAttribute("data-href");
                     if (href) window.location.href = href;
+                });
+            });
+
+            document.querySelectorAll(".dashboard-alert-item").forEach(function (card) {
+                var warehouseId = card.getAttribute("data-alert-warehouse-id");
+                var select = card.querySelector("select[name='idLokacjiPrzyjecia']");
+                if (!warehouseId || !select) return;
+
+                Array.from(select.options).forEach(function (option) {
+                    if (!option.value) return;
+                    var optionWarehouseId = option.getAttribute("data-warehouse-id");
+                    if (optionWarehouseId !== warehouseId) {
+                        option.remove();
+                    }
                 });
             });
         })();

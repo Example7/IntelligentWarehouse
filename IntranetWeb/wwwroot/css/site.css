@@ -1678,6 +1678,59 @@ body.intranet-shell {
   line-height: 1.35;
 }
 
+.dashboard-alert-reorder-form {
+  margin-top: 0.55rem;
+  padding: 0.55rem;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.86),
+    rgba(248, 250, 252, 0.78)
+  );
+}
+
+.dashboard-alert-reorder-form__label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.73rem;
+  color: #7b8ba2;
+  font-weight: 700;
+}
+
+.dashboard-alert-reorder-form .form-select {
+  min-height: 36px;
+  border-radius: 10px;
+  border-color: rgba(148, 163, 184, 0.24);
+  background-color: rgba(255, 255, 255, 0.96);
+  font-size: 0.84rem;
+  color: #334155;
+}
+
+.dashboard-alert-reorder-form .form-select:focus {
+  border-color: rgba(37, 99, 235, 0.34);
+  box-shadow: 0 0 0 0.18rem rgba(37, 99, 235, 0.1);
+}
+
+.dashboard-alert-reorder-form__submit {
+  min-height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(37, 99, 235, 0.34);
+  color: #fff;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  font-weight: 700;
+  font-size: 0.82rem;
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.16);
+}
+
+.dashboard-alert-reorder-form__submit:hover,
+.dashboard-alert-reorder-form__submit:focus-visible {
+  border-color: rgba(29, 78, 216, 0.44);
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+}
+
 .dashboard-shortcuts {
   padding: 0.95rem;
   display: grid;

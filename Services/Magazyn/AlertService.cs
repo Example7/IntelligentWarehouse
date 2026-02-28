@@ -388,12 +388,12 @@ namespace Services.Magazyn
             string unit)
         {
             var baseMsg = typ.Equals("NoStock", StringComparison.OrdinalIgnoreCase)
-                ? $"Brak dostępnego stanu produktu {productCode} w magazynie {warehouseName}."
+                ? $"{productCode}: brak dostępnego stanu ({warehouseName})."
                 : typ.Equals("ReorderPoint", StringComparison.OrdinalIgnoreCase)
-                    ? $"Produkt {productCode} osiągnął/przekroczył punkt ponownego zamówienia w magazynie {warehouseName}."
-                    : $"Niski stan produktu {productCode} w magazynie {warehouseName}.";
+                    ? $"{productCode}: osiągnięto punkt zamówienia ({warehouseName})."
+                    : $"{productCode}: niski stan ({warehouseName}).";
 
-            return $"{baseMsg} Dostępne: {available:0.###} {unit}, próg: {prog:0.###}. Stan fiz.: {physical:0.###}, rez. aktywne: {reservedActive:0.###}, WZ Draft: {reservedDraftWz:0.###}.";
+            return $"{baseMsg} Dost.: {available:0.###} {unit} (próg {prog:0.###}; fiz. {physical:0.###}, rez. {reservedActive:0.###}, WZ {reservedDraftWz:0.###}).";
         }
 
         private static string BuildStockKey(int warehouseId, int productId) => $"{warehouseId}:{productId}";

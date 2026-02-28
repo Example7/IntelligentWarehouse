@@ -1,4 +1,5 @@
 @model Interfaces.Magazyn.Dtos.DokumentPZDetailsDto
+@using System.Globalization
 
 @{
     var isAdmin = User?.IsInRole("Admin") ?? false;
@@ -42,6 +43,18 @@
     {
         <div class="alert alert-danger mt-3" role="alert">
             <i class="bi bi-exclamation-octagon me-1"></i>@postError
+        </div>
+    }
+    @if (TempData["DokumentPZInlinePriceSuccess"] is string inlinePriceSuccess && !string.IsNullOrWhiteSpace(inlinePriceSuccess))
+    {
+        <div class="alert alert-success mt-3" role="alert">
+            <i class="bi bi-check-circle me-1"></i>@inlinePriceSuccess
+        </div>
+    }
+    @if (TempData["DokumentPZInlinePriceError"] is string inlinePriceError && !string.IsNullOrWhiteSpace(inlinePriceError))
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            <i class="bi bi-exclamation-octagon me-1"></i>@inlinePriceError
         </div>
     }
     @if (TempData["DokumentPZPrintInfo"] is string printInfo && !string.IsNullOrWhiteSpace(printInfo))
@@ -155,7 +168,32 @@
                                 <div class="entity-cell-subtitle">@(p.Lokacja?.Magazyn?.Nazwa ?? "-")</div>
                             </td>
                             <td class="text-end">@p.Ilosc.ToString("0.###") @jm</td>
-                            <td class="text-end">@(p.CenaJednostkowa?.ToString("0.00") ?? "-")</td>
+                            <td class="text-end">
+                                @if (canEdit)
+                                {
+                                    <form asp-action="UpdateLineUnitPrice" method="post" class="d-flex justify-content-end align-items-center gap-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="idDokumentu" value="@d.Id" />
+                                        <input type="hidden" name="idPozycji" value="@p.Id" />
+                                        <input
+                                            type="number"
+                                            name="cenaJednostkowa"
+                                            class="form-control form-control-sm text-end"
+                                            style="max-width: 110px;"
+                                            step="0.01"
+                                            min="0"
+                                            required
+                                            value="@(p.CenaJednostkowa?.ToString("0.00", CultureInfo.InvariantCulture) ?? string.Empty)" />
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Zapisz cene jednostkowa">
+                                            <i class="bi bi-check2"></i>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    @(p.CenaJednostkowa?.ToString("0.00") ?? "-")
+                                }
+                            </td>
                             <td class="text-end">@wartosc.ToString("0.00")</td>
                             <td class="text-end">
                                 <div class="btn-group btn-group-sm" role="group">

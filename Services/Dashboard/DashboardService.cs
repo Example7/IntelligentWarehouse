@@ -1,5 +1,6 @@
 using Data.Data;
 using Interfaces.Dashboard;
+using Interfaces.Magazyn;
 using Microsoft.EntityFrameworkCore;
 using Services.Abstrakcja;
 
@@ -7,8 +8,11 @@ namespace Services.Dashboard
 {
     public class DashboardService : BaseService, IDashboardService
     {
-        public DashboardService(DataContext context) : base(context)
+        private readonly IRaportMagazynowyService _raportMagazynowyService;
+
+        public DashboardService(DataContext context, IRaportMagazynowyService raportMagazynowyService) : base(context)
         {
+            _raportMagazynowyService = raportMagazynowyService;
         }
 
         public async Task<DashboardVm> GetDashboardAsync()
@@ -16,27 +20,50 @@ namespace Services.Dashboard
             var nowUtc = DateTime.UtcNow;
             var todayUtc = nowUtc.Date;
             var tomorrowUtc = todayUtc.AddDays(1);
-            var olderThan24hUtc = nowUtc.AddHours(-24);
             var last7DaysUtc = nowUtc.AddDays(-7);
 
-            var draftPzOlderThan24h = await _context.DokumentPZ.AsNoTracking()
-                .CountAsync(x => x.Status == "Draft" && x.DataPrzyjeciaUtc <= olderThan24hUtc);
-
-            var draftWzOlderThan24h = await _context.DokumentWZ.AsNoTracking()
-                .CountAsync(x => x.Status == "Draft" && x.DataWydaniaUtc <= olderThan24hUtc);
-
-            var lowStockProducts = await _context.Produkt.AsNoTracking()
-                .Where(p => p.CzyAktywny)
-                .Select(p => new
+            var activeAlerts = await _context.Alert.AsNoTracking()
+                .Where(x => !x.CzyPotwierdzony)
+                .OrderByDescending(x => x.UtworzonoUtc)
+                .Select(x => new DashboardAlertVm
                 {
-                    p.IdProduktu,
-                    p.StanMinimalny,
-                    CurrentQty = _context.StanMagazynowy
-                        .Where(s => s.IdProduktu == p.IdProduktu)
-                        .Select(s => (decimal?)s.Ilosc)
-                        .Sum() ?? 0m
+                    Id = x.Id,
+                    Severity = x.Waga,
+                    Message = x.Tresc,
+                    CreatedAtUtc = x.UtworzonoUtc,
+                    ProductId = x.IdProduktu,
+                    WarehouseId = x.IdMagazynu,
+                    ProductCode = x.Produkt.Kod,
+                    ProductName = x.Produkt.Nazwa,
+                    WarehouseName = x.Magazyn.Nazwa,
+                    UomCode = x.Produkt.DomyslnaJednostka != null ? x.Produkt.DomyslnaJednostka.Kod : "j.m."
                 })
-                .CountAsync(x => x.CurrentQty < x.StanMinimalny);
+                .Take(6)
+                .ToListAsync();
+
+            var alertWarehouseIds = activeAlerts
+                .Select(x => x.WarehouseId)
+                .Distinct()
+                .ToList();
+
+            var suggestedQtyByKey = new Dictionary<string, (decimal Qty, string Uom)>(StringComparer.Ordinal);
+            foreach (var warehouseId in alertWarehouseIds)
+            {
+                var report = await _raportMagazynowyService.GetRaportPropozycjiZamowienAsync(null, warehouseId);
+                foreach (var row in report.Rows)
+                {
+                    suggestedQtyByKey[BuildAlertKey(row.IdMagazynu, row.IdProduktu)] = (row.ProponowanaIloscZamowienia, row.Jednostka);
+                }
+            }
+
+            foreach (var alert in activeAlerts)
+            {
+                if (suggestedQtyByKey.TryGetValue(BuildAlertKey(alert.WarehouseId, alert.ProductId), out var suggested))
+                {
+                    alert.SuggestedOrderQty = suggested.Qty;
+                    alert.UomCode = string.IsNullOrWhiteSpace(suggested.Uom) ? alert.UomCode : suggested.Uom;
+                }
+            }
 
             var vm = new DashboardVm
             {
@@ -51,14 +78,20 @@ namespace Services.Dashboard
                     WzToday = await _context.DokumentWZ.AsNoTracking()
                         .CountAsync(x => x.DataWydaniaUtc >= todayUtc && x.DataWydaniaUtc < tomorrowUtc),
                     ActiveAlerts = await _context.Alert.AsNoTracking().CountAsync(x => !x.CzyPotwierdzony),
-                    ActiveUsers = await _context.Uzytkownik.AsNoTracking().CountAsync(x => x.CzyAktywny)
+                    ReservationsToday = await _context.Rezerwacja.AsNoTracking()
+                        .CountAsync(x => x.UtworzonoUtc >= todayUtc && x.UtworzonoUtc < tomorrowUtc)
                 },
                 BusinessMetrics = new DashboardBusinessMetricsVm
                 {
-                    LowStockProducts = lowStockProducts,
-                    DraftPzOlderThan24h = draftPzOlderThan24h,
-                    DraftWzOlderThan24h = draftWzOlderThan24h,
-                    DraftDocumentsOlderThan24h = draftPzOlderThan24h + draftWzOlderThan24h
+                    UnacknowledgedCritAlerts = await _context.Alert.AsNoTracking()
+                        .CountAsync(x => !x.CzyPotwierdzony && x.Waga == "CRIT"),
+                    DraftPzProductsWithoutUnitPrice = await _context.PozycjaPZ.AsNoTracking()
+                        .Where(x => x.Dokument.Status == "Draft" && !x.CenaJednostkowa.HasValue)
+                        .Select(x => x.IdProduktu)
+                        .Distinct()
+                        .CountAsync(),
+                    DraftWzDocuments = await _context.DokumentWZ.AsNoTracking()
+                        .CountAsync(x => x.Status == "Draft")
                 },
                 RecentMovements = await _context.RuchMagazynowy.AsNoTracking()
                     .OrderByDescending(x => x.UtworzonoUtc)
@@ -106,19 +139,26 @@ namespace Services.Dashboard
                     })
                     .Take(5)
                     .ToListAsync(),
-                ActiveAlerts = await _context.Alert.AsNoTracking()
-                    .Where(x => !x.CzyPotwierdzony)
-                    .OrderByDescending(x => x.UtworzonoUtc)
-                    .Select(x => new DashboardAlertVm
+                ActiveAlerts = activeAlerts,
+                ReorderSuppliers = await _context.Dostawca.AsNoTracking()
+                    .Where(d => d.CzyAktywny)
+                    .OrderBy(d => d.Nazwa)
+                    .Select(d => new DashboardSelectOptionVm
                     {
-                        Id = x.Id,
-                        Severity = x.Waga,
-                        Message = x.Tresc,
-                        CreatedAtUtc = x.UtworzonoUtc,
-                        ProductCode = x.Produkt.Kod,
-                        WarehouseName = x.Magazyn.Nazwa
+                        Value = d.IdDostawcy,
+                        Text = d.Nazwa
                     })
-                    .Take(6)
+                    .ToListAsync(),
+                ReorderReceiptLocations = await _context.Lokacja.AsNoTracking()
+                    .Where(l => l.CzyAktywna)
+                    .OrderBy(l => l.Magazyn.Nazwa)
+                    .ThenBy(l => l.Kod)
+                    .Select(l => new DashboardSelectOptionVm
+                    {
+                        Value = l.IdLokacji,
+                        Text = (l.Magazyn != null ? l.Magazyn.Nazwa + " / " : string.Empty) + l.Kod,
+                        WarehouseId = l.IdMagazynu
+                    })
                     .ToListAsync(),
                 TopProductsLast7Days = await _context.RuchMagazynowy.AsNoTracking()
                     .Where(x => x.UtworzonoUtc >= last7DaysUtc)
@@ -140,5 +180,7 @@ namespace Services.Dashboard
 
             return vm;
         }
+
+        private static string BuildAlertKey(int warehouseId, int productId) => $"{warehouseId}:{productId}";
     }
 }
