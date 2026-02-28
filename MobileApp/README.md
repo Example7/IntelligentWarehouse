@@ -1,4 +1,4 @@
-# MobileApp (React Native / Expo)
+﻿# MobileApp (React Native / Expo)
 
 Frontend mobilny klienta dla `MobileApi`.
 
@@ -6,44 +6,46 @@ Frontend mobilny klienta dla `MobileApi`.
 
 - logowanie JWT (`api/auth/login`)
 - dashboard klienta (`api/client/dashboard`)
-- lista + szczegóły dokumentów `WZ`
-- lista + szczegóły rezerwacji
+- lista + szczegoly dokumentow `WZ`
+- lista + szczegoly rezerwacji
 - powiadomienia/alerty klienta
 - profil klienta (`api/client/profile`) + `api/auth/me`
-- publiczne treści CMS (`api/mobile/content/news`, `pages`)
+- publiczne tresci CMS (`api/mobile/content/news`, `pages`)
 
 ## Wymagania testowe po stronie backendu
 
 - uruchomione `MobileApi`
-- użytkownik z rolą `Client`
-- rekord `Klient` powiązany z użytkownikiem (`Klient.IdUzytkownika`)
+- uzytkownik z rola `Client`
+- rekord `Klient` powiazany z uzytkownikiem (`Klient.IdUzytkownika`)
 
 ## Uruchomienie
 
-1. Włącz `MobileApi` (domyślnie `http://localhost:5095`).
-2. Przejdź do katalogu:
+1. Wlacz `MobileApi` na porcie `5095`.
+2. Przejdz do katalogu:
    - `cd MobileApp`
-3. Zainstaluj zależności:
+3. Zainstaluj zaleznosci:
    - `npm install`
 4. Uruchom Expo:
    - `npm run start`
 
 ## Konfiguracja adresu API
 
-Aplikacja ma pole `Adres API (MobileApi)` na ekranie logowania.
+Aplikacja domyslnie wykrywa host komputera z Expo i buduje adres:
 
-Przykłady:
+- `http://<host-z-Expo>:5095`
 
-- Windows + emulator Android: `http://10.0.2.2:5095`
-- iOS Simulator: `http://localhost:5095`
-- telefon w tej samej sieci Wi-Fi: `http://<IP-komputera>:5095`
+Jesli wykrywanie nie zadziala, fallback jest taki:
 
-Możesz też ustawić domyślny adres przez `.env`:
+- Android emulator: `http://10.0.2.2:5095`
+- iOS simulator: `http://localhost:5095`
+
+Mozesz wymusic adres przez `.env`:
 
 - skopiuj `.env.example` -> `.env`
-- ustaw `EXPO_PUBLIC_API_BASE_URL=...`
+- ustaw `EXPO_PUBLIC_API_BASE_URL=auto` (rekomendowane)
+- albo wpisz pelny URL, np. `http://192.168.1.28:5095`
 
 ## Uwagi
 
-- Endpointy klienta są chronione `[Authorize(Roles = "Klient")]`, więc konta pracownicze (`Admin`, `Magazynier`, `Operator`) zalogują się, ale nie uzyskają dostępu do strefy klienta.
-- To MVP nie używa jeszcze biblioteki nawigacji (React Navigation) — przełączanie ekranów jest zrobione lekko, wewnątrz jednego `App.tsx`, żeby szybciej domknąć funkcjonalny frontend pod `MobileApi`.
+- Endpointy klienta sa chronione `[Authorize(Roles = "Klient")]`, wiec konta pracownicze (`Admin`, `Magazynier`, `Operator`) zaloguja sie, ale nie uzyskaja dostepu do strefy klienta.
+- To MVP nie uzywa jeszcze biblioteki nawigacji (React Navigation) - przelaczanie ekranow jest zrobione lekko, wewnatrz jednego `App.tsx`.

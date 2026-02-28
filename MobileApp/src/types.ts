@@ -67,7 +67,7 @@ export interface ClientReservationListItemDto {
 export interface ClientDashboardDto {
   activeOrdersCount: number;
   postedOrdersCount: number;
-  openReservationsCount: number;
+  reservationsCount: number;
   recentOrders: ClientOrderListItemDto[];
   recentReservations: ClientReservationListItemDto[];
 }

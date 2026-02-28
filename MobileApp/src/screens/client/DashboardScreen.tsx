@@ -77,13 +77,13 @@ export function DashboardScreen({
             accent="amber"
           />
           <MetricCard
-            label="Posted WZ"
+            label="Zaksięgowane WZ"
             value={String(data?.postedOrdersCount ?? 0)}
             accent="teal"
           />
           <MetricCard
-            label="Rezerwacje open"
-            value={String(data?.openReservationsCount ?? 0)}
+            label="Ilość rezerwacji"
+            value={String(data?.reservationsCount ?? 0)}
           />
         </InlineRow>
       </Card>

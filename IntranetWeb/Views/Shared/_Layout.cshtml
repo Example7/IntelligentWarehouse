@@ -20,63 +20,63 @@
 @inject DataContext DbContext
 
 @{
-        var currentController = (ViewContext.RouteData.Values["controller"]?.ToString()) ?? "";
-        var currentAction = (ViewContext.RouteData.Values["action"]?.ToString()) ?? "";
-        var currentSectionLabel = currentController switch
-        {
-            "" or "Home" => "Dashboard",
-            "Aktualnosc" => "Aktualności",
-            "Strona" => "Strony",
-            "PlikMedia" => "Media",
-            "SzablonWydruku" => "Szablony wydruków",
-            "ZalacznikDokumentu" => "Załączniki dokumentów",
-            "DokumentPZ" => "Dokumenty PZ",
-            "DokumentWZ" => "Dokumenty WZ",
-            "DokumentMM" => "Dokumenty MM",
-            "PozycjaPZ" => "Pozycje PZ",
-            "PozycjaWZ" => "Pozycje WZ",
-            "PozycjaMM" => "Pozycje MM",
-            "PozycjaInwentaryzacji" => "Pozycje inwentaryzacji",
-            "PozycjaRezerwacji" => "Pozycje rezerwacji",
-            "JednostkaMiary" => "Jednostki miary",
-            "Uzytkownik" => "Użytkownicy",
-            "UzytkownikRola" => "Role użytkowników",
-            "Rola" => "Role",
-            "Kategoria" => "Kategorie",
-            "Konto" => "Konto",
-            _ => currentController
-        };
-        bool IsActive(string c) => string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase);
-        bool IsActiveAction(string c, string a) =>
-            string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(currentAction, a, StringComparison.OrdinalIgnoreCase);
-        var isAdmin = User?.IsInRole("Admin") ?? false;
-        var isMagazynier = User?.IsInRole("Magazynier") ?? false;
-        var isOperator = User?.IsInRole("Operator") ?? false;
-        var canUseWarehouse = isAdmin || isMagazynier;
-        var canUseWarehouseOrOffice = isAdmin || isMagazynier || isOperator;
-        var roleClaimValues = (User?.FindAll(System.Security.Claims.ClaimTypes.Role) ?? Enumerable.Empty<System.Security.Claims.Claim>())
-            .Select(c => c.Value)
-            .Where(v => !string.IsNullOrWhiteSpace(v))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        var currentRoleLabel = roleClaimValues.Count == 0 ? "Brak roli" : string.Join(", ", roleClaimValues);
-        var draftReservationsCount = 0;
-        var draftReservations = new List<Data.Data.Magazyn.Rezerwacja>();
-        if (canUseWarehouse && User?.Identity?.IsAuthenticated == true)
-        {
-            draftReservationsCount = await DbContext.Rezerwacja
-                .AsNoTracking()
-                .CountAsync(r => r.Status == "Draft");
+    var currentController = (ViewContext.RouteData.Values["controller"]?.ToString()) ?? "";
+    var currentAction = (ViewContext.RouteData.Values["action"]?.ToString()) ?? "";
+    var currentSectionLabel = currentController switch
+    {
+        "" or "Home" => "Dashboard",
+        "Aktualnosc" => "Aktualności",
+        "Strona" => "Strony",
+        "PlikMedia" => "Media",
+        "SzablonWydruku" => "Szablony wydruków",
+        "ZalacznikDokumentu" => "Załączniki dokumentów",
+        "DokumentPZ" => "Dokumenty PZ",
+        "DokumentWZ" => "Dokumenty WZ",
+        "DokumentMM" => "Dokumenty MM",
+        "PozycjaPZ" => "Pozycje PZ",
+        "PozycjaWZ" => "Pozycje WZ",
+        "PozycjaMM" => "Pozycje MM",
+        "PozycjaInwentaryzacji" => "Pozycje inwentaryzacji",
+        "PozycjaRezerwacji" => "Pozycje rezerwacji",
+        "JednostkaMiary" => "Jednostki miary",
+        "Uzytkownik" => "Użytkownicy",
+        "UzytkownikRola" => "Role użytkowników",
+        "Rola" => "Role",
+        "Kategoria" => "Kategorie",
+        "Konto" => "Konto",
+        _ => currentController
+    };
+    bool IsActive(string c) => string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase);
+    bool IsActiveAction(string c, string a) =>
+        string.Equals(currentController, c, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(currentAction, a, StringComparison.OrdinalIgnoreCase);
+    var isAdmin = User?.IsInRole("Admin") ?? false;
+    var isMagazynier = User?.IsInRole("Magazynier") ?? false;
+    var isOperator = User?.IsInRole("Operator") ?? false;
+    var canUseWarehouse = isAdmin || isMagazynier;
+    var canUseWarehouseOrOffice = isAdmin || isMagazynier || isOperator;
+    var roleClaimValues = (User?.FindAll(System.Security.Claims.ClaimTypes.Role) ?? Enumerable.Empty<System.Security.Claims.Claim>())
+        .Select(c => c.Value)
+        .Where(v => !string.IsNullOrWhiteSpace(v))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .ToList();
+    var currentRoleLabel = roleClaimValues.Count == 0 ? "Brak roli" : string.Join(", ", roleClaimValues);
+    var actionableReservationsCount = 0;
+    var actionableReservations = new List<Data.Data.Magazyn.Rezerwacja>();
+    if (canUseWarehouse && User?.Identity?.IsAuthenticated == true)
+    {
+        actionableReservationsCount = await DbContext.Rezerwacja
+            .AsNoTracking()
+            .CountAsync(r => r.Status == "Draft" || r.Status == "Active");
 
-            draftReservations = await DbContext.Rezerwacja
-                .AsNoTracking()
-                .Include(r => r.Magazyn)
-                .Where(r => r.Status == "Draft")
-                .OrderByDescending(r => r.UtworzonoUtc)
-                .Take(6)
-                .ToListAsync();
-        }
+        actionableReservations = await DbContext.Rezerwacja
+            .AsNoTracking()
+            .Include(r => r.Magazyn)
+            .Where(r => r.Status == "Draft" || r.Status == "Active")
+            .OrderByDescending(r => r.UtworzonoUtc)
+            .Take(6)
+            .ToListAsync();
+    }
 }
 
 <body class="has-sidebar intranet-shell">
@@ -120,25 +120,25 @@
                     @if (canUseWarehouse && User?.Identity?.IsAuthenticated == true)
                     {
                         <div class="dropdown">
-                            <button class="btn app-icon-btn app-icon-btn--alert" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Rezerwacje do potwierdzenia" aria-label="Rezerwacje do potwierdzenia">
+                            <button class="btn app-icon-btn app-icon-btn--alert" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Rezerwacje do obsługi (Draft/Active)" aria-label="Rezerwacje do obsługi (Draft/Active)">
                                 <i class="bi bi-bell"></i>
-                                @if (draftReservationsCount > 0)
+                                @if (actionableReservationsCount > 0)
                                 {
-                                    <span class="app-icon-badge">@(draftReservationsCount > 99 ? "99+" : draftReservationsCount.ToString())</span>
+                                    <span class="app-icon-badge">@(actionableReservationsCount > 99 ? "99+" : actionableReservationsCount.ToString())</span>
                                 }
                             </button>
                             <div class="dropdown-menu dropdown-menu-end app-topbar-dropdown p-0">
                                 <div class="app-topbar-dropdown__head">
-                                    <span>Rezerwacje do potwierdzenia</span>
-                                    <span class="app-topbar-dropdown__count">@draftReservationsCount</span>
+                                    <span>Rezerwacje do obsługi (Draft/Active)</span>
+                                    <span class="app-topbar-dropdown__count">@actionableReservationsCount</span>
                                 </div>
-                                @if (draftReservationsCount == 0)
+                                @if (actionableReservationsCount == 0)
                                 {
-                                    <div class="app-topbar-dropdown__empty">Brak rezerwacji oczekujacych na potwierdzenie.</div>
+                                    <div class="app-topbar-dropdown__empty">Brak rezerwacji do obsługi.</div>
                                 }
                                 else
                                 {
-                                    foreach (var reservation in draftReservations)
+                                    foreach (var reservation in actionableReservations)
                                     {
                                         <a class="dropdown-item app-topbar-alert-item" asp-controller="Rezerwacja" asp-action="Details" asp-route-id="@reservation.Id">
                                             <div class="app-topbar-alert-item__title">@reservation.Numer</div>
@@ -147,7 +147,7 @@
                                     }
                                 }
                                 <div class="app-topbar-dropdown__footer">
-                                    <a asp-controller="Rezerwacja" asp-action="Index">Przejdz do listy rezerwacji</a>
+                                    <a asp-controller="Rezerwacja" asp-action="Index">Przejdź do listy rezerwacji</a>
                                 </div>
                             </div>
                         </div>

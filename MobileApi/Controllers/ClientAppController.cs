@@ -195,7 +195,7 @@ public class ClientAppController : ControllerBase
 
         var activeOrdersCount = await ordersQuery.CountAsync(d => d.Status != "Posted");
         var postedOrdersCount = await ordersQuery.CountAsync(d => d.Status == "Posted");
-        var openReservationsCount = await reservationsQuery.CountAsync(r => r.Status != "Closed" && r.Status != "Cancelled");
+        var reservationsCount = await reservationsQuery.CountAsync();
 
         var recentOrders = await ordersQuery
             .OrderByDescending(d => d.DataWydaniaUtc)
@@ -235,7 +235,7 @@ public class ClientAppController : ControllerBase
         {
             ActiveOrdersCount = activeOrdersCount,
             PostedOrdersCount = postedOrdersCount,
-            OpenReservationsCount = openReservationsCount,
+            ReservationsCount = reservationsCount,
             RecentOrders = recentOrders,
             RecentReservations = recentReservations
         });
